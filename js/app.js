@@ -75,6 +75,21 @@ function bindEvList(sel){
 bindEvList("#dayList"); bindEvList("#mapList");
 
 /* ---------- 지도 ---------- */
+$("#mapMode").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  mapMode = b.dataset.m; renderMap();
+});
+$("#kSearchBtn").addEventListener("click", ()=>kakaoSearch($("#kSearchIn").value.trim()));
+$("#kSearchIn").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#kSearchBtn").click(); });
+$("#kSearchOut").addEventListener("click", e=>{
+  const b = e.target.closest(".ksr"); if(!b) return;
+  kakaoPickPlace(b.dataset.lat, b.dataset.lng, b.dataset.name);
+});
+$("#kPickAdd").addEventListener("click", ()=>{
+  if(!kPick || mode==="readonly") return;
+  const p = latLngToSvg(kPick.lat, kPick.lng);
+  openSheet("add", { type:"date", sub:"기타", title:kPick.name, lat:kPick.lat, lng:kPick.lng, x:p.x, y:p.y });
+});
 $("#mapChips").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   mapFilter = b.dataset.f;

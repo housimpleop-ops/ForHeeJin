@@ -35,8 +35,10 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
          shows[], smoke:{cs,hj}, invest:{goal,notes[]} }
 ```
 
-- events: {id,date,type(run|date|wed),sub,title,memo,kcal,by(cs|hj),done,x,y,photo}
-  - x,y는 지도 SVG viewBox(300×420) 좌표. photo는 storage 경로.
+- events: {id,date,type(run|date|wed),sub,title,memo,kcal,by(cs|hj),done,x,y,lat,lng,photo}
+  - x,y는 그림 지도 SVG viewBox(300×420) 좌표, lat/lng는 카카오맵용 실좌표.
+  - map.js의 svgToLatLng/latLngToSvg로 상호 변환 — 두 지도가 같은 핀 공유. photo는 storage 경로.
+  - 카카오맵: config.js의 KAKAO_JS_KEY(도메인 잠금), 지도 탭 [그림/진짜] 전환, 장소 검색→일정 만들기.
 - 저장 흐름: 어떤 변경이든 `save(change, files?)` 하나로. change는 applyChange가 이해하는
   {kind, ...} 꼴 — 저장 직전 서버 최신본을 받아 change만 얹어서 덮어씀(동시 수정 병합).
 - 실시간: couple_state UPDATE 이벤트 수신 → 다시 select → renderAll().

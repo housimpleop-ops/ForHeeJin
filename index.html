@@ -49,14 +49,27 @@
     <section id="view-map" hidden>
       <div class="card">
         <div class="sec-title">우리가 다닌 지도 🗺️</div>
-        <div class="chips" id="mapChips">
+        <div class="chips" id="mapMode" style="margin:0 0 6px">
+          <button data-m="art" class="on">🎨 그림 지도</button>
+          <button data-m="real">🗺️ 진짜 지도</button>
+        </div>
+        <div class="chips" id="mapChips" style="margin-top:0">
           <button data-f="all" class="on">전체</button>
           <button data-f="run">💪 운동</button>
           <button data-f="date">💛 데이트</button>
           <button data-f="wed">💍 결혼</button>
         </div>
         <div id="mapWrap"></div>
-        <div class="legend"><span><i class="f"></i>다녀온 곳</span><span><i class="o"></i>갈 곳</span><span>🏠 우리 동네</span></div>
+        <div class="legend" id="mapLegend"><span><i class="f"></i>다녀온 곳</span><span><i class="o"></i>갈 곳</span><span>🏠 우리 동네</span></div>
+        <div id="kmapWrap" hidden>
+          <div class="wadd" style="margin:0 0 8px">
+            <input type="text" id="kSearchIn" placeholder="장소 검색 (예: 월미도, 봉스튜디오)">
+            <button id="kSearchBtn">🔍 검색</button>
+          </div>
+          <div id="kmapDiv"></div>
+          <div id="kSearchOut"></div>
+          <div class="cal-sync" id="kPickBar" hidden><button id="kPickAdd">➕ 이 장소로 일정 만들기</button></div>
+        </div>
       </div>
       <div class="card">
         <div class="sec-title">기록</div>

@@ -18,6 +18,7 @@ let calY = today.getFullYear(), calM = today.getMonth();
 let selDate = ymd(today);       // 달력에서 고른 날
 let mealDate = ymd(today);      // 식단 탭 날짜
 let mapFilter = "all";
+let mapMode = "art"; // 지도 탭: art=그림 지도, real=카카오맵
 let homeBoard = "home";         // 살림 노트 현재 보드
 let bodyP = "cs", smokeP = "cs";
 let invKindSel = "주식";

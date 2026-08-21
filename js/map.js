@@ -88,6 +88,73 @@ function bindMainMapNav(){
   $("#mapZoomReset").addEventListener("click", mapReset);
 }
 
+/* ============================================================
+   카카오맵 (진짜 지도) — 그림 지도의 x,y와 위도·경도를 서로 변환해서
+   두 지도가 같은 핀을 공유한다.
+   ============================================================ */
+function svgToLatLng(x, y){ return { lat: 38.8-(y-10)/69, lng: (x-10)/70+125.8 }; }
+function latLngToSvg(lat, lng){ return { x: Math.round(((lng-125.8)*70+10)*10)/10, y: Math.round(((38.8-lat)*69+10)*10)/10 }; }
+
+let kakaoReady = false, kakaoLoading = false;
+let kmap = null, kMarkers = [], kTempMarker = null, kPick = null;
+
+function loadKakao(cb){
+  if(kakaoReady){ cb(); return; }
+  if(kakaoLoading) return;
+  const key = (window.COUPLE_CONFIG||{}).KAKAO_JS_KEY;
+  if(!key){ banner("카카오맵 키가 아직 설정되지 않았어요."); return; }
+  kakaoLoading = true;
+  const s = document.createElement("script");
+  s.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey="+key+"&libraries=services&autoload=false";
+  s.onload = ()=>{ kakao.maps.load(()=>{ kakaoReady = true; kakaoLoading = false; cb(); }); };
+  s.onerror = ()=>{ kakaoLoading = false; banner("카카오맵을 불러오지 못했어요. 카카오개발자 사이트에서 ①카카오맵 ON ②플랫폼 도메인 등록을 확인해 주세요."); };
+  document.head.appendChild(s);
+}
+function initKakaoMap(){
+  if(kmap) return;
+  kmap = new kakao.maps.Map(document.getElementById("kmapDiv"), {
+    center: new kakao.maps.LatLng(37.62, 126.87), // 우리 동네(향동) 근처
+    level: 8,
+  });
+}
+function renderKakaoMarkers(){
+  if(!kmap) return;
+  kMarkers.forEach(m=>m.setMap(null)); kMarkers = [];
+  DATA.events.filter(e=>(mapFilter==="all"||e.type===mapFilter)).forEach(e=>{
+    let lat = e.lat, lng = e.lng;
+    if(lat==null && e.x!=null){ const c = svgToLatLng(e.x, e.y); lat=c.lat; lng=c.lng; }
+    if(lat==null) return;
+    const mk = new kakao.maps.Marker({ map:kmap, position:new kakao.maps.LatLng(lat,lng), title:(e.title||"") });
+    kakao.maps.event.addListener(mk, "click", ()=>{
+      const card = document.querySelector('#mapList .ev[data-id="'+e.id+'"]');
+      if(card) card.scrollIntoView({behavior:"smooth", block:"center"});
+    });
+    kMarkers.push(mk);
+  });
+}
+function kakaoSearch(q){
+  if(!kakaoReady || !q) return;
+  const ps = new kakao.maps.services.Places();
+  ps.keywordSearch(q, (res, status)=>{
+    const box = document.getElementById("kSearchOut");
+    if(status !== kakao.maps.services.Status.OK || !res.length){
+      box.innerHTML = '<div class="empty">검색 결과가 없어요 🔍</div>'; return;
+    }
+    box.innerHTML = res.slice(0,5).map(r=>
+      '<button class="wi ksr" data-lat="'+r.y+'" data-lng="'+r.x+'" data-name="'+esc(r.place_name)+'">'
+      + '<span class="tx"><b>'+esc(r.place_name)+'</b><br><span style="font-size:11.5px; color:var(--muted-solid)">'+esc(r.road_address_name||r.address_name||"")+'</span></span></button>').join("");
+  });
+}
+function kakaoPickPlace(lat, lng, name){
+  kPick = { lat:+lat, lng:+lng, name };
+  const pos = new kakao.maps.LatLng(+lat, +lng);
+  kmap.setLevel(4); kmap.panTo(pos);
+  if(kTempMarker) kTempMarker.setMap(null);
+  kTempMarker = new kakao.maps.Marker({ map:kmap, position:pos });
+  document.getElementById("kPickBar").hidden = false;
+  document.getElementById("kPickAdd").textContent = "➕ \""+name+"\" 일정 만들기";
+}
+
 function pinHTML(ev, hot){
   return `<g class="pin ${ev.type} ${ev.done?"done":""} ${hot?"hot":""}" data-id="${ev.id}" transform="translate(${ev.x},${ev.y})" style="cursor:pointer">
     <circle class="halo" r="6" fill="none" stroke="var(--${ev.type==="wed"?"fest":ev.type})" stroke-width="1.5" opacity="0"/>

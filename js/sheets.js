@@ -31,7 +31,7 @@ function shrink(file){ return new Promise((res,rej)=>{
    [1] 일정 시트
    ============================================================ */
 function openSheet(m, ev){
-  sheet = { mode:m, blob:null, ev: Object.assign({ id:uid(), date:selDate, type:"run", sub:"러닝", title:"", memo:"", kcal:null, by:me, done:false, x:null, y:null, photo:null }, ev||{}) };
+  sheet = { mode:m, blob:null, ev: Object.assign({ id:uid(), date:selDate, type:"run", sub:"러닝", title:"", memo:"", kcal:null, by:me, done:false, x:null, y:null, lat:null, lng:null, photo:null }, ev||{}) };
   if(!(SUBS[sheet.ev.type]||[]).some(s=>s[0]===sheet.ev.sub)) sheet.ev.sub = SUBS[sheet.ev.type][0][0];
   $("#shTitle").textContent = m==="edit" ? "일정 수정 ✏️" : "일정 추가 ✨";
   $("#shDate").value = sheet.ev.date;
@@ -71,9 +71,11 @@ function bindSheet(){
     if(!sheet) return;
     const svg = $("#shMap"); if(!svg || !svg.contains(e.target)) return;
     const p = svgPoint(svg, e);
-    sheet.ev.x=p.x; sheet.ev.y=p.y; syncSheetUI();
+    sheet.ev.x=p.x; sheet.ev.y=p.y;
+    const c = svgToLatLng(p.x, p.y); sheet.ev.lat=c.lat; sheet.ev.lng=c.lng; /* 진짜 지도에도 같은 자리 */
+    syncSheetUI();
   });
-  $("#shLocClear").addEventListener("click", ()=>{ if(sheet){ sheet.ev.x=null; sheet.ev.y=null; syncSheetUI(); } });
+  $("#shLocClear").addEventListener("click", ()=>{ if(sheet){ sheet.ev.x=null; sheet.ev.y=null; sheet.ev.lat=null; sheet.ev.lng=null; syncSheetUI(); } });
   $("#shPhotoBtn").addEventListener("click", ()=>$("#shPhoto").click());
   $("#shPhoto").addEventListener("change", async e=>{
     const f = e.target.files && e.target.files[0]; e.target.value="";

@@ -10,4 +10,5 @@
 window.COUPLE_CONFIG = {
   SUPABASE_URL: "https://zwuuxihdfvjsuxffpsog.supabase.co", // ForHeeJin 프로젝트
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3dXV4aWhkZnZqc3V4ZmZwc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMjU5MTksImV4cCI6MjEwMjkwMTkxOX0.cT1zzNLu0pIkNO-tIhn1R0pqZnt8wXusKYGLk5360S4",
+  KAKAO_JS_KEY: "f6e8b8000d90d979e68d060dd950df8b", // 카카오맵 JavaScript 키 (도메인 잠금 공개키)
 };

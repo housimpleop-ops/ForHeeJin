@@ -71,6 +71,14 @@ function renderMap(){
   }
   const list = DATA.events.filter(e=>e.x!=null && (mapFilter==="all"||e.type===mapFilter));
   $("#mainMap .pins").innerHTML = list.map(e=>pinHTML(e,false)).join("");
+  /* 그림 지도 ↔ 진짜 지도 전환 */
+  document.querySelectorAll("#mapMode button").forEach(b=>b.classList.toggle("on", b.dataset.m===mapMode));
+  $("#mapWrap").hidden = mapMode!=="art";
+  $("#mapLegend").hidden = mapMode!=="art";
+  $("#kmapWrap").hidden = mapMode!=="real";
+  if(mapMode==="real"){
+    loadKakao(()=>{ initKakaoMap(); kmap.relayout(); renderKakaoMarkers(); });
+  }
   const sorted = DATA.events.filter(e=>mapFilter==="all"||e.type===mapFilter)
     .slice().sort((a,b)=>b.date.localeCompare(a.date));
   $("#mapList").innerHTML = sorted.length ? sorted.map(e=>evCard(e,true)).join("") : `<div class="empty">아직 기록이 없어요 🐾</div>`;
