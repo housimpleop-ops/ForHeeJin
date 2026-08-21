@@ -8,6 +8,6 @@
  * 두 값이 비어 있으면 앱은 "로컬 모드"로 동작합니다(이 기기에만 저장).
  */
 window.COUPLE_CONFIG = {
-  SUPABASE_URL: "",      // 예: "https://xxxxxxxx.supabase.co"
-  SUPABASE_ANON_KEY: "", // 예: "eyJhbGciOi..."
+  SUPABASE_URL: "https://zwuuxihdfvjsuxffpsog.supabase.co", // ForHeeJin 프로젝트
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3dXV4aWhkZnZqc3V4ZmZwc29nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMjU5MTksImV4cCI6MjEwMjkwMTkxOX0.cT1zzNLu0pIkNO-tIhn1R0pqZnt8wXusKYGLk5360S4",
 };
