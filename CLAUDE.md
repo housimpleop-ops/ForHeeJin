@@ -24,6 +24,9 @@ docs/시작하기.md       사용자용 배포·설정 안내 (단계별)
 스크립트 로드 순서(index.html 하단): config → data → state → saju → map → store → views → sheets → app.
 모듈 시스템 없음 — 전역 함수/변수를 그대로 공유한다. 새 파일 추가 시 로드 순서에 주의.
 
+⚠️ **배포 캐시 규칙**: css/js를 수정해 배포할 때는 index.html의 `?v=숫자`를 전부 +1 할 것.
+(GitHub Pages가 파일을 10분 캐시해서, 안 올리면 폰에서 새 index + 옛 js가 섞여 깨질 수 있음)
+
 ## 데이터 모델
 
 Supabase `couple_state` 테이블의 **한 행(id='main')에 DATA 전체를 jsonb로** 저장.

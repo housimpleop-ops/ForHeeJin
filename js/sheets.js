@@ -52,22 +52,28 @@ function openSheet(m, ev){
     sheetPlaceSearch(sheet.ev.title);
   }
 }
-/* 일정 제목(또는 입력한 검색어)으로 카카오 장소 후보 보여주기 */
+/* 일정 제목(또는 입력한 검색어)으로 카카오 장소 후보 보여주기
+   제목 전체로 못 찾으면 가장 긴 단어로 재시도 (예: "봉스튜디오 촬영" → "봉스튜디오") */
 function sheetPlaceSearch(qOverride){
-  const q = qOverride || $("#shTitleIn").value.trim();
-  if(!q){ $("#shTitleIn").focus(); return; }
+  const q0 = qOverride || $("#shTitleIn").value.trim();
+  if(!q0){ $("#shTitleIn").focus(); return; }
   $("#shPlaceOut").innerHTML = '<div class="empty" style="padding:6px">🔍 위치 찾는 중…</div>';
-  kakaoPlaces(q, res=>{
-    if(!sheet) return;
-    if(!res.length){
-      $("#shPlaceOut").innerHTML = '<div class="empty" style="padding:6px 4px; text-align:left">위치를 못 찾았어요. 제목을 가게·장소 이름으로 바꾸고 🔍 버튼을 다시 눌러보세요</div>';
-      return;
-    }
-    $("#shPlaceOut").innerHTML =
-      '<div class="us-note" style="margin:8px 2px 4px">이 중에 맞는 위치가 있으면 골라주세요 👇</div>'
-      + res.slice(0,4).map(r=>'<button type="button" class="wi ksr" data-lat="'+r.y+'" data-lng="'+r.x+'" data-name="'+esc(r.place_name)+'">'
-        + '<span class="tx"><b>'+esc(r.place_name)+'</b><br><span style="font-size:11.5px; color:var(--muted-solid)">'+esc(r.road_address_name||r.address_name||"")+'</span></span></button>').join("");
-  });
+  const tryQ = (q, isRetry)=>{
+    kakaoPlaces(q, res=>{
+      if(!sheet) return;
+      if(!res.length){
+        const longest = q0.split(/[\s·—\-,()·]+/).filter(t=>t.length>=2).sort((a,b)=>b.length-a.length)[0];
+        if(!isRetry && longest && longest!==q){ tryQ(longest, true); return; }
+        $("#shPlaceOut").innerHTML = '<div class="empty" style="padding:6px 4px; text-align:left">위치를 못 찾았어요. 제목을 가게·장소 이름으로 바꾸고 🔍 버튼을 다시 눌러보세요</div>';
+        return;
+      }
+      $("#shPlaceOut").innerHTML =
+        '<div class="us-note" style="margin:8px 2px 4px">이 중에 맞는 위치가 있으면 골라주세요 👇</div>'
+        + res.slice(0,4).map(r=>'<button type="button" class="wi ksr" data-lat="'+r.y+'" data-lng="'+r.x+'" data-name="'+esc(r.place_name)+'">'
+          + '<span class="tx"><b>'+esc(r.place_name)+'</b><br><span style="font-size:11.5px; color:var(--muted-solid)">'+esc(r.road_address_name||r.address_name||"")+'</span></span></button>').join("");
+    });
+  };
+  tryQ(q0, false);
 }
 function syncSheetUI(){
   document.querySelectorAll("#shType button").forEach(b=>b.classList.toggle("on", b.dataset.v===sheet.ev.type));
