@@ -60,7 +60,15 @@ function renderCal(){
 
 /* ---------- 지도 ---------- */
 function renderMap(){
-  if(!$("#mainMap")) $("#mapWrap").innerHTML = mapSVG("mainMap");
+  if(!$("#mainMap")){
+    $("#mapWrap").innerHTML = mapSVG("mainMap") + `<div class="map-ctl">
+      <button id="mapZoomIn" aria-label="확대">＋</button>
+      <button id="mapZoomOut" aria-label="축소">－</button>
+      <button id="mapZoomReset" aria-label="전체 보기" style="font-size:11px">전체</button>
+    </div>`;
+    bindMainMapNav();
+    applyMapView();
+  }
   const list = DATA.events.filter(e=>e.x!=null && (mapFilter==="all"||e.type===mapFilter));
   $("#mainMap .pins").innerHTML = list.map(e=>pinHTML(e,false)).join("");
   const sorted = DATA.events.filter(e=>mapFilter==="all"||e.type===mapFilter)

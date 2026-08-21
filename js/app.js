@@ -82,6 +82,7 @@ $("#mapChips").addEventListener("click", e=>{
   renderMap();
 });
 $("#mapWrap").addEventListener("click", e=>{
+  if(mapDragged) return; /* 드래그 후의 클릭은 무시 */
   const pin = e.target.closest(".pin"); if(!pin) return;
   const id = pin.dataset.id;
   document.querySelectorAll("#mainMap .pin").forEach(p=>p.classList.toggle("hot", p.dataset.id===id));

@@ -44,6 +44,50 @@ function svgPoint(svg, ev){
   return { x: Math.round((cx-r.left)/r.width*300*10)/10, y: Math.round((cy-r.top)/r.height*420*10)/10 };
 }
 
+/* ---------- 큰 지도 확대·이동 (＋/－ 버튼과 드래그) ---------- */
+let mapView = { x:0, y:0, w:300, h:420 };
+let mapDragged = false; // 드래그 직후의 클릭이 핀 선택으로 오인되지 않게
+function clampMapView(){
+  mapView.w = Math.min(300, Math.max(50, mapView.w));
+  mapView.h = mapView.w * 420/300;
+  mapView.x = Math.max(0, Math.min(300 - mapView.w, mapView.x));
+  mapView.y = Math.max(0, Math.min(420 - mapView.h, mapView.y));
+}
+function applyMapView(){
+  const svg = $("#mainMap"); if(!svg) return;
+  svg.setAttribute("viewBox", mapView.x+" "+mapView.y+" "+mapView.w+" "+mapView.h);
+}
+function mapZoomBy(f){
+  const cx = mapView.x + mapView.w/2, cy = mapView.y + mapView.h/2;
+  mapView.w *= f; clampMapView();
+  mapView.x = cx - mapView.w/2; mapView.y = cy - mapView.h/2; clampMapView();
+  applyMapView();
+}
+function mapReset(){ mapView = { x:0, y:0, w:300, h:420 }; applyMapView(); }
+function bindMainMapNav(){
+  const svg = $("#mainMap");
+  let dragging = false, moved = false, sx = 0, sy = 0;
+  svg.addEventListener("pointerdown", e=>{ dragging = true; moved = false; sx = e.clientX; sy = e.clientY; });
+  window.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if(Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    if(!moved) return;
+    const r = svg.getBoundingClientRect();
+    mapView.x -= dx * mapView.w / r.width;
+    mapView.y -= dy * mapView.h / r.height;
+    sx = e.clientX; sy = e.clientY;
+    clampMapView(); applyMapView();
+  });
+  window.addEventListener("pointerup", ()=>{
+    if(dragging && moved){ mapDragged = true; setTimeout(()=>{ mapDragged = false; }, 80); }
+    dragging = false;
+  });
+  $("#mapZoomIn").addEventListener("click", ()=>mapZoomBy(1/1.5));
+  $("#mapZoomOut").addEventListener("click", ()=>mapZoomBy(1.5));
+  $("#mapZoomReset").addEventListener("click", mapReset);
+}
+
 function pinHTML(ev, hot){
   return `<g class="pin ${ev.type} ${ev.done?"done":""} ${hot?"hot":""}" data-id="${ev.id}" transform="translate(${ev.x},${ev.y})" style="cursor:pointer">
     <circle class="halo" r="6" fill="none" stroke="var(--${ev.type==="wed"?"fest":ev.type})" stroke-width="1.5" opacity="0"/>
