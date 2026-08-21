@@ -1,0 +1,12 @@
+{
+  "name": "계획하는 사이",
+  "short_name": "계획사이",
+  "description": "창석·희진의 커플 플래너",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F4F6F3",
+  "theme_color": "#E14E72",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

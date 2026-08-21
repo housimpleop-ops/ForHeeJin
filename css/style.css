@@ -1,0 +1,326 @@
+/* ============================================================
+   계획하는 사이 — 스타일 전부
+   목차:
+   [1] 색·글꼴 변수 (라이트/다크)   [2] 기본 리셋
+   [3] 헤더                        [4] 카드·공통
+   [5] 하단 탭바                   [6] 달력
+   [7] 일정 카드                   [8] 지도
+   [9] 축제                       [10] 약속·리스트 공통(.wi)
+   [11] 쪽지(피드·유튜브)          [12] 식단
+   [13] 전체 메뉴                  [14] 체크리스트·진행바
+   [15] 스킬트리(qtree)·마일스톤(qpath)
+   [16] 여행                      [17] 궁합
+   [18] 몸 기록                   [19] 캘린더 내보내기
+   [20] 바텀시트(sheet·msheet·qsheet)
+   [21] 로그인 화면
+   ============================================================ */
+
+/* [1] 색·글꼴 변수 */
+:root{
+  --bg:#F4F6F3; --card:#FFFFFF; --ink:#232B38; --muted:#68738295;
+  --muted-solid:#687382; --line:#E2E6E0; --soft:#EDF0EB;
+  --run:#2C8C72; --date:#E14E72; --fest:#D9861F;
+  --run-soft:#2C8C7218; --date-soft:#E14E7216; --fest-soft:#D9861F1A;
+  --accent:#E14E72; --sea:#E4EDF1; --land:#FCFCF9; --land-line:#C9D2CC;
+  --danger:#C74848; --shadow:0 6px 24px rgba(35,43,56,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131722; --card:#1C2230; --ink:#E8EBF2; --muted:#97A0B295;
+    --muted-solid:#97A0B2; --line:#2A3245; --soft:#232B3B;
+    --run:#45C39F; --date:#F5789B; --fest:#EFA94B;
+    --run-soft:#45C39F1E; --date-soft:#F5789B1C; --fest-soft:#EFA94B20;
+    --accent:#F5789B; --sea:#182029; --land:#222B3A; --land-line:#39435A;
+    --danger:#E07070; --shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131722; --card:#1C2230; --ink:#E8EBF2; --muted:#97A0B295;
+  --muted-solid:#97A0B2; --line:#2A3245; --soft:#232B3B;
+  --run:#45C39F; --date:#F5789B; --fest:#EFA94B;
+  --run-soft:#45C39F1E; --date-soft:#F5789B1C; --fest-soft:#EFA94B20;
+  --accent:#F5789B; --sea:#182029; --land:#222B3A; --land-line:#39435A;
+  --danger:#E07070; --shadow:0 6px 24px rgba(0,0,0,.35);
+}
+
+/* [2] 기본 리셋 */
+*{box-sizing:border-box; margin:0}
+html,body{background:var(--bg); color:var(--ink);
+  font:15px/1.55 "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  -webkit-text-size-adjust:100%;}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0}
+input,select{font:inherit; color:inherit}
+.app{max-width:560px; margin:0 auto; padding:0 14px 86px}
+section[hidden]{display:none}
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+@media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+
+/* [3] 헤더 */
+header{padding:20px 4px 10px; display:flex; align-items:flex-end; justify-content:space-between; gap:8px}
+h1{font-family:"Gowun Batang", serif; font-size:26px; font-weight:700; letter-spacing:-.5px; text-wrap:balance}
+.tagline{font-size:12px; color:var(--muted-solid); margin-top:2px}
+.me-switch{display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--card); flex:none}
+.me-switch button{padding:6px 12px; font-size:12.5px; color:var(--muted-solid)}
+.me-switch button.on{background:var(--ink); color:var(--bg); font-weight:600}
+.me-label{font-size:10.5px; color:var(--muted-solid); text-align:right; margin-bottom:3px; letter-spacing:.06em}
+#banner{margin:0 4px 10px; padding:9px 13px; border-radius:10px; font-size:12.5px;
+  background:var(--fest-soft); color:var(--ink); border:1px solid var(--line)}
+
+/* [4] 카드·공통 */
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:var(--shadow)}
+.card + .card{margin-top:12px}
+.sec-title{font-family:"Gowun Batang", serif; font-size:16.5px; font-weight:700; margin-bottom:8px}
+.empty{font-size:13px; color:var(--muted-solid); padding:14px 4px; text-align:center}
+.addbtn{width:100%; margin-top:12px; padding:13px; border-radius:12px; background:var(--ink); color:var(--bg); font-weight:700; font-size:14.5px}
+.addbtn:active{transform:translateY(1px)}
+.chips{display:flex; gap:6px; margin:10px 0; flex-wrap:wrap}
+.chips button{font-size:12px; padding:6px 12px; border-radius:999px; border:1px solid var(--line); color:var(--muted-solid); background:var(--card)}
+.chips button.on{background:var(--ink); color:var(--bg); border-color:var(--ink); font-weight:600}
+.wl-h{font-size:12.5px; font-weight:700; margin:12px 0 6px; color:var(--muted-solid); letter-spacing:.03em}
+.us-note{font-size:12px; color:var(--muted-solid); margin:2px 4px 12px}
+.stats{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap}
+.stats span{font-size:11.5px; padding:3px 9px; border-radius:999px; font-weight:600}
+.st-run{background:var(--run-soft); color:var(--run)}
+.st-date{background:var(--date-soft); color:var(--date)}
+.st-fest{background:var(--fest-soft); color:var(--fest)}
+details.gls{border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-top:8px; font-size:12.5px; line-height:1.65}
+details.gls summary{cursor:pointer; font-weight:700; font-size:13px}
+
+/* [5] 하단 탭바 */
+nav.tabbar{position:fixed; left:0; right:0; bottom:0; z-index:30; border-top:1px solid var(--line); background:var(--card)}
+nav.tabbar .in{max-width:560px; margin:0 auto; display:flex}
+nav.tabbar button{flex:1; min-width:0; padding:9px 0 max(10px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; gap:1px; color:var(--muted-solid)}
+nav.tabbar .em{font-size:19px; line-height:1.2; filter:grayscale(1); opacity:.65}
+nav.tabbar .lb{font-size:10.5px; letter-spacing:.04em}
+nav.tabbar button.on{color:var(--ink)}
+nav.tabbar button.on .em{filter:none; opacity:1}
+nav.tabbar button.on .lb{font-weight:700}
+
+/* [6] 달력 */
+.cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+.cal-head .mv{font-family:"Gowun Batang", serif; font-size:18px; font-weight:700}
+.cal-head button{width:34px; height:34px; border-radius:10px; font-size:16px; color:var(--muted-solid)}
+.cal-head button:hover{background:var(--soft)}
+.dow{display:grid; grid-template-columns:repeat(7,1fr); font-size:10.5px; color:var(--muted-solid); text-align:center; margin-bottom:4px; letter-spacing:.05em}
+.dow .sun{color:var(--date)}
+.grid{display:grid; grid-template-columns:repeat(7,1fr); gap:2px}
+.day{position:relative; height:48px; border-radius:10px; display:flex; flex-direction:column; align-items:center; padding-top:5px; gap:3px}
+.day .n{font-size:12.5px; font-variant-numeric:tabular-nums}
+.day.out .n{color:var(--muted)}
+.day.sun .n{color:var(--date)}
+.day.out.sun .n{color:var(--date); opacity:.35}
+.day.today .n{font-weight:700; text-decoration:underline; text-underline-offset:3px}
+.day.sel{background:var(--soft); outline:1.5px solid var(--ink); outline-offset:-1.5px}
+.day:hover{background:var(--soft)}
+.dots{display:flex; gap:2.5px; height:5px}
+.dots i{width:5px; height:5px; border-radius:50%}
+.dots i.run{background:var(--run)} .dots i.date{background:var(--date)} .dots i.wed{background:var(--fest)}
+.dots i.plan{opacity:.45}
+.day-title{font-weight:700; font-size:14.5px; margin-bottom:10px}
+
+/* [7] 일정 카드 */
+.ev{display:flex; gap:10px; padding:11px 12px; border-radius:12px; border:1px solid var(--line); background:var(--card); align-items:flex-start}
+.ev + .ev{margin-top:8px}
+.ev .bar{width:4px; align-self:stretch; border-radius:4px; flex:none}
+.ev.run .bar{background:var(--run)} .ev.date .bar{background:var(--date)} .ev.wed .bar{background:var(--fest)}
+.ev .bd{flex:1; min-width:0}
+.ev .t{font-weight:600; font-size:14.5px}
+.ev .t .em{margin-right:4px}
+.ev .m{font-size:12px; color:var(--muted-solid); margin-top:1px}
+.ev .memo{font-size:12.5px; margin-top:4px; color:var(--ink); background:var(--soft); border-radius:8px; padding:5px 9px}
+.ev .done-b{flex:none; font-size:11.5px; padding:6px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted-solid); align-self:center}
+.ev .done-b.yes{background:var(--run-soft); color:var(--run); border-color:transparent; font-weight:700}
+.ev.dim .t{opacity:.75}
+.ev-ph{width:100%; border-radius:8px; margin-top:6px; max-height:190px; object-fit:cover; display:block; background:var(--soft)}
+
+/* [8] 지도 */
+.kmap{width:100%; height:auto; display:block; border-radius:12px; background:var(--sea); touch-action:manipulation}
+.kmap .land{fill:var(--land); stroke:var(--land-line); stroke-width:1.2; stroke-linejoin:round}
+.kmap .city{fill:var(--muted-solid); opacity:.55}
+.kmap text{font:8px "IBM Plex Sans KR", sans-serif; fill:var(--muted-solid); pointer-events:none}
+.kmap .inset-b{fill:none; stroke:var(--land-line); stroke-width:.8; stroke-dasharray:2 2}
+.pin circle.c{stroke-width:2.2; fill:var(--card)}
+.pin.run circle.c{stroke:var(--run)} .pin.date circle.c{stroke:var(--date)} .pin.wed circle.c{stroke:var(--fest)}
+.pin.done.run circle.c{fill:var(--run)} .pin.done.date circle.c{fill:var(--date)} .pin.done.wed circle.c{fill:var(--fest)}
+.pin.hot circle.halo{animation:halo 1.2s ease-out 2}
+@keyframes halo{from{r:6; opacity:.7} to{r:16; opacity:0}}
+.legend{display:flex; gap:14px; font-size:11.5px; color:var(--muted-solid); margin-top:8px; padding:0 2px}
+.legend i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:4px; vertical-align:-1px}
+.legend .f{background:var(--muted-solid)}
+.legend .o{border:2px solid var(--muted-solid)}
+
+/* [9] 축제 */
+.fest-note{font-size:12px; color:var(--muted-solid); margin:2px 4px 12px}
+.fe{padding:13px 14px; border-radius:12px; border:1px solid var(--line)}
+.fe + .fe{margin-top:8px}
+.fe .top{display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.fe .nm{font-weight:700; font-size:14.5px}
+.fe .when{font-size:11.5px; color:var(--fest); font-weight:700; flex:none}
+.fe .where{font-size:12px; color:var(--muted-solid); margin-top:1px}
+.fe .ds{font-size:12.5px; margin-top:4px}
+.fe .row{display:flex; justify-content:flex-end; margin-top:8px}
+.fe .add{font-size:12px; font-weight:700; padding:7px 13px; border-radius:999px; background:var(--fest-soft); color:var(--fest)}
+.fest-link{display:block; text-align:center; font-size:12px; color:var(--muted-solid); margin-top:14px; text-decoration:underline; text-underline-offset:3px}
+
+/* [10] 약속·리스트 공통(.wi 한 줄 아이템) */
+.wi{display:flex; align-items:center; gap:8px; padding:9px 11px; border-radius:10px; background:var(--soft)}
+.wi + .wi{margin-top:6px}
+.wi .tx{flex:1; font-size:13.5px; min-width:0}
+.wi .ack{flex:none; font-size:11px; padding:5px 9px; border-radius:999px; border:1px solid var(--line); color:var(--muted-solid)}
+.wi .ack.yes{background:var(--run-soft); color:var(--run); border-color:transparent; font-weight:700}
+.wi .del{flex:none; color:var(--muted-solid); font-size:13px; padding:4px 6px}
+.wi.done .tx{text-decoration:line-through; opacity:.55}
+.wi .chk{flex:none; width:17px; height:17px; accent-color:var(--fest)}
+.wi .who{flex:none; font-size:10.5px; padding:4px 9px; border-radius:999px; background:var(--card); border:1px solid var(--line); color:var(--muted-solid)}
+.wi .ml-w{flex:none; font-size:11.5px; color:var(--muted-solid)}
+.wadd{display:flex; gap:6px; margin-top:8px}
+.wadd input{flex:1; min-width:0; padding:9px 12px; border-radius:10px; border:1px solid var(--line); background:var(--card); font-size:13px}
+.wadd button{flex:none; padding:9px 14px; border-radius:10px; background:var(--ink); color:var(--bg); font-size:13px; font-weight:700}
+.who-name{font-family:"Gowun Batang", serif; font-size:16.5px; font-weight:700}
+.who-sub{font-size:11px; color:var(--muted-solid)}
+.exp-soon{color:var(--fest)} .exp-bad{color:var(--danger)}
+.fr-add{display:flex; gap:6px; margin:6px 0 8px}
+.fr-add input[type=text]{flex:1; min-width:0; padding:9px 12px; border-radius:10px; border:1px solid var(--line); background:var(--card); font-size:13px}
+.fr-add input[type=date],.fr-add input[type=number]{width:118px; flex:none; padding:9px 6px; border-radius:10px; border:1px solid var(--line); background:var(--card); font-size:12px}
+.fr-add button{flex:none; padding:9px 12px; border-radius:10px; background:var(--ink); color:var(--bg); font-size:13px; font-weight:700}
+
+/* [11] 쪽지 */
+.emoRow{display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px}
+.emoRow button{font-size:17px; padding:4px 7px; border-radius:9px; background:var(--soft); line-height:1.3}
+.emoRow button:active{transform:scale(1.2)}
+.nfeed{margin-top:4px}
+.nd{text-align:center; font-size:11px; color:var(--muted-solid); margin:14px 0 4px}
+.nb{max-width:84%; width:fit-content; border-radius:14px; padding:9px 12px; margin-top:6px; border:1px solid var(--line); background:var(--soft)}
+.nb.mine{margin-left:auto; background:var(--date-soft); border-color:transparent}
+.nb .ctx{font-size:11px; color:var(--muted-solid); margin-bottom:2px}
+.nb .tx{font-size:13.5px; white-space:pre-wrap; word-break:break-word}
+.nb img{width:100%; min-width:160px; border-radius:10px; margin-top:6px; display:block}
+.nb .ft{display:flex; justify-content:flex-end; gap:8px; align-items:center; margin-top:4px; font-size:10.5px; color:var(--muted-solid)}
+.nb .luv{font-size:13px; opacity:.35}
+.nb .luv.on{opacity:1}
+.nb .ndel{font-size:11px; color:var(--muted-solid)}
+.ytthumb{position:relative; display:block; width:100%; min-width:200px; border-radius:10px; overflow:hidden; margin-top:6px}
+.ytthumb img{width:100%; display:block; aspect-ratio:16/9; object-fit:cover}
+.ytthumb .play{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:36px; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.65)}
+.ytwrap{aspect-ratio:16/9; margin-top:6px; border-radius:10px; overflow:hidden; min-width:200px}
+.ytwrap iframe{width:100%; height:100%; border:0; display:block}
+.lnk{display:block; margin-top:6px; font-size:12.5px; color:var(--run); text-decoration:underline; text-underline-offset:3px; word-break:break-all}
+
+/* [12] 식단 */
+.ml-sec{margin-top:14px}
+.ml-sec:first-child{margin-top:2px}
+.ml-h{display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700}
+.ml-add{font-size:11.5px; padding:5px 11px; border-radius:999px; background:var(--soft); color:var(--muted-solid); font-weight:600}
+.ml{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:6px; cursor:pointer}
+.ml-ph{width:100%; max-height:230px; object-fit:cover; display:block; background:var(--soft)}
+.ml-bd{padding:8px 11px; display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+.ml-t{font-size:13.5px; min-width:0}
+#msPreview,#shPreview{width:100%; border-radius:12px; margin-top:8px; display:block}
+
+/* [13] 전체 메뉴 */
+.menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.menu-grid button{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 8px 16px; display:flex; flex-direction:column; gap:7px; align-items:center; font-size:13.5px; font-weight:600; box-shadow:var(--shadow)}
+.menu-grid button span{font-size:30px; line-height:1}
+.menu-grid button:active{transform:scale(.97)}
+
+/* [14] 체크리스트·진행바 */
+.wprog{height:8px; border-radius:999px; background:var(--soft); overflow:hidden; margin-top:4px}
+.wprog-bar{height:100%; border-radius:999px; background:var(--fest); width:0%; transition:width .4s}
+.wprog-txt{font-size:11.5px; color:var(--muted-solid); margin:6px 2px 2px}
+
+/* [15] 스킬트리(qtree) · 마일스톤(qpath) */
+.qtier{position:relative; margin-top:4px; padding-top:4px}
+.qtier + .qtier{margin-top:14px}
+.qtier + .qtier::before{content:""; position:absolute; top:-14px; left:50%; width:2px; height:14px; background:var(--line)}
+.qtier-h{font-size:12.5px; font-weight:700; color:var(--muted-solid); text-align:center}
+.qtier-h span{font-weight:600; font-size:11px; margin-left:4px; color:var(--fest)}
+.qrow{display:flex; flex-wrap:wrap; gap:12px 8px; justify-content:center; padding:10px 0 2px}
+.qnode{width:70px; display:flex; flex-direction:column; align-items:center; gap:4px}
+.qnode .c{position:relative; width:48px; height:48px; border-radius:50%; border:2.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--card)}
+.qnode.done .c{border-color:var(--fest); background:var(--fest-soft); box-shadow:0 0 12px var(--fest-soft), 0 0 4px var(--fest)}
+.qnode .t{font-size:10px; line-height:1.25; max-height:2.6em; overflow:hidden; color:var(--muted-solid); text-align:center; word-break:keep-all}
+.qnode.done .t{color:var(--ink); font-weight:600}
+.qnode .bdg{position:absolute; right:-4px; bottom:-4px; font-size:12px}
+.qnode.qadd .c{border-style:dashed; color:var(--muted-solid); font-size:22px}
+.qnode:active .c{transform:scale(.94)}
+.qpath{display:flex; overflow-x:auto; padding:10px 0 6px}
+.qp{flex:none; width:76px; text-align:center; position:relative}
+.qp:not(:first-child)::before{content:""; position:absolute; top:20px; left:-38px; width:76px; height:2px; background:var(--line); z-index:0}
+.qp.on:not(:first-child)::before{background:var(--fest)}
+.qp .c{position:relative; z-index:1; width:40px; height:40px; margin:0 auto; border-radius:50%; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; font-size:16px}
+.qp.on .c{border-color:var(--fest); background:var(--fest-soft)}
+.qp.now .c{animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--fest-soft)} 50%{box-shadow:0 0 0 9px transparent}}
+.qp .l{font-size:10.5px; margin-top:4px; font-weight:700}
+.qp .s{font-size:9px; color:var(--muted-solid); line-height:1.3}
+
+/* [16] 여행 */
+.tr-row{display:flex; gap:8px}
+.trip-h{display:flex; justify-content:space-between; align-items:center; gap:8px}
+.trip-h .nm{font-family:"Gowun Batang",serif; font-size:16.5px; font-weight:700}
+.dday{flex:none; font-size:11px; font-weight:700; color:var(--run); background:var(--run-soft); padding:3px 10px; border-radius:999px}
+.trip-dt{font-size:12px; color:var(--muted-solid); margin-top:2px}
+
+/* [17] 궁합 */
+.pil{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; text-align:center; margin-top:8px}
+.pil .pc{background:var(--soft); border-radius:10px; padding:8px 4px}
+.pc .g{font-weight:700; font-size:15.5px}
+.pc .lbl{font-size:10px; color:var(--muted-solid); margin-top:2px}
+.score{font-family:"Gowun Batang",serif; font-size:44px; font-weight:700; text-align:center; color:var(--date); margin:6px 0 0}
+.score-cap{text-align:center; font-size:12px; color:var(--muted-solid); margin-bottom:8px}
+.elbar{display:flex; height:12px; border-radius:999px; overflow:hidden; margin:8px 0 6px; background:var(--soft)}
+.el-목{background:#3F9E6C}.el-화{background:#E2574C}.el-토{background:#C9973B}.el-금{background:#8A93A6}.el-수{background:#4A90D9}
+.el-lg{display:flex; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--muted-solid)}
+.el-lg i{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:3px; vertical-align:-1px}
+.fate-p{font-size:13px; margin-top:8px; line-height:1.65}
+.mbti-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:2px}
+.mbti-row .pair{display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+.mbti-row .pair button{padding:6px 11px; font-size:12.5px; color:var(--muted-solid)}
+.mbti-row .pair button.on{background:var(--ink); color:var(--bg); font-weight:700}
+
+/* [18] 몸 기록 */
+.bd-sum{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px}
+.bd-c{background:var(--soft); border-radius:10px; padding:9px 6px; text-align:center}
+.bd-c .v{font-weight:700; font-size:15px; font-variant-numeric:tabular-nums}
+.bd-c .l{font-size:10px; color:var(--muted-solid); margin-top:1px}
+.bd-c .d{font-size:10px; margin-top:1px}
+.bd-row3{display:flex; gap:6px}
+.bd-row3 > div{flex:1}
+
+/* [19] 캘린더 내보내기 */
+.cal-sync{display:flex; gap:8px; margin-top:14px}
+.cal-sync button{flex:1; text-align:center; font-size:12px; padding:10px 6px; border-radius:10px; border:1px solid var(--line); color:var(--muted-solid); background:var(--card)}
+
+/* [20] 바텀시트 */
+#scrim{position:fixed; inset:0; background:rgba(15,18,26,.45); z-index:40; display:none}
+#scrim.open{display:block}
+#sheet,#msheet,#qsheet{position:fixed; left:0; right:0; bottom:0; z-index:41; display:none}
+#sheet.open,#msheet.open,#qsheet.open{display:block}
+#sheet .in,#msheet .in,#qsheet .in{max-width:560px; margin:0 auto; background:var(--card); border-radius:20px 20px 0 0; padding:18px 18px max(20px, env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; border:1px solid var(--line); border-bottom:0}
+.sh-title{font-family:"Gowun Batang", serif; font-size:18px; font-weight:700; margin-bottom:14px}
+.f-lb{font-size:11.5px; color:var(--muted-solid); font-weight:600; margin:12px 0 5px; letter-spacing:.04em}
+.seg{display:flex; gap:6px}
+.seg button{flex:1; padding:9px 4px; border-radius:10px; border:1px solid var(--line); font-size:13px; color:var(--muted-solid); background:var(--card)}
+.seg button.on{font-weight:700; color:var(--ink); border-width:1.5px}
+.seg button.on.run{background:var(--run-soft); border-color:var(--run)}
+.seg button.on.date{background:var(--date-soft); border-color:var(--date)}
+.seg button.on.fest{background:var(--fest-soft); border-color:var(--fest)}
+.seg button.on.plain{background:var(--soft); border-color:var(--ink)}
+.f-in{width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--card); font-size:14px}
+.loc-hint{font-size:11.5px; color:var(--muted-solid); margin-top:6px; display:flex; justify-content:space-between; align-items:center}
+.loc-hint button{font-size:11.5px; color:var(--danger); text-decoration:underline; text-underline-offset:2px}
+.sh-row{display:flex; gap:8px; margin-top:18px}
+.sh-row .save{flex:1; padding:13px; border-radius:12px; background:var(--ink); color:var(--bg); font-weight:700; font-size:14.5px}
+.sh-row .cancel{flex:none; padding:13px 16px; border-radius:12px; border:1px solid var(--line); color:var(--muted-solid); font-size:14px}
+.sh-row .rm{flex:none; padding:13px 14px; border-radius:12px; color:var(--danger); font-size:13px}
+.donechk{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:13.5px}
+.donechk input{width:17px; height:17px; accent-color:var(--run)}
+.wide-btn{width:100%; margin-top:12px; padding:11px; border-radius:12px; border:1px solid var(--line); color:var(--muted-solid); font-size:13px; text-align:center}
+
+/* [21] 로그인 화면 */
+#login{position:fixed; inset:0; z-index:60; background:var(--bg); display:none; align-items:center; justify-content:center; padding:20px}
+#login.open{display:flex}
+#login .box{width:100%; max-width:360px; background:var(--card); border:1px solid var(--line); border-radius:20px; padding:26px 22px; box-shadow:var(--shadow)}
+#login h2{font-family:"Gowun Batang", serif; font-size:22px; text-align:center}
+#login .sub{font-size:12px; color:var(--muted-solid); text-align:center; margin:6px 0 16px}
+#login .err{font-size:12px; color:var(--danger); margin-top:8px; min-height:1.2em}

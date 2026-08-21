@@ -1,0 +1,413 @@
+/* ============================================================
+   app.js — 이벤트 연결 + 탭 이동 + 부팅 (로드 순서 마지막)
+   목차: 탭 → 헤더 → 달력 → 지도 → 축제 → 식단 → 쪽지
+        → 체크리스트/스킬트리 → 살림 → 여행 → 궁합 → 몸 → 보기
+        → 금연 → 재테크 → 약속 → 로그인 → 부팅
+   ============================================================ */
+
+/* ---------- 탭 이동 ---------- */
+const ALL_VIEWS = ["cal","map","fest","meal","note","trip","wed","fate","us","more","home","body","show","smoke","invest"];
+function goTab(t){
+  tab = t;
+  const core = { cal:1, map:1, meal:1, note:1 };
+  document.querySelectorAll("nav.tabbar button").forEach(x=>x.classList.toggle("on", x.dataset.tab === (core[t] ? t : "more")));
+  ALL_VIEWS.forEach(v=>{ const el=$("#view-"+v); if(el) el.hidden = v!==t; });
+  window.scrollTo(0,0);
+}
+document.querySelector("nav.tabbar").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  goTab(b.dataset.tab);
+});
+document.querySelector("#view-more .menu-grid").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-go]"); if(!b) return;
+  goTab(b.dataset.go);
+});
+
+/* ---------- 헤더 (지금 보는 사람) ---------- */
+$("#meSwitch").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  me = b.dataset.me; localStorage.setItem("gyehoek-me", me); renderAll();
+});
+
+/* ---------- 달력 ---------- */
+$("#calPrev").addEventListener("click", ()=>{ calM--; if(calM<0){calM=11;calY--;} renderCal(); });
+$("#calNext").addEventListener("click", ()=>{ calM++; if(calM>11){calM=0;calY++;} renderCal(); });
+$("#calGrid").addEventListener("click", e=>{
+  const b = e.target.closest(".day"); if(!b) return;
+  selDate = b.dataset.d;
+  const d = new Date(selDate+"T00:00:00");
+  if(d.getMonth()!==calM){ calY=d.getFullYear(); calM=d.getMonth(); }
+  renderCal();
+});
+$("#dayAdd").addEventListener("click", ()=>openSheet("add"));
+
+/* 일정 카드 공통 (달력·지도 목록) */
+function bindEvList(sel){
+  $(sel).addEventListener("click", e=>{
+    const card = e.target.closest(".ev"); if(!card) return;
+    const ev = DATA.events.find(x=>x.id===card.dataset.id); if(!ev) return;
+    const act = e.target.closest("[data-act]");
+    if(act && act.dataset.act==="done"){
+      if(mode==="readonly") return;
+      ev.done = !ev.done; save({kind:"ev", item:ev});
+    } else if(mode!=="readonly"){ openSheet("edit", ev); }
+  });
+}
+bindEvList("#dayList"); bindEvList("#mapList");
+
+/* ---------- 지도 ---------- */
+$("#mapChips").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  mapFilter = b.dataset.f;
+  document.querySelectorAll("#mapChips button").forEach(x=>x.classList.toggle("on", x===b));
+  renderMap();
+});
+$("#mapWrap").addEventListener("click", e=>{
+  const pin = e.target.closest(".pin"); if(!pin) return;
+  const id = pin.dataset.id;
+  document.querySelectorAll("#mainMap .pin").forEach(p=>p.classList.toggle("hot", p.dataset.id===id));
+  const card = document.querySelector(`#mapList .ev[data-id="${id}"]`);
+  if(card){ card.scrollIntoView({behavior:"smooth", block:"center"}); }
+});
+
+/* ---------- 축제 ---------- */
+$("#festList").addEventListener("click", e=>{
+  const b = e.target.closest(".add"); if(!b) return;
+  const f = FESTS[+b.dataset.fi];
+  openSheet("add", { type:"date", sub:"축제", title:f.n, memo:f.w.split("·")[0].trim(), date:"", x:f.x, y:f.y });
+});
+
+/* ---------- 식단 ---------- */
+$("#mealPrev").addEventListener("click", ()=>{ const d=new Date(mealDate+"T00:00:00"); d.setDate(d.getDate()-1); mealDate=ymd(d); renderMeal(); });
+$("#mealNext").addEventListener("click", ()=>{ const d=new Date(mealDate+"T00:00:00"); d.setDate(d.getDate()+1); mealDate=ymd(d); renderMeal(); });
+$("#mealList").addEventListener("click", e=>{
+  const add = e.target.closest(".ml-add");
+  if(add){ openMSheet("add", { slot: add.dataset.slot }); return; }
+  const card = e.target.closest(".ml"); if(!card || mode==="readonly") return;
+  const it = DATA.meals.find(x=>x.id===card.dataset.id);
+  if(it) openMSheet("edit", it);
+});
+
+/* ---------- 쪽지 ---------- */
+$("#emoRow").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.id==="noteAud"){ $("#noteAudIn").click(); return; }
+  if(b.id==="noteVid"){ $("#noteVidIn").click(); return; }
+  const inp = $("#noteIn"); inp.value += b.textContent; inp.focus();
+});
+$("#noteSend").addEventListener("click", ()=>{
+  if(mode==="readonly") return;
+  const inp = $("#noteIn"); const text = inp.value.trim(); if(!text) return;
+  const item = { id:uid(), date:ymd(new Date()), text, by:me, luv:false };
+  DATA.notes.push(item); inp.value = "";
+  save({kind:"nt", item});
+});
+$("#noteIn").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#noteSend").click(); });
+async function sendMediaNote(file, mtype){
+  if(!file) return;
+  if(mode!=="shared"){ banner("음성·영상 쪽지는 서버 연결(로그인) 후에 보낼 수 있어요."); return; }
+  if(file.size > 20*1024*1024){ banner("파일이 20MB를 넘어요. 짧게 다시 찍어주세요 🙏"); return; }
+  const t = file.type||"";
+  let ct;
+  if(mtype==="audio"){ ct = ["audio/mpeg","audio/mp4","audio/wav","audio/webm"].indexOf(t)>=0 ? t : "audio/mp4"; }
+  else { ct = ["video/mp4","video/webm"].indexOf(t)>=0 ? t : "video/mp4"; }
+  const ext = ct.indexOf("mpeg")>=0?"mp3":ct.indexOf("wav")>=0?"wav":ct.indexOf("webm")>=0?"webm":"mp4";
+  const item = { id:uid(), date:ymd(new Date()), text: $("#noteIn").value.trim(), by:me, luv:false,
+    media:"media/"+Date.now().toString(36)+"."+ext, mtype };
+  const files = {}; files[item.media] = { content:file, contentType:ct };
+  photoCache[item.id] = URL.createObjectURL(file);
+  DATA.notes.push(item); $("#noteIn").value="";
+  save({kind:"nt", item}, files);
+}
+$("#noteAudIn").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; sendMediaNote(f,"audio"); });
+$("#noteVidIn").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; sendMediaNote(f,"video"); });
+$("#noteFeed").addEventListener("click", e=>{
+  /* 유튜브 썸네일 → 재생 */
+  const yt = e.target.closest(".ytthumb");
+  if(yt){
+    const wrap = document.createElement("div");
+    wrap.className = "ytwrap";
+    wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${yt.dataset.yt}?autoplay=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+    yt.replaceWith(wrap); return;
+  }
+  if(e.target.closest("a,audio,video")) return; /* 링크·재생 컨트롤은 그대로 */
+  const bub = e.target.closest(".nb"); if(!bub) return;
+  const src = bub.dataset.src, id = bub.dataset.id;
+  const arr = src==="ev" ? DATA.events : src==="ml" ? DATA.meals : DATA.notes;
+  const it = arr.find(x=>x.id===id); if(!it) return;
+  const act = e.target.closest("[data-act]");
+  if(act && act.dataset.act==="luv"){
+    it.luv = !it.luv;
+    const kind = src==="ev"?"ev":src==="ml"?"ml":"nt";
+    const stash = (it.photo && String(it.photo).indexOf("data:")===0) ? Object.assign({},it,{photo:null}) : it;
+    save({kind, item:stash}); return;
+  }
+  if(act && act.dataset.act==="ndel"){
+    DATA.notes = DATA.notes.filter(x=>x.id!==id);
+    let files = null;
+    if(mode==="shared" && it.media){ files = {}; files[it.media] = null; }
+    save({kind:"nt-del", id}, files); return;
+  }
+  if(mode==="readonly") return;
+  if(src==="ev") openSheet("edit", it);
+  if(src==="ml") openMSheet("edit", it);
+});
+
+/* ---------- 체크리스트·스킬트리 공용 (결혼·살림) ---------- */
+function boardChange(key, kind, extra){
+  const base = key==="wed" ? {kind:{up:"wd",bulk:"wd-bulk",del:"wd-del"}[kind]} : {kind:{up:"bd",bulk:"bd-bulk",del:"bd-del"}[kind], board:key};
+  return Object.assign(base, extra);
+}
+function handleBoardClick(e){
+  if(mode==="readonly") return false;
+  /* 기본 체크리스트 채우기 */
+  const seedB = e.target.closest("[data-actseed]");
+  if(seedB){
+    const key = seedB.dataset.actseed, b = BOARDS[key];
+    const items = b.tmpl.map((t,i)=>({ id:uid()+i.toString(36), cat:t[0], text:t[1], done:false, who:"both" }));
+    boardItems(key).push.apply(boardItems(key), items);
+    save(boardChange(key,"bulk",{items})); return true;
+  }
+  /* 스킬트리 노드 → 상세 시트 */
+  const node = e.target.closest(".qnode");
+  if(node){
+    const key = node.dataset.board;
+    if(node.classList.contains("qadd")){ openQSheet(key, node.dataset.cat, true); return true; }
+    const it = boardItems(key).find(x=>x.id===node.dataset.id);
+    if(it) openQSheet(key, it, false);
+    return true;
+  }
+  const act = e.target.closest("[data-act]"); if(!act) return false;
+  /* 일반 체크리스트 항목 추가 */
+  if(act.dataset.act==="bdadd"){
+    const inp = act.parentElement.querySelector("input");
+    const text = inp.value.trim(); if(!text) return true;
+    const key = inp.dataset.board;
+    const item = { id:uid(), cat:+inp.dataset.cat, text, done:false, who:"both" };
+    boardItems(key).push(item); inp.value="";
+    save(boardChange(key,"up",{item})); return true;
+  }
+  /* 일반 체크리스트 항목 조작 */
+  const row = e.target.closest(".wi[data-board]"); if(!row) return false;
+  const key = row.dataset.board, arr = boardItems(key);
+  const it = arr.find(x=>x.id===row.dataset.id); if(!it) return true;
+  if(act.dataset.act==="chk"){ it.done = act.checked; save(boardChange(key,"up",{item:it})); return true; }
+  if(act.dataset.act==="who"){ it.who = it.who==="both"?"cs":it.who==="cs"?"hj":"both"; save(boardChange(key,"up",{item:it})); return true; }
+  if(act.dataset.act==="del"){ arr.splice(arr.indexOf(it),1); save(boardChange(key,"del",{id:it.id})); return true; }
+  return false;
+}
+$("#wedList").addEventListener("click", handleBoardClick);
+
+/* ---------- 살림 노트 ---------- */
+$("#homeChips").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  homeBoard = b.dataset.b; renderHome();
+});
+$("#homeBody").addEventListener("click", e=>{
+  if(handleBoardClick(e)) return;
+  if(mode==="readonly") return;
+  if(e.target.id==="frAddBtn"){
+    const name = $("#frName").value.trim(); if(!name) return;
+    const item = { id:uid(), name, exp: $("#frExp").value||null };
+    DATA.fridge.push(item); save({kind:"fr", item}); return;
+  }
+  if(e.target.id==="spAddBtn"){
+    const name = $("#spName").value.trim(); if(!name) return;
+    const item = { id:uid(), name };
+    DATA.shop.push(item); save({kind:"sp", item}); return;
+  }
+  const act = e.target.closest("[data-act]"); if(!act) return;
+  const row = e.target.closest(".wi"); if(!row) return;
+  if(act.dataset.act==="fr-eat"){
+    const it = DATA.fridge.find(x=>x.id===row.dataset.id); if(!it) return;
+    openMSheet("add", { text: it.name, mkind:"home" }); return;
+  }
+  if(act.dataset.act==="fr-del"){ DATA.fridge = DATA.fridge.filter(x=>x.id!==row.dataset.id); save({kind:"fr-del", id:row.dataset.id}); return; }
+  if(act.dataset.act==="sp-buy"){
+    const it = DATA.shop.find(x=>x.id===row.dataset.id); if(!it) return;
+    const item = { id:it.id, name:it.name, exp:null };
+    DATA.shop = DATA.shop.filter(x=>x.id!==it.id);
+    if(!DATA.fridge.some(x=>x.id===item.id)) DATA.fridge.push(item);
+    save({kind:"sp-buy", id:it.id, item}); return;
+  }
+  if(act.dataset.act==="sp-del"){ DATA.shop = DATA.shop.filter(x=>x.id!==row.dataset.id); save({kind:"sp-del", id:row.dataset.id}); return; }
+});
+$("#homeBody").addEventListener("keydown", e=>{
+  if(e.key!=="Enter") return;
+  if(e.target.id==="frName"||e.target.id==="frExp"){ const b=$("#frAddBtn"); if(b) b.click(); }
+  if(e.target.id==="spName"){ const b=$("#spAddBtn"); if(b) b.click(); }
+  if(e.target.matches(".wadd input")) e.target.parentElement.querySelector("button").click();
+});
+
+/* ---------- 여행 ---------- */
+$("#trAdd").addEventListener("click", ()=>{
+  if(mode==="readonly") return;
+  const title = $("#trWhere").value.trim();
+  const start = $("#trStart").value;
+  if(!title){ $("#trWhere").focus(); return; }
+  if(!start){ $("#trStart").focus(); return; }
+  const item = { id:uid(), title, start, nights:+$("#trNights").value||0,
+    items: TR_TEMPLATE.map((t,i)=>({ id:uid()+i.toString(36), text:t, done:false })) };
+  DATA.trips.push(item);
+  $("#trWhere").value=""; $("#trStart").value="";
+  save({kind:"tr", item});
+});
+$("#tripList").addEventListener("click", e=>{
+  if(mode==="readonly") return;
+  const card = e.target.closest("[data-trip]"); if(!card) return;
+  const trip = DATA.trips.find(t=>t.id===card.dataset.trip); if(!trip) return;
+  const act = e.target.closest("[data-act]"); if(!act) return;
+  if(act.dataset.act==="tr-del"){
+    if(!confirm("이 여행을 삭제할까요?")) return;
+    DATA.trips = DATA.trips.filter(t=>t.id!==trip.id); save({kind:"tr-del", id:trip.id}); return;
+  }
+  if(act.dataset.act==="tr-iadd"){
+    const inp = act.parentElement.querySelector("input");
+    const text = inp.value.trim(); if(!text) return;
+    trip.items = trip.items||[]; trip.items.push({ id:uid(), text, done:false }); inp.value="";
+    save({kind:"tr", item:trip}); return;
+  }
+  const row = e.target.closest(".wi"); if(!row) return;
+  const it = (trip.items||[]).find(x=>x.id===row.dataset.id); if(!it) return;
+  if(act.dataset.act==="tr-chk"){ it.done = act.checked; save({kind:"tr", item:trip}); }
+  if(act.dataset.act==="tr-idel"){ trip.items = trip.items.filter(x=>x.id!==it.id); save({kind:"tr", item:trip}); }
+});
+$("#tripList").addEventListener("keydown", e=>{
+  if(e.key==="Enter" && e.target.matches(".wadd input")) e.target.parentElement.querySelector("button").click();
+});
+
+/* ---------- 궁합 ---------- */
+$("#pfForm").addEventListener("click", e=>{
+  const b = e.target.closest(".pair button"); if(!b) return;
+  b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on", x===b));
+});
+$("#pfSave").addEventListener("click", ()=>{
+  if(mode==="readonly") return;
+  const pf = { cs:{}, hj:{} };
+  document.querySelectorAll(".pf-birth").forEach(i=>pf[i.dataset.p].birth = i.value||null);
+  document.querySelectorAll(".pf-time").forEach(s=>pf[s.dataset.p].time = +s.value);
+  document.querySelectorAll(".mbti-row").forEach(r=>{
+    const ls = Array.prototype.map.call(r.querySelectorAll(".pair button.on"), b=>b.dataset.l);
+    pf[r.dataset.p].mbti = ls.length===4 ? ls.join("") : "";
+  });
+  DATA.profile = pf;
+  save({kind:"pf", item:pf});
+});
+
+/* ---------- 몸 기록 ---------- */
+$("#bodyChips").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  bodyP = b.dataset.p; renderBody();
+});
+$("#bodyBody").addEventListener("click", e=>{
+  if(mode==="readonly") return;
+  if(e.target.id==="bdPSave"){
+    const item = { height:+$("#bdH").value||null, goal:+$("#bdG").value||null };
+    DATA.bodyP[bodyP] = item; save({kind:"bp", who:bodyP, item}); return;
+  }
+  if(e.target.id==="bdLSave"){
+    const w = +$("#bdW").value;
+    if(!w){ $("#bdW").focus(); return; }
+    const item = { id:uid(), who:bodyP, date:ymd(new Date()), w,
+      m: $("#bdM").value?+$("#bdM").value:null, f: $("#bdF").value?+$("#bdF").value:null };
+    DATA.bodyLogs.push(item); save({kind:"bl", item}); return;
+  }
+  const act = e.target.closest("[data-act]");
+  if(act && act.dataset.act==="bl-del"){
+    const row = e.target.closest(".wi");
+    DATA.bodyLogs = DATA.bodyLogs.filter(x=>x.id!==row.dataset.id);
+    save({kind:"bl-del", id:row.dataset.id});
+  }
+});
+
+/* ---------- 같이 보기 ---------- */
+$("#showAdd").addEventListener("click", ()=>{
+  if(mode==="readonly") return;
+  const title = $("#showName").value.trim(); if(!title){ $("#showName").focus(); return; }
+  const item = { id:uid(), title, ep:0, total:+$("#showTotal").value||null, done:false };
+  DATA.shows.push(item); $("#showName").value=""; $("#showTotal").value="";
+  save({kind:"sh", item});
+});
+$("#showName").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#showAdd").click(); });
+$("#showList").addEventListener("click", e=>{
+  if(mode==="readonly") return;
+  const row = e.target.closest(".wi"); if(!row) return;
+  const s = DATA.shows.find(x=>x.id===row.dataset.id); if(!s) return;
+  const act = e.target.closest("[data-act]"); if(!act) return;
+  if(act.dataset.act==="show-ep"){ s.ep = (s.ep||0)+1; if(s.total && s.ep>=s.total){ s.ep=s.total; s.done=true; } save({kind:"sh", item:s}); }
+  if(act.dataset.act==="show-done"){ s.done = !s.done; save({kind:"sh", item:s}); }
+  if(act.dataset.act==="show-del"){ DATA.shows = DATA.shows.filter(x=>x.id!==s.id); save({kind:"sh-del", id:s.id}); }
+});
+
+/* ---------- 금연 ---------- */
+$("#smokeChips").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  smokeP = b.dataset.p; renderSmoke();
+});
+$("#smokeBody").addEventListener("click", e=>{
+  if(mode==="readonly") return;
+  if(e.target.id==="smStartBtn"){
+    const item = { quit: $("#smStart").value || ymd(new Date()), packs: +$("#smPacks").value||1, price: +$("#smPrice").value||4500 };
+    DATA.smoke[smokeP] = item; save({kind:"sm", who:smokeP, item}); return;
+  }
+  if(e.target.id==="smReset"){
+    if(!confirm("금연 기록을 다시 설정할까요?")) return;
+    DATA.smoke[smokeP] = null; save({kind:"sm", who:smokeP, item:null});
+  }
+});
+
+/* ---------- 재테크 ---------- */
+$("#invKind").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  invKindSel = b.dataset.k; renderInvest();
+});
+document.querySelector("#view-invest").addEventListener("click", e=>{
+  if(mode==="readonly") return;
+  if(e.target.id==="igSave"){
+    const item = { name: $("#igName").value.trim()||"우리 목표", target:+$("#igTarget").value||0, saved:+$("#igSaved").value||0 };
+    DATA.invest.goal = item; save({kind:"ig", item}); return;
+  }
+  if(e.target.id==="invAdd"){
+    const title = $("#invName").value.trim(); if(!title){ $("#invName").focus(); return; }
+    const item = { id:uid(), k:invKindSel, title, by:me };
+    DATA.invest.notes.push(item); $("#invName").value="";
+    save({kind:"iv", item}); return;
+  }
+  const act = e.target.closest("[data-act]");
+  if(act && act.dataset.act==="iv-del"){
+    const row = e.target.closest(".wi");
+    DATA.invest.notes = DATA.invest.notes.filter(x=>x.id!==row.dataset.id);
+    save({kind:"iv-del", id:row.dataset.id});
+  }
+});
+$("#invName").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#invAdd").click(); });
+
+/* ---------- 약속 ---------- */
+$("#usWrap").addEventListener("click", e=>{
+  if(mode==="readonly") return;
+  const act = e.target.closest("[data-act]"); if(!act) return;
+  if(act.dataset.act==="wadd"){
+    const inp = act.parentElement.querySelector("input");
+    const text = inp.value.trim(); if(!text) return;
+    const item = { id:uid(), who:inp.dataset.p, kind:inp.dataset.k, text, ack:false };
+    DATA.wishes.push(item); inp.value=""; save({kind:"wi", item});
+    return;
+  }
+  const row = e.target.closest(".wi"); if(!row) return;
+  const w = DATA.wishes.find(x=>x.id===row.dataset.id); if(!w) return;
+  if(act.dataset.act==="ack"){ w.ack=!w.ack; save({kind:"wi", item:w}); }
+  if(act.dataset.act==="wchk"){ w.ack=act.checked; save({kind:"wi", item:w}); }
+  if(act.dataset.act==="del"){ DATA.wishes = DATA.wishes.filter(x=>x.id!==w.id); save({kind:"wi-del", id:w.id}); }
+});
+$("#usWrap").addEventListener("keydown", e=>{
+  if(e.key==="Enter" && e.target.matches(".wadd input")){ e.target.parentElement.querySelector("button").click(); }
+});
+
+/* ---------- 시트·로그인 ---------- */
+$("#scrim").addEventListener("click", closeAllSheets);
+bindSheet(); bindMSheet(); bindQSheet();
+$("#loginBtn").addEventListener("click", loginSubmit);
+$("#loginPw").addEventListener("keydown", e=>{ if(e.key==="Enter") loginSubmit(); });
+
+/* ---------- 부팅 ---------- */
+initStore();

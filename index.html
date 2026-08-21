@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F6F3">
+<title>계획하는 사이</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+</head>
+<body>
+
+<div class="app">
+  <!-- ===== 헤더 ===== -->
+  <header>
+    <div>
+      <h1>계획하는 사이</h1>
+      <div class="tagline">P가 J를 위해 만든 우리의 모든 계획 💕</div>
+      <div class="tagline" id="dayQuote" style="margin-top:3px; font-size:11px"></div>
+    </div>
+    <div>
+      <div class="me-label">지금 보는 사람</div>
+      <div class="me-switch" id="meSwitch">
+        <button data-me="cs">창석</button><button data-me="hj">희진</button>
+      </div>
+    </div>
+  </header>
+  <div id="banner" hidden></div>
+
+  <main>
+    <!-- ===== 달력 ===== -->
+    <section id="view-cal">
+      <div class="card">
+        <div class="cal-head">
+          <button id="calPrev" aria-label="이전 달">‹</button>
+          <div class="mv" id="calTitle"></div>
+          <button id="calNext" aria-label="다음 달">›</button>
+        </div>
+        <div class="stats" id="calStats"></div>
+        <div class="dow"><span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="grid" id="calGrid"></div>
+      </div>
+      <div class="card">
+        <div class="day-title" id="dayTitle"></div>
+        <div id="dayList"></div>
+        <button class="addbtn" id="dayAdd">+ 이 날 일정 추가 ✨</button>
+      </div>
+    </section>
+
+    <!-- ===== 지도 ===== -->
+    <section id="view-map" hidden>
+      <div class="card">
+        <div class="sec-title">우리가 다닌 지도 🗺️</div>
+        <div class="chips" id="mapChips">
+          <button data-f="all" class="on">전체</button>
+          <button data-f="run">💪 운동</button>
+          <button data-f="date">💛 데이트</button>
+          <button data-f="wed">💍 결혼</button>
+        </div>
+        <div id="mapWrap"></div>
+        <div class="legend"><span><i class="f"></i>다녀온 곳</span><span><i class="o"></i>갈 곳</span><span>🏠 우리 동네</span></div>
+      </div>
+      <div class="card">
+        <div class="sec-title">기록</div>
+        <div id="mapList"></div>
+      </div>
+    </section>
+
+    <!-- ===== 축제 ===== -->
+    <section id="view-fest" hidden>
+      <div class="card">
+        <div class="sec-title">가볼 만한 축제 🎪</div>
+        <div class="fest-note">집(향동) 기준 가까운 순. 날짜는 예년 기준이라, 확정되면 달력에 담을 때 정확한 날짜로 넣어주세요.</div>
+        <div id="festList"></div>
+        <a class="fest-link" href="https://korean.visitkorea.or.kr/kfes/list/festivalCalendar.do" target="_blank" rel="noopener">공식 확정 일정은 대한민국 구석구석 축제달력에서 확인 ↗</a>
+      </div>
+    </section>
+
+    <!-- ===== 식단 ===== -->
+    <section id="view-meal" hidden>
+      <div class="card">
+        <div class="cal-head">
+          <button id="mealPrev" aria-label="이전 날">‹</button>
+          <div class="mv" id="mealTitle"></div>
+          <button id="mealNext" aria-label="다음 날">›</button>
+        </div>
+        <div class="us-note" style="margin:0 2px 4px">오늘 먹은 걸 사진과 함께 남겨요. 잘 먹은 날도, 아쉬운 날도 그대로 — 보여주는 것만으로 충분해요 🍀</div>
+        <div id="mealList"></div>
+      </div>
+    </section>
+
+    <!-- ===== 쪽지 ===== -->
+    <section id="view-note" hidden>
+      <div class="card">
+        <div class="sec-title">우리 쪽지 💌</div>
+        <div class="us-note" style="margin:0 2px 10px">일정·식단에 메모나 사진을 남기면 여기에 다 모여요. 유튜브·인스타 링크를 붙여넣으면 영상으로 보여요 🎬</div>
+        <div class="emoRow" id="emoRow">
+          <button>🥰</button><button>😘</button><button>💕</button><button>🫶</button><button>✨</button>
+          <button>🐥</button><button>🎀</button><button>😚</button><button>🌸</button><button>🍀</button>
+          <button id="noteAud" title="음성 메모" style="margin-left:auto; background:var(--date-soft)">🎤</button>
+          <button id="noteVid" title="영상 메모" style="background:var(--date-soft)">📹</button>
+        </div>
+        <input type="file" id="noteAudIn" accept="audio/*" capture hidden>
+        <input type="file" id="noteVidIn" accept="video/*" capture="environment" hidden>
+        <div class="wadd"><input type="text" id="noteIn" maxlength="300" placeholder="확인해줘~ 난 이래~ 💌 (링크 붙여넣기 OK)"><button id="noteSend">보내기</button></div>
+        <div class="nfeed" id="noteFeed"></div>
+      </div>
+    </section>
+
+    <!-- ===== 전체 메뉴 ===== -->
+    <section id="view-more" hidden>
+      <div class="menu-grid">
+        <button data-go="fest"><span>🎪</span>축제 구경</button>
+        <button data-go="trip"><span>✈️</span>여행 가자</button>
+        <button data-go="wed"><span>💍</span>결혼 준비</button>
+        <button data-go="home"><span>🏡</span>살림 노트</button>
+        <button data-go="fate"><span>🔮</span>우리 궁합</button>
+        <button data-go="body"><span>📊</span>몸 기록</button>
+        <button data-go="show"><span>📺</span>같이 보기</button>
+        <button data-go="smoke"><span>🚭</span>금연 응원</button>
+        <button data-go="invest"><span>🪙</span>재테크</button>
+        <button data-go="us"><span>🤙</span>우리 약속</button>
+      </div>
+      <div class="us-note" style="text-align:center; margin-top:14px">살림 노트에는 신혼집 · 아이 · 반려동물 · 냉장고가 들어있어요 🧺</div>
+    </section>
+
+    <!-- ===== 여행 ===== -->
+    <section id="view-trip" hidden>
+      <div class="card">
+        <div class="sec-title">여행 가자 ✈️</div>
+        <div class="us-note" style="margin:0 2px 10px">언제 · 어디로 · 몇 박인지 정하면, 한국에서 준비할 것들 체크리스트가 같이 만들어져요 🧳</div>
+        <div class="f-lb">어디로</div>
+        <input type="text" class="f-in" id="trWhere" maxlength="40" placeholder="예) 오사카, 다낭, 파리 🗼">
+        <div class="tr-row">
+          <div style="flex:1"><div class="f-lb">출발일</div><input type="date" class="f-in" id="trStart"></div>
+          <div style="width:110px"><div class="f-lb">몇 박?</div><input type="number" class="f-in" id="trNights" min="0" max="60" value="3"></div>
+        </div>
+        <button class="addbtn" id="trAdd">+ 여행 만들기 🧳</button>
+      </div>
+      <div id="tripList"></div>
+    </section>
+
+    <!-- ===== 결혼 준비 (스킬트리) ===== -->
+    <section id="view-wed" hidden>
+      <div class="card">
+        <div class="sec-title">결혼 준비 💍</div>
+        <div class="us-note" style="margin:0 2px 10px">스킬트리 찍듯 하나씩 ⭐ 노드를 누르면 날짜·장소·예약 메모를 적을 수 있어요. 서두르지 말고, 설렘은 같이 🤍</div>
+        <div id="wedProg"></div>
+        <div id="wedList"></div>
+      </div>
+    </section>
+
+    <!-- ===== 살림 노트 ===== -->
+    <section id="view-home" hidden>
+      <div class="card">
+        <div class="sec-title">살림 노트 🏡</div>
+        <div class="chips" id="homeChips" style="margin-top:4px">
+          <button data-b="home" class="on">🏠 신혼집</button>
+          <button data-b="baby">👶 아이</button>
+          <button data-b="pet">🐾 반려동물</button>
+          <button data-b="fridge">🧊 냉장고</button>
+        </div>
+        <div id="homeBody"></div>
+      </div>
+    </section>
+
+    <!-- ===== 궁합 ===== -->
+    <section id="view-fate" hidden>
+      <div class="card">
+        <div class="sec-title">우리 궁합 🔮</div>
+        <div class="us-note" style="margin:0 2px 6px">생일 · 태어난 시간 · MBTI를 넣으면 사주팔자와 궁합을 풀어드려요. 어디까지나 재미로 봐요 😉</div>
+        <div id="pfForm"></div>
+        <button class="addbtn" id="pfSave">저장하고 궁합 보기 ✨</button>
+      </div>
+      <div id="fateOut"></div>
+    </section>
+
+    <!-- ===== 몸 기록 ===== -->
+    <section id="view-body" hidden>
+      <div class="card">
+        <div class="sec-title">몸 기록 📊</div>
+        <div class="us-note" style="margin:0 2px 6px">헬스장 인바디 찍은 날, 여기에 옮겨 적어요. 서로의 변화를 같이 응원하기 💪</div>
+        <div class="chips" id="bodyChips" style="margin-top:4px">
+          <button data-p="cs" class="on">창석</button>
+          <button data-p="hj">희진</button>
+        </div>
+        <div id="bodyBody"></div>
+      </div>
+    </section>
+
+    <!-- ===== 같이 보기 ===== -->
+    <section id="view-show" hidden>
+      <div class="card">
+        <div class="sec-title">같이 보는 중 📺</div>
+        <div class="us-note" style="margin:0 2px 8px">드라마 · 예능 · 시리즈, 몇 화까지 봤는지 같이 체크해요. 혼자 먼저 보기 금지 🤫</div>
+        <div class="fr-add">
+          <input type="text" id="showName" maxlength="40" placeholder="제목">
+          <input type="number" id="showTotal" min="1" placeholder="총 화수" style="width:80px">
+          <button id="showAdd">추가</button>
+        </div>
+        <div id="showList"></div>
+      </div>
+    </section>
+
+    <!-- ===== 금연 응원 ===== -->
+    <section id="view-smoke" hidden>
+      <div class="card">
+        <div class="sec-title">금연 응원 🚭</div>
+        <div class="us-note" style="margin:0 2px 8px" id="smokeQuote"></div>
+        <div class="chips" id="smokeChips" style="margin-top:4px">
+          <button data-p="cs" class="on">창석</button><button data-p="hj">희진</button>
+        </div>
+        <div id="smokeBody"></div>
+      </div>
+    </section>
+
+    <!-- ===== 재테크 ===== -->
+    <section id="view-invest" hidden>
+      <div class="card">
+        <div class="sec-title">재테크 🪙</div>
+        <div class="us-note" style="margin:0 2px 8px" id="invQuote"></div>
+        <div id="invGoal"></div>
+      </div>
+      <div class="card">
+        <div class="sec-title" style="font-size:15.5px">우리 자산 메모 📒</div>
+        <div class="us-note" style="margin:0 2px 8px">주식 · 코인 · 부동산, 뭘 왜 샀는지 같이 기록해요. 실시간 시세 연동은 다음 버전에서! 📡</div>
+        <div class="chips" id="invKind" style="margin-top:0">
+          <button data-k="주식" class="on">📈 주식</button><button data-k="코인">🪙 코인</button><button data-k="부동산">🏢 부동산</button><button data-k="예적금">🏦 예적금</button><button data-k="청약">🏡 청약</button><button data-k="기타">📦 기타</button>
+        </div>
+        <div class="fr-add">
+          <input type="text" id="invName" maxlength="60" placeholder="예) 삼성전자 10주 @72,000 — 배당 보고 산 것">
+          <button id="invAdd">기록</button>
+        </div>
+        <div id="invList"></div>
+      </div>
+      <div class="card">
+        <div class="sec-title" style="font-size:15.5px">나라가 주는 혜택 🎁</div>
+        <div class="us-note" style="margin:0 2px 8px">청년 · 예비/신혼부부가 챙길 만한 것들. 조건과 금리는 자주 바뀌니 신청 전에 꼭 최신 공고를 확인해요!</div>
+        <details class="gls"><summary>🏡 주택청약종합저축 (일명 분양 적금)</summary>
+          누구나 가입 가능, 월 2만~50만원 자유 납입. 아파트 분양(민영·국민주택) 청약 자격의 기본이고, 연말정산 소득공제 혜택도 있어요. 결혼 전 각자 하나씩 유지하는 게 기본기!</details>
+        <details class="gls"><summary>💜 청년 주택드림 청약통장</summary>
+          만 19~34세 + 소득 조건 충족 시 일반 청약통장보다 우대금리·비과세 혜택. 이미 청약통장이 있으면 전환 가능한지 은행에 물어보세요.</details>
+        <details class="gls"><summary>💰 청년도약계좌</summary>
+          만 19~34세 대상, 5년 납입하면 정부기여금을 얹어주는 목돈 만들기 계좌. 소득 구간별로 지원이 달라요.</details>
+        <details class="gls"><summary>💒 신혼부부 특별공급 (특공)</summary>
+          혼인 7년 이내(예비부부 포함되는 공고도 있음) 대상의 아파트 분양 특별공급. 결혼 준비 중이라면 무조건 알아둘 제도!</details>
+        <details class="gls"><summary>🏠 신혼부부 버팀목 전세대출 · 디딤돌 구입대출</summary>
+          주택도시기금의 저금리 대출. 전세는 버팀목, 매매는 디딤돌. 신혼(혼인 7년 이내) 우대 조건이 따로 있어요.</details>
+        <details class="gls"><summary>👶 신생아 특례대출</summary>
+          출산 가구 대상의 초저금리 주택 대출. 아이 계획이 있다면 시기 맞춰 챙기면 이자 차이가 커요.</details>
+        <div class="us-note" style="margin-top:8px">확인처: 주택도시기금 · 청약홈 · 복지로 · 은행 창구 📞</div>
+      </div>
+    </section>
+
+    <!-- ===== 우리 약속 ===== -->
+    <section id="view-us" hidden>
+      <div class="us-note">서로에게 바라는 것부터 취미·꿈·버킷리스트까지. 본인 칸에만 쓸 수 있고, 상대의 부탁에는 "알겠어"로 답해줘요. (오른쪽 위에서 본인 이름을 선택!)</div>
+      <div id="usWrap"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== 하단 탭바 ===== -->
+<nav class="tabbar"><div class="in">
+  <button data-tab="cal" class="on"><span class="em">🗓️</span><span class="lb">달력</span></button>
+  <button data-tab="map"><span class="em">🗺️</span><span class="lb">지도</span></button>
+  <button data-tab="meal"><span class="em">🍚</span><span class="lb">식단</span></button>
+  <button data-tab="note"><span class="em">💌</span><span class="lb">쪽지</span></button>
+  <button data-tab="more"><span class="em">🧸</span><span class="lb">전체</span></button>
+</div></nav>
+
+<!-- ===== 시트: 일정 ===== -->
+<div id="scrim"></div>
+<div id="sheet"><div class="in">
+  <div class="sh-title" id="shTitle">일정 추가</div>
+  <div class="f-lb">종류</div>
+  <div class="seg" id="shType">
+    <button data-v="run" class="run">💪 운동</button>
+    <button data-v="date" class="date">💛 데이트</button>
+    <button data-v="wed" class="fest">💍 결혼</button>
+  </div>
+  <div class="f-lb">세부 종류</div>
+  <div class="chips" id="shSub" style="margin:0"></div>
+  <div class="f-lb">날짜</div>
+  <input type="date" class="f-in" id="shDate">
+  <div class="f-lb">어디서 · 뭐 하기</div>
+  <input type="text" class="f-in" id="shTitleIn" placeholder="예) 평화의공원 러닝, 월미도 데이트">
+  <div class="f-lb">메모 (선택)</div>
+  <input type="text" class="f-in" id="shMemo" placeholder="예) 6시 출발, 주차는 8부두">
+  <div id="shKcalRow" hidden>
+    <div class="f-lb">소모 칼로리 (선택) 🔥</div>
+    <input type="number" class="f-in" id="shKcal" min="0" placeholder="예) 300">
+  </div>
+  <div class="f-lb">사진 (선택)</div>
+  <input type="file" id="shPhoto" accept="image/*" hidden>
+  <button class="f-in" id="shPhotoBtn" style="text-align:left; color:var(--muted-solid)" type="button">📷 사진 찍기 / 고르기</button>
+  <img id="shPreview" alt="일정 사진 미리보기" hidden>
+  <div class="f-lb">누가 적었나</div>
+  <div class="seg" id="shBy">
+    <button data-v="cs" class="plain">창석</button>
+    <button data-v="hj" class="plain">희진</button>
+  </div>
+  <div class="f-lb">지도에 위치 찍기 (선택)</div>
+  <div id="shMapWrap"></div>
+  <div class="loc-hint"><span id="shLocTxt">지도를 눌러 위치를 표시하세요</span><button id="shLocClear" hidden>위치 지우기</button></div>
+  <label class="donechk" id="shDoneRow" hidden><input type="checkbox" id="shDone"> 다녀왔어요 ✓</label>
+  <div class="cal-sync">
+    <button type="button" id="shGcal">📅 구글 캘린더에 추가</button>
+    <button type="button" id="shIcs">📥 폰 캘린더 파일(.ics)</button>
+  </div>
+  <div class="sh-row">
+    <button class="rm" id="shDel" hidden>삭제</button>
+    <button class="cancel" id="shCancel">취소</button>
+    <button class="save" id="shSave">저장</button>
+  </div>
+</div></div>
+
+<!-- ===== 시트: 식단 ===== -->
+<div id="msheet"><div class="in">
+  <div class="sh-title" id="msTitle">식단 기록</div>
+  <div class="f-lb">끼니</div>
+  <div class="seg" id="msSlot">
+    <button data-v="b" class="plain">🌅 아침</button>
+    <button data-v="l" class="plain">☀️ 점심</button>
+    <button data-v="d" class="plain">🌙 저녁</button>
+    <button data-v="s" class="plain">🍪 간식</button>
+  </div>
+  <div class="f-lb">어디서</div>
+  <div class="seg" id="msKind">
+    <button data-v="home" class="plain">🏠 집밥</button>
+    <button data-v="out" class="plain">🍽️ 외식</button>
+  </div>
+  <div class="f-lb">사진 (선택)</div>
+  <input type="file" id="msPhoto" accept="image/*" hidden>
+  <button class="f-in" id="msPhotoBtn" style="text-align:left; color:var(--muted-solid)" type="button">📷 사진 찍기 / 고르기</button>
+  <img id="msPreview" alt="식단 사진 미리보기" hidden>
+  <div class="f-lb">메모</div>
+  <input type="text" class="f-in" id="msText" maxlength="120" placeholder="예) 연어 포케 / 가게 이름도 적어두면 좋아요">
+  <div class="f-lb">칼로리 (선택) 🔥</div>
+  <input type="number" class="f-in" id="msKcal" min="0" placeholder="예) 550">
+  <div class="f-lb">누가</div>
+  <div class="seg" id="msBy">
+    <button data-v="cs" class="plain">창석</button>
+    <button data-v="hj" class="plain">희진</button>
+  </div>
+  <div class="sh-row">
+    <button class="rm" id="msDel" hidden>삭제</button>
+    <button class="cancel" id="msCancel">취소</button>
+    <button class="save" id="msSave">저장</button>
+  </div>
+</div></div>
+
+<!-- ===== 시트: 퀘스트 상세 (스킬트리 노드) ===== -->
+<div id="qsheet"><div class="in">
+  <div class="sh-title" id="qsTitle">준비 항목</div>
+  <div class="f-lb">항목 이름</div>
+  <input type="text" class="f-in" id="qsText" maxlength="80" placeholder="예) 드레스 투어">
+  <button class="addbtn" id="qsDone" style="margin-top:12px; padding:12px"></button>
+  <div class="f-lb">날짜 (선택)</div>
+  <input type="date" class="f-in" id="qsDate">
+  <div class="f-lb">장소 · 지역 (선택)</div>
+  <input type="text" class="f-in" id="qsPlace" maxlength="60" placeholder="예) 청담 러비, 봉스튜디오">
+  <div class="f-lb">예약 · 메모 (선택)</div>
+  <input type="text" class="f-in" id="qsMemo" maxlength="120" placeholder="예) 14:00 예약, 보증금 입금 완료">
+  <div class="f-lb">담당</div>
+  <div class="seg" id="qsWho">
+    <button data-v="both" class="plain">같이</button>
+    <button data-v="cs" class="plain">창석</button>
+    <button data-v="hj" class="plain">희진</button>
+  </div>
+  <button class="wide-btn" id="qsToCal">🗓️ 달력에 일정으로도 추가</button>
+  <div class="sh-row">
+    <button class="rm" id="qsDel" hidden>삭제</button>
+    <button class="cancel" id="qsCancel">취소</button>
+    <button class="save" id="qsSave">저장</button>
+  </div>
+</div></div>
+
+<!-- ===== 로그인 ===== -->
+<div id="login"><div class="box">
+  <h2>계획하는 사이 💛</h2>
+  <div class="sub">둘만의 공간이에요. 로그인해 주세요.</div>
+  <div class="f-lb">이메일</div>
+  <input type="email" class="f-in" id="loginEmail" autocomplete="username" placeholder="you@example.com">
+  <div class="f-lb">비밀번호</div>
+  <input type="password" class="f-in" id="loginPw" autocomplete="current-password">
+  <div class="err" id="loginErr"></div>
+  <button class="addbtn" id="loginBtn">들어가기 🚪</button>
+</div></div>
+
+<!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/saju.js"></script>
+<script src="js/map.js"></script>
+<script src="js/store.js"></script>
+<script src="js/views.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
