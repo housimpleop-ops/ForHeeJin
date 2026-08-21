@@ -22,12 +22,6 @@
       <div class="tagline">P가 J를 위해 만든 우리의 모든 계획 💕</div>
       <div class="tagline" id="dayQuote" style="margin-top:3px; font-size:11px"></div>
     </div>
-    <div>
-      <div class="me-label">지금 보는 사람</div>
-      <div class="me-switch" id="meSwitch">
-        <button data-me="cs">창석</button><button data-me="hj">희진</button>
-      </div>
-    </div>
   </header>
   <div id="banner" hidden></div>
 
@@ -111,21 +105,39 @@
       </div>
     </section>
 
-    <!-- ===== 전체 메뉴 ===== -->
-    <section id="view-more" hidden>
-      <div class="menu-grid">
-        <button data-go="fest"><span>🎪</span>축제 구경</button>
-        <button data-go="trip"><span>✈️</span>여행 가자</button>
-        <button data-go="wed"><span>💍</span>결혼 준비</button>
-        <button data-go="home"><span>🏡</span>살림 노트</button>
-        <button data-go="fate"><span>🔮</span>우리 궁합</button>
-        <button data-go="body"><span>📊</span>몸 기록</button>
-        <button data-go="show"><span>📺</span>같이 보기</button>
-        <button data-go="smoke"><span>🚭</span>금연 응원</button>
-        <button data-go="invest"><span>🪙</span>재테크</button>
-        <button data-go="us"><span>🤙</span>우리 약속</button>
+    <!-- ===== 계획 (트리 허브) ===== -->
+    <section id="view-plan" hidden>
+      <div class="card">
+        <div class="sec-title">우리 계획 🌳</div>
+        <div class="us-note" style="margin:0 2px 12px">가지를 골라 들어가요. 각 항목 밑의 작은 글씨는 지금 진행 상황이에요.</div>
+        <div id="planTree"></div>
       </div>
-      <div class="us-note" style="text-align:center; margin-top:14px">살림 노트에는 신혼집 · 아이 · 반려동물 · 냉장고가 들어있어요 🧺</div>
+    </section>
+
+    <!-- ===== 서랍 (트리 허브) ===== -->
+    <section id="view-box" hidden>
+      <div class="card">
+        <div class="sec-title">우리 서랍 📦</div>
+        <div class="us-note" style="margin:0 2px 12px">우리에 대한 것들, 참고할 것들을 모아뒀어요.</div>
+        <div id="boxTree"></div>
+      </div>
+    </section>
+
+    <!-- ===== 설정 ===== -->
+    <section id="view-set" hidden>
+      <div class="card">
+        <div class="sec-title">설정 ⚙️</div>
+        <div class="f-lb">지금 이 폰을 쓰는 사람</div>
+        <div class="seg" id="setMe">
+          <button data-v="cs" class="plain">창석</button>
+          <button data-v="hj" class="plain">희진</button>
+        </div>
+        <div class="f-lb" style="margin-top:16px">연결 상태</div>
+        <div id="setConn" class="us-note" style="margin:0 2px"></div>
+        <button class="wide-btn" id="setLogout" hidden>로그아웃</button>
+        <div class="f-lb" style="margin-top:16px">앱 정보</div>
+        <div class="us-note" style="margin:0 2px">계획하는 사이 v2.0 — P가 J를 위해 만든 앱 💛<br>사용법·구조 설명은 저장소의 docs/시작하기.md 와 CLAUDE.md 에 있어요.</div>
+      </div>
     </section>
 
     <!-- ===== 여행 ===== -->
@@ -237,8 +249,12 @@
         </div>
         <div id="invList"></div>
       </div>
+    </section>
+
+    <!-- ===== 나라 혜택 (서랍) ===== -->
+    <section id="view-benefit" hidden>
       <div class="card">
-        <div class="sec-title" style="font-size:15.5px">나라가 주는 혜택 🎁</div>
+        <div class="sec-title">나라가 주는 혜택 🎁</div>
         <div class="us-note" style="margin:0 2px 8px">청년 · 예비/신혼부부가 챙길 만한 것들. 조건과 금리는 자주 바뀌니 신청 전에 꼭 최신 공고를 확인해요!</div>
         <details class="gls"><summary>🏡 주택청약종합저축 (일명 분양 적금)</summary>
           누구나 가입 가능, 월 2만~50만원 자유 납입. 아파트 분양(민영·국민주택) 청약 자격의 기본이고, 연말정산 소득공제 혜택도 있어요. 결혼 전 각자 하나씩 유지하는 게 기본기!</details>
@@ -268,9 +284,10 @@
 <nav class="tabbar"><div class="in">
   <button data-tab="cal" class="on"><span class="em">🗓️</span><span class="lb">달력</span></button>
   <button data-tab="map"><span class="em">🗺️</span><span class="lb">지도</span></button>
-  <button data-tab="meal"><span class="em">🍚</span><span class="lb">식단</span></button>
   <button data-tab="note"><span class="em">💌</span><span class="lb">쪽지</span></button>
-  <button data-tab="more"><span class="em">🧸</span><span class="lb">전체</span></button>
+  <button data-tab="plan"><span class="em">🌳</span><span class="lb">계획</span></button>
+  <button data-tab="box"><span class="em">📦</span><span class="lb">서랍</span></button>
+  <button data-tab="set"><span class="em">⚙️</span><span class="lb">설정</span></button>
 </div></nav>
 
 <!-- ===== 시트: 일정 ===== -->

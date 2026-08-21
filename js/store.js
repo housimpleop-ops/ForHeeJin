@@ -5,8 +5,9 @@
    저장은 어디서든 save(change, files) 하나만 부르면 된다.
    ============================================================ */
 
-let SB = null;          // Supabase 클라이언트
-let mode = "loading";   // shared | local | readonly
+let SB = null;           // Supabase 클라이언트
+let mode = "loading";    // shared | local | readonly
+let sessionEmail = "";   // 로그인한 이메일 (설정 화면 표시용)
 
 /* ---------- 시작 (app.js의 부팅에서 호출) ---------- */
 async function initStore(){
@@ -35,6 +36,10 @@ function startLocal(msg){
 async function startShared(){
   mode = "shared";
   hideLogin();
+  try{
+    const { data: s } = await SB.auth.getSession();
+    sessionEmail = (s && s.session && s.session.user && s.session.user.email) || "";
+  }catch(_){ sessionEmail = ""; }
   const { data: row, error } = await SB.from("couple_state").select("data").eq("id","main").maybeSingle();
   if(error){
     startLocal("서버에 연결하지 못해서 이 기기에만 저장돼요. 인터넷을 확인해 주세요.");
@@ -118,4 +123,8 @@ async function loginSubmit(){
   $("#loginBtn").disabled = false;
   if(error){ err.textContent = "로그인 실패: 이메일·비밀번호를 확인해 주세요."; return; }
   await startShared();
+}
+async function doLogout(){
+  try{ if(SB) await SB.auth.signOut(); }catch(_){ }
+  location.reload();
 }

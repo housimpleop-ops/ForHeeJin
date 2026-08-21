@@ -457,13 +457,82 @@ function renderUs(){
   }).join("");
 }
 
+/* ---------- 트리 허브 (계획·서랍) ---------- */
+const PLAN_TREE = [
+  { h:"🌱 목표 · 준비", kids:[
+    ["wed","💍","결혼 준비"],["trip","✈️","여행"],["home","🏠","신혼집"],["baby","👶","아이"],
+    ["pet","🐾","반려동물"],["smoke","🚭","금연"],["body","📊","몸 만들기"],["invest","🪙","재테크"]]},
+  { h:"📔 매일 기록", kids:[
+    ["meal","🍚","식단"],["show","📺","같이 보기"],["fridge","🧊","냉장고·장보기"]]},
+];
+const BOX_TREE = [
+  { h:"💑 우리 이야기", kids:[["fate","🔮","우리 궁합"],["us","🤙","우리 약속"]]},
+  { h:"🗂️ 참고 자료", kids:[["fest","🎪","축제 구경"],["benefit","🎁","나라 혜택"]]},
+];
+/* 각 항목 밑에 보여줄 한 줄 진행 상황 */
+function planStatus(key){
+  const pctOf = k => { const p=checkProg(k); return p.t ? "⭐ "+p.pct+"% ("+p.d+"/"+p.t+")" : "시작 전"; };
+  switch(key){
+    case "wed": case "home": case "baby": case "pet": return pctOf(key);
+    case "trip": {
+      const t0 = ymd(new Date());
+      const up = DATA.trips.filter(t=>t.start && t.start>=t0).sort((a,b)=>a.start.localeCompare(b.start))[0];
+      if(up) return ddayTxt(up.start)+" "+up.title;
+      return DATA.trips.length ? "다녀온 여행 "+DATA.trips.length+"개" : "계획 없음";
+    }
+    case "smoke": {
+      const s = DATA.smoke[me]; if(!s) return "도전 대기 중";
+      const days = Math.max(0, Math.round((new Date(ymd(new Date())+"T00:00:00")-new Date(s.quit+"T00:00:00"))/86400000));
+      return "금연 D+"+days+" 🎉";
+    }
+    case "body": {
+      const P = DATA.bodyP[me]||{};
+      const logs = DATA.bodyLogs.filter(l=>l.who===me).sort((a,b)=>b.date.localeCompare(a.date));
+      if(logs[0] && P.goal) return "목표까지 "+Math.max(0,(logs[0].w-P.goal)).toFixed(1)+"kg";
+      return logs.length ? "기록 "+logs.length+"번" : "첫 기록 대기";
+    }
+    case "invest": {
+      const g = DATA.invest.goal;
+      return (g && +g.target) ? Math.min(100,Math.round((+g.saved||0)/+g.target*100))+"% 모음" : "목표 없음";
+    }
+    case "meal": { const n = DATA.meals.filter(m=>m.date===ymd(new Date())).length; return "오늘 "+n+"끼 기록"; }
+    case "show": { const n = DATA.shows.filter(s=>!s.done).length; return n ? n+"개 보는 중" : "보는 것 없음"; }
+    case "fridge": return DATA.fridge.length+"개 · 장보기 "+DATA.shop.length+"개";
+    case "fate": return (DATA.profile && DATA.profile.cs && DATA.profile.cs.birth && DATA.profile.hj && DATA.profile.hj.birth) ? "궁합 완성 💘" : "생일 입력하기";
+    case "us": return DATA.wishes.length ? DATA.wishes.length+"개 적음" : "비어 있어요";
+    case "fest": return "가볼 곳 "+FESTS.length+"곳";
+    case "benefit": return "챙길 혜택 6가지";
+  }
+  return "";
+}
+function treeHubHTML(tree){
+  return tree.map(b=>`<div class="tree-branch"><div class="tree-h">${b.h}</div>
+    <div class="tree-kids">`+b.kids.map(k=>`<button class="tnode" data-go="${k[0]}">
+      <span class="ti">${k[1]}</span><span class="tx2"><span class="tl">${k[2]}</span><span class="ts">${planStatus(k[0])}</span></span>
+    </button>`).join("")+`</div></div>`).join("");
+}
+function renderPlanHub(){ $("#planTree").innerHTML = treeHubHTML(PLAN_TREE); }
+function renderBoxHub(){ $("#boxTree").innerHTML = treeHubHTML(BOX_TREE); }
+
+/* ---------- 설정 ---------- */
+function renderSet(){
+  document.querySelectorAll("#setMe button").forEach(b=>b.classList.toggle("on", b.dataset.v===me));
+  const conn = $("#setConn"), out = $("#setLogout");
+  if(mode==="shared"){
+    conn.innerHTML = "✅ 서버 연결됨 — 둘이 실시간으로 공유 중이에요."+(sessionEmail?"<br>로그인: "+esc(sessionEmail):"");
+    out.hidden = false;
+  } else {
+    conn.textContent = "📴 이 기기에만 저장 중이에요. 서버 연결은 docs/시작하기.md 순서대로!";
+    out.hidden = true;
+  }
+}
+
 /* ---------- 헤더 + 전체 다시 그리기 ---------- */
 function renderMe(){
-  document.querySelectorAll("#meSwitch button").forEach(b=>b.classList.toggle("on", b.dataset.me===me));
   const dq = $("#dayQuote"); if(dq) dq.textContent = pickQuote();
 }
 function renderAll(){
   renderMe(); renderCal(); renderMap(); renderFest(); renderMeal(); renderNote();
   renderTrip(); renderWed(); renderHome(); renderFate(); renderBody(); renderShow();
-  renderSmoke(); renderInvest(); renderUs();
+  renderSmoke(); renderInvest(); renderUs(); renderPlanHub(); renderBoxHub(); renderSet();
 }

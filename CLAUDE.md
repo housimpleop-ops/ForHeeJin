@@ -45,6 +45,14 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
 - "shared": 로그인됨, Supabase 저장. "local": config 미설정/미로그인 — localStorage만.
 - config.js가 비어 있으면 자동으로 local — Supabase 없이도 개발·테스트 가능.
 
+## 화면 구조 (하단 6탭 + 트리 허브)
+- 하단 탭: 달력 · 지도 · 쪽지 · **계획🌳** · **서랍📦** · 설정
+- 계획 허브 = 「목표·준비」(결혼·여행·신혼집·아이·반려·금연·몸·재테크) + 「매일 기록」(식단·같이보기·냉장고)
+- 서랍 허브 = 「우리 이야기」(궁합·약속) + 「참고 자료」(축제·나라혜택)
+- app.js의 VIEW_PARENT가 각 세부 화면의 부모 탭을 정한다. 새 화면 추가 시:
+  index.html 섹션 + ALL_VIEWS + VIEW_PARENT + (views.js) PLAN_TREE/BOX_TREE + planStatus 한 줄.
+- "지금 보는 사람"(me) 전환은 설정 탭에 있다.
+
 ## 스킬트리 규칙
 - 결혼(wedding)·아이(boards.baby)는 체크리스트를 스킬트리(qtree)로 그림. 노드 탭 → qsheet(날짜·장소·메모·담당).
 - 목표형 화면(금연 타임라인, 몸무게 목표, 저축 목표)은 qpathHTML() 마일스톤 경로로 그림.

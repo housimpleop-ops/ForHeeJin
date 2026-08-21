@@ -5,12 +5,19 @@
         → 금연 → 재테크 → 약속 → 로그인 → 부팅
    ============================================================ */
 
-/* ---------- 탭 이동 ---------- */
-const ALL_VIEWS = ["cal","map","fest","meal","note","trip","wed","fate","us","more","home","body","show","smoke","invest"];
+/* ---------- 탭 이동 ----------
+   하단 6탭: 달력·지도·쪽지·계획(허브)·서랍(허브)·설정
+   세부 화면은 허브에서 트리로 들어가고, 탭바에는 부모 허브가 켜진다. */
+const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit"];
+const VIEW_PARENT = {
+  cal:"cal", map:"map", note:"note", plan:"plan", box:"box", set:"set",
+  trip:"plan", wed:"plan", home:"plan", smoke:"plan", body:"plan", invest:"plan", meal:"plan", show:"plan",
+  fate:"box", us:"box", fest:"box", benefit:"box",
+};
 function goTab(t){
   tab = t;
-  const core = { cal:1, map:1, meal:1, note:1 };
-  document.querySelectorAll("nav.tabbar button").forEach(x=>x.classList.toggle("on", x.dataset.tab === (core[t] ? t : "more")));
+  const parent = VIEW_PARENT[t] || "plan";
+  document.querySelectorAll("nav.tabbar button").forEach(x=>x.classList.toggle("on", x.dataset.tab===parent));
   ALL_VIEWS.forEach(v=>{ const el=$("#view-"+v); if(el) el.hidden = v!==t; });
   window.scrollTo(0,0);
 }
@@ -18,15 +25,27 @@ document.querySelector("nav.tabbar").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   goTab(b.dataset.tab);
 });
-document.querySelector("#view-more .menu-grid").addEventListener("click", e=>{
-  const b = e.target.closest("button[data-go]"); if(!b) return;
-  goTab(b.dataset.go);
-});
+/* 허브 트리에서 항목 선택 (살림 계열은 살림 화면의 해당 보드로) */
+function goFromHub(key){
+  if(key==="home"||key==="baby"||key==="pet"||key==="fridge"){
+    homeBoard = key;
+    renderHome();
+    goTab("home");
+    return;
+  }
+  goTab(key);
+}
+$("#planTree").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(b) goFromHub(b.dataset.go); });
+$("#boxTree").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(b) goFromHub(b.dataset.go); });
 
-/* ---------- 헤더 (지금 보는 사람) ---------- */
-$("#meSwitch").addEventListener("click", e=>{
+/* ---------- 설정 ---------- */
+$("#setMe").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
-  me = b.dataset.me; localStorage.setItem("gyehoek-me", me); renderAll();
+  me = b.dataset.v; localStorage.setItem("gyehoek-me", me); renderAll();
+});
+$("#setLogout").addEventListener("click", async ()=>{
+  if(!confirm("로그아웃할까요?")) return;
+  await doLogout();
 });
 
 /* ---------- 달력 ---------- */
