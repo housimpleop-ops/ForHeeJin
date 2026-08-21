@@ -10,14 +10,23 @@ let mode = "loading";    // shared | local | readonly
 let sessionEmail = "";   // 로그인한 이메일 (설정 화면 표시용)
 
 /* ---------- 시작 (app.js의 부팅에서 호출) ---------- */
+const LS_CRED = "gyehoek-cred"; // 아이디·비밀번호 저장 (이 기기 안에만)
+function savedCred(){ try{ return JSON.parse(localStorage.getItem(LS_CRED)||"null"); }catch(_){ return null; } }
+
 async function initStore(){
   const cfg = window.COUPLE_CONFIG || {};
   const hasCfg = cfg.SUPABASE_URL && cfg.SUPABASE_URL.indexOf("http")===0 && cfg.SUPABASE_ANON_KEY;
   if(hasCfg && window.supabase){
     SB = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
     const { data } = await SB.auth.getSession();
-    if(data && data.session){ await startShared(); }
-    else { showLogin(); }
+    if(data && data.session){ await startShared(); return; }
+    /* 저장해둔 아이디·비밀번호가 있으면 자동 로그인 */
+    const c = savedCred();
+    if(c && c.e && c.p){
+      const { error } = await SB.auth.signInWithPassword({ email:c.e, password:c.p });
+      if(!error){ await startShared(); return; }
+    }
+    showLogin();
   } else {
     startLocal("아직 서버 연결 전이라 이 기기에만 저장돼요. (docs/시작하기.md 참고)");
   }
@@ -110,7 +119,11 @@ function mediaUrl(path){
 function photoSrc(m){ return photoCache[m.id] || mediaUrl(m.photo); }
 
 /* ---------- 로그인 ---------- */
-function showLogin(){ $("#login").classList.add("open"); }
+function showLogin(){
+  const c = savedCred();
+  if(c){ $("#loginEmail").value = c.e||""; $("#loginPw").value = c.p||""; }
+  $("#login").classList.add("open");
+}
 function hideLogin(){ $("#login").classList.remove("open"); }
 async function loginSubmit(){
   const email = $("#loginEmail").value.trim();
@@ -122,9 +135,14 @@ async function loginSubmit(){
   const { error } = await SB.auth.signInWithPassword({ email, password: pw });
   $("#loginBtn").disabled = false;
   if(error){ err.textContent = "로그인 실패: 이메일·비밀번호를 확인해 주세요."; return; }
+  /* 체크돼 있으면 이 기기에 아이디·비밀번호 저장 → 다음부터 자동 로그인 */
+  const chk = $("#loginSave");
+  if(chk && chk.checked) localStorage.setItem(LS_CRED, JSON.stringify({ e:email, p:pw }));
+  else localStorage.removeItem(LS_CRED);
   await startShared();
 }
 async function doLogout(){
+  localStorage.removeItem(LS_CRED); /* 저장된 자동 로그인 정보도 지움 */
   try{ if(SB) await SB.auth.signOut(); }catch(_){ }
   location.reload();
 }

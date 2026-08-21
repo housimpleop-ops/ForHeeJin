@@ -334,8 +334,10 @@
     <button data-v="cs" class="plain">창석</button>
     <button data-v="hj" class="plain">희진</button>
   </div>
-  <div class="f-lb">지도에 위치 찍기 (선택)</div>
-  <div id="shMapWrap"></div>
+  <div class="f-lb">위치 (선택)</div>
+  <button class="wide-btn" id="shPlaceFind" type="button" style="margin-top:2px">🔍 제목으로 위치 자동 찾기</button>
+  <div id="shPlaceOut"></div>
+  <div id="shMapWrap" style="margin-top:8px"></div>
   <div class="loc-hint"><span id="shLocTxt">지도를 눌러 위치를 표시하세요</span><button id="shLocClear" hidden>위치 지우기</button></div>
   <label class="donechk" id="shDoneRow" hidden><input type="checkbox" id="shDone"> 다녀왔어요 ✓</label>
   <div class="cal-sync">
@@ -414,12 +416,15 @@
 <div id="login"><div class="box">
   <h2>계획하는 사이 💛</h2>
   <div class="sub">둘만의 공간이에요. 로그인해 주세요.</div>
-  <div class="f-lb">이메일</div>
-  <input type="email" class="f-in" id="loginEmail" autocomplete="username" placeholder="you@example.com">
-  <div class="f-lb">비밀번호</div>
-  <input type="password" class="f-in" id="loginPw" autocomplete="current-password">
-  <div class="err" id="loginErr"></div>
-  <button class="addbtn" id="loginBtn">들어가기 🚪</button>
+  <form id="loginForm">
+    <div class="f-lb">이메일</div>
+    <input type="email" class="f-in" id="loginEmail" autocomplete="username" placeholder="you@example.com">
+    <div class="f-lb">비밀번호</div>
+    <input type="password" class="f-in" id="loginPw" autocomplete="current-password">
+    <label class="donechk" style="margin-top:10px; font-size:13.5px"><input type="checkbox" id="loginSave" checked> 아이디·비밀번호 저장 (이 기기에만)</label>
+    <div class="err" id="loginErr"></div>
+    <button class="addbtn" id="loginBtn" type="submit">들어가기 🚪</button>
+  </form>
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->

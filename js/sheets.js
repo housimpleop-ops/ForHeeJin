@@ -44,8 +44,30 @@ function openSheet(m, ev){
   const spv = $("#shPreview");
   if(sheet.ev.photo){ spv.src = photoSrc(sheet.ev); spv.hidden = false; } else { spv.hidden = true; spv.removeAttribute("src"); }
   $("#shMapWrap").innerHTML = mapSVG("shMap");
+  $("#shPlaceOut").innerHTML = "";
   syncSheetUI();
   $("#scrim").classList.add("open"); $("#sheet").classList.add("open");
+  /* 제목이 있는데 위치가 없으면 → 자동으로 장소 후보 찾아주기 */
+  if(sheet.ev.title && sheet.ev.lat==null && sheet.ev.x==null && (window.COUPLE_CONFIG||{}).KAKAO_JS_KEY){
+    sheetPlaceSearch(sheet.ev.title);
+  }
+}
+/* 일정 제목(또는 입력한 검색어)으로 카카오 장소 후보 보여주기 */
+function sheetPlaceSearch(qOverride){
+  const q = qOverride || $("#shTitleIn").value.trim();
+  if(!q){ $("#shTitleIn").focus(); return; }
+  $("#shPlaceOut").innerHTML = '<div class="empty" style="padding:6px">🔍 위치 찾는 중…</div>';
+  kakaoPlaces(q, res=>{
+    if(!sheet) return;
+    if(!res.length){
+      $("#shPlaceOut").innerHTML = '<div class="empty" style="padding:6px 4px; text-align:left">위치를 못 찾았어요. 제목을 가게·장소 이름으로 바꾸고 🔍 버튼을 다시 눌러보세요</div>';
+      return;
+    }
+    $("#shPlaceOut").innerHTML =
+      '<div class="us-note" style="margin:8px 2px 4px">이 중에 맞는 위치가 있으면 골라주세요 👇</div>'
+      + res.slice(0,4).map(r=>'<button type="button" class="wi ksr" data-lat="'+r.y+'" data-lng="'+r.x+'" data-name="'+esc(r.place_name)+'">'
+        + '<span class="tx"><b>'+esc(r.place_name)+'</b><br><span style="font-size:11.5px; color:var(--muted-solid)">'+esc(r.road_address_name||r.address_name||"")+'</span></span></button>').join("");
+  });
 }
 function syncSheetUI(){
   document.querySelectorAll("#shType button").forEach(b=>b.classList.toggle("on", b.dataset.v===sheet.ev.type));
@@ -76,6 +98,16 @@ function bindSheet(){
     syncSheetUI();
   });
   $("#shLocClear").addEventListener("click", ()=>{ if(sheet){ sheet.ev.x=null; sheet.ev.y=null; sheet.ev.lat=null; sheet.ev.lng=null; syncSheetUI(); } });
+  $("#shPlaceFind").addEventListener("click", ()=>sheetPlaceSearch());
+  $("#shPlaceOut").addEventListener("click", e=>{
+    const b = e.target.closest(".ksr"); if(!b || !sheet) return;
+    sheet.ev.lat = +b.dataset.lat; sheet.ev.lng = +b.dataset.lng;
+    const p = latLngToSvg(sheet.ev.lat, sheet.ev.lng);
+    sheet.ev.x = p.x; sheet.ev.y = p.y;
+    $("#shPlaceOut").innerHTML = "";
+    syncSheetUI();
+    $("#shLocTxt").textContent = "📍 "+b.dataset.name+" — 위치 등록됨 ✓";
+  });
   $("#shPhotoBtn").addEventListener("click", ()=>$("#shPhoto").click());
   $("#shPhoto").addEventListener("change", async e=>{
     const f = e.target.files && e.target.files[0]; e.target.value="";

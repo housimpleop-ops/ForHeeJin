@@ -132,12 +132,21 @@ function renderKakaoMarkers(){
     kMarkers.push(mk);
   });
 }
+/* 카카오 장소검색 — 콜백으로 결과 배열을 준다 (지도 탭·일정 시트 공용) */
+function kakaoPlaces(q, cb){
+  if(!q) { cb([]); return; }
+  loadKakao(()=>{
+    const ps = new kakao.maps.services.Places();
+    ps.keywordSearch(q, (res, status)=>{
+      cb(status === kakao.maps.services.Status.OK ? res : []);
+    });
+  });
+}
 function kakaoSearch(q){
-  if(!kakaoReady || !q) return;
-  const ps = new kakao.maps.services.Places();
-  ps.keywordSearch(q, (res, status)=>{
+  if(!q) return;
+  kakaoPlaces(q, res=>{
     const box = document.getElementById("kSearchOut");
-    if(status !== kakao.maps.services.Status.OK || !res.length){
+    if(!res.length){
       box.innerHTML = '<div class="empty">검색 결과가 없어요 🔍</div>'; return;
     }
     box.innerHTML = res.slice(0,5).map(r=>

@@ -441,8 +441,7 @@ $("#usWrap").addEventListener("keydown", e=>{
 /* ---------- 시트·로그인 ---------- */
 $("#scrim").addEventListener("click", closeAllSheets);
 bindSheet(); bindMSheet(); bindQSheet();
-$("#loginBtn").addEventListener("click", loginSubmit);
-$("#loginPw").addEventListener("keydown", e=>{ if(e.key==="Enter") loginSubmit(); });
+$("#loginForm").addEventListener("submit", e=>{ e.preventDefault(); loginSubmit(); });
 
 /* ---------- 부팅 ---------- */
 initStore();
