@@ -7,6 +7,8 @@ function mapSVG(id){
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
   <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="dong-g"></g>
+  <g class="lbl4"></g>
   <g>
     <rect class="inset-b" x="238" y="12" width="54" height="32" rx="6"/>
     <circle class="city" cx="252" cy="24" r="3"/><circle class="city" cx="276" cy="21" r="1.5"/>
@@ -65,7 +67,7 @@ function svgPoint(svg, ev){
 let mapView = { x:0, y:0, w:300, h:420 };
 let mapDragged = false; // 드래그 직후의 클릭이 핀 선택으로 오인되지 않게
 function clampMapView(){
-  mapView.w = Math.min(300, Math.max(25, mapView.w)); /* 최대 ×12 — 시군구까지 */
+  mapView.w = Math.min(300, Math.max(3, mapView.w)); /* 최대 ×100 — 동 단위까지 */
   mapView.h = mapView.w * 420/300;
   mapView.x = Math.max(0, Math.min(300 - mapView.w, mapView.x));
   mapView.y = Math.max(0, Math.min(420 - mapView.h, mapView.y));
@@ -76,17 +78,70 @@ function applyMapView(){
   /* 확대 단계별로 지명이 점점 자세해짐 */
   svg.classList.toggle("z2", mapView.w < 200);
   svg.classList.toggle("z3", mapView.w < 100);
+  svg.classList.toggle("z4", mapView.w < 28); /* 동 단위 */
+  updateDongLayer();
   /* 글씨·점·핀은 확대해도 화면상 같은 크기 유지 (지역 선택 중엔 글씨 크게) */
   const k = mapView.w/300;
   const boost = (mapSel && !mapSel.zoomed) ? 1.7 : 1;
   const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k*boost).toFixed(2)+"px"; };
-  setFs(".lbl1", 9); setFs(".lbl2", 7.5); setFs(".lbl3", 6.5);
+  setFs(".lbl1", 9); setFs(".lbl2", 7.5); setFs(".lbl3", 6.5); setFs(".lbl4", 5.5);
   svg.querySelectorAll(".lbl1 circle").forEach(c=>c.setAttribute("r", (1.8*k).toFixed(2)));
   const sc = Math.max(0.3, Math.sqrt(k));
   svg.querySelectorAll(".pin").forEach(p=>{
     if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+sc.toFixed(3)+")");
   });
 }
+/* ---------- 동(洞) 레이어 — 많이 확대했을 때만 그 지역 파일을 불러옴 ---------- */
+const dongCache = {};      // 시도코드 → [{n,d,b}]
+const dongLoading = {};    // 불러오는 중인 시도코드
+let dongShownSido = null;  // 지금 그려둔 시도코드 묶음
+
+/* 화면에 걸치는 시도들 (서울·경기처럼 겹치는 곳은 여러 개) */
+function viewSidos(){
+  const x1 = mapView.x, y1 = mapView.y, x2 = x1+mapView.w, y2 = y1+mapView.h;
+  return SIDO_SHAPES.filter(s=>!(s.b[2]<x1 || s.b[0]>x2 || s.b[3]<y1 || s.b[1]>y2))
+    .map(s=>s.c).slice(0, 4);
+}
+function updateDongLayer(){
+  const svg = $("#mainMap"); if(!svg) return;
+  const g = svg.querySelector(".dong-g"), lg = svg.querySelector(".lbl4");
+  if(!g) return;
+  if(mapView.w >= 28){ /* 멀리서 보면 동 레이어는 끔 */
+    if(dongShownSido){ g.innerHTML = ""; lg.innerHTML = ""; dongShownSido = null; }
+    return;
+  }
+  const codes = viewSidos();
+  if(!codes.length) return;
+  /* 아직 없는 지역 파일은 불러오기 */
+  const missing = codes.filter(c=>!dongCache[c]);
+  if(missing.length){
+    missing.forEach(c=>{
+      if(dongLoading[c]) return;
+      dongLoading[c] = true;
+      fetch("data/dong-"+c+".json", {cache:"force-cache"})
+        .then(r=>r.ok ? r.json() : null)
+        .then(j=>{ delete dongLoading[c]; if(j){ dongCache[c] = j; updateDongLayer(); } })
+        .catch(()=>{ delete dongLoading[c]; });
+    });
+  }
+  const ready = codes.filter(c=>dongCache[c]);
+  if(!ready.length) return;
+  const list = [].concat.apply([], ready.map(c=>dongCache[c]));
+  const key = ready.join(",");
+  if(dongShownSido !== key){
+    g.innerHTML = list.map((s,i)=>`<path class="dongp" data-di="${i}" d="${s.d}"/>`).join("");
+    dongShownSido = key;
+  }
+  /* 이름표는 화면에 보이는 것만 */
+  const inView = [];
+  for(let i=0;i<list.length && inView.length<60;i++){
+    const b = list[i].b;
+    const cx = (b[0]+b[2])/2, cy = (b[1]+b[3])/2;
+    if(cx>=mapView.x && cx<=mapView.x+mapView.w && cy>=mapView.y && cy<=mapView.y+mapView.h) inView.push([cx,cy,list[i].n]);
+  }
+  lg.innerHTML = inView.map(p=>`<text x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle">${esc(p[2])}</text>`).join("");
+}
+
 /* ---------- 지역 선택 (2단계) ----------
    1번째 탭: 경계 강조 + 지명 글씨 크게 (확대는 안 함)
    2번째 탭(같은 지역): 그 지역으로 확대
@@ -132,23 +187,71 @@ function mapZoomBy(f){
 function mapReset(){ clearRegionSel(); mapView = { x:0, y:0, w:300, h:420 }; applyMapView(); }
 function bindMainMapNav(){
   const svg = $("#mainMap");
-  let dragging = false, moved = false, sx = 0, sy = 0;
-  svg.addEventListener("pointerdown", e=>{ dragging = true; moved = false; sx = e.clientX; sy = e.clientY; });
-  window.addEventListener("pointermove", e=>{
-    if(!dragging) return;
+  const pts = new Map();          // 화면에 닿아 있는 손가락들
+  let moved = false, sx = 0, sy = 0;
+  let pinchDist = 0, pinchMid = null;
+
+  const dist = ()=>{ const a=[...pts.values()]; return Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y); };
+  const mid  = ()=>{ const a=[...pts.values()]; return { x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2 }; };
+  /* 화면 좌표 → 지도 좌표 */
+  const toMap = p=>{ const r = svg.getBoundingClientRect();
+    return { x: mapView.x + (p.x-r.left)/r.width*mapView.w, y: mapView.y + (p.y-r.top)/r.height*mapView.h }; };
+
+  svg.addEventListener("pointerdown", e=>{
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(pts.size === 1){ moved = false; sx = e.clientX; sy = e.clientY; }
+    if(pts.size === 2){ pinchDist = dist(); pinchMid = toMap(mid()); moved = true; }
+    if(svg.setPointerCapture) try{ svg.setPointerCapture(e.pointerId); }catch(_){ }
+  });
+  svg.addEventListener("pointermove", e=>{
+    if(!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    const r = svg.getBoundingClientRect();
+    if(pts.size >= 2){
+      /* 두 손가락 확대·축소 — 손가락 사이 지점을 기준으로 */
+      const d = dist(); if(!pinchDist || !d) return;
+      const m = mid();
+      mapView.w = mapView.w * (pinchDist/d);
+      clampMapView();
+      mapView.x = pinchMid.x - (m.x-r.left)/r.width*mapView.w;
+      mapView.y = pinchMid.y - (m.y-r.top)/r.height*mapView.h;
+      pinchDist = d;
+      clampMapView(); applyMapView();
+      return;
+    }
+    /* 한 손가락 이동 */
     const dx = e.clientX - sx, dy = e.clientY - sy;
     if(Math.abs(dx) + Math.abs(dy) > 6) moved = true;
     if(!moved) return;
-    const r = svg.getBoundingClientRect();
     mapView.x -= dx * mapView.w / r.width;
     mapView.y -= dy * mapView.h / r.height;
     sx = e.clientX; sy = e.clientY;
     clampMapView(); applyMapView();
   });
-  window.addEventListener("pointerup", ()=>{
-    if(dragging && moved){ mapDragged = true; setTimeout(()=>{ mapDragged = false; }, 80); }
-    dragging = false;
-  });
+  const end = e=>{
+    pts.delete(e.pointerId);
+    if(pts.size < 2) pinchDist = 0;
+    if(pts.size === 1){ const a=[...pts.values()][0]; sx=a.x; sy=a.y; }
+    if(pts.size === 0){
+      if(moved){ mapDragged = true; setTimeout(()=>{ mapDragged = false; }, 80); }
+      moved = false;
+    }
+  };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+  /* 마우스 휠 확대 (컴퓨터에서) */
+  svg.addEventListener("wheel", e=>{
+    e.preventDefault();
+    const r = svg.getBoundingClientRect();
+    const anchor = { x: mapView.x + (e.clientX-r.left)/r.width*mapView.w,
+                     y: mapView.y + (e.clientY-r.top)/r.height*mapView.h };
+    mapView.w *= (e.deltaY > 0 ? 1.2 : 1/1.2);
+    clampMapView();
+    mapView.x = anchor.x - (e.clientX-r.left)/r.width*mapView.w;
+    mapView.y = anchor.y - (e.clientY-r.top)/r.height*mapView.h;
+    clampMapView(); applyMapView();
+  }, {passive:false});
+
   $("#mapZoomIn").addEventListener("click", ()=>mapZoomBy(1/1.5));
   $("#mapZoomOut").addEventListener("click", ()=>mapZoomBy(1.5));
   $("#mapZoomReset").addEventListener("click", mapReset);

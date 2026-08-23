@@ -69,3 +69,10 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
 ## 다음에 할 일(사용자가 원할 때)
 - 카카오맵 실제 지도(키 필요), 관광공사 축제 API, 실시간 시세, 사진→kcal AI, 캘린더 양방향 동기화
 - 희진 계정 추가(Supabase Authentication → Add user)
+
+## 지도 데이터
+- `js/map-borders.js` — 시도 17개(SIDO_SHAPES) + 시군구 249개(SGG_SHAPES), 각 {n 이름, c 코드, d 경로, b 범위}
+- `data/dong-{시도코드}.json` — 읍면동 3,504개를 시도별로 분리(총 1.8MB). 많이 확대(viewBox 폭<28)했을 때
+  화면에 걸치는 시도 파일만 fetch해서 그림 → 처음 로딩은 가볍게 유지
+- 원본: southkorea-maps (통계청 2018). 변환 스크립트는 세션 scratchpad의 convert_borders2.py / convert_dong.py
+- 조작: 한 손가락 드래그=이동, 두 손가락=확대·축소, 휠=확대, ＋/－/전체 버튼, 지역 탭 2단계(강조→확대)

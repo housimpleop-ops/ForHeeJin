@@ -140,6 +140,12 @@ nav.tabbar button.on .lb{font-weight:700}
 .kmap .sggp{fill:transparent; stroke:var(--land-line); stroke-width:.7; vector-effect:non-scaling-stroke; opacity:0; pointer-events:none}
 .kmap.z2 .sggp{opacity:.55; pointer-events:auto; cursor:pointer}
 .kmap.z3 .sggp{opacity:.95}
+.kmap .dongp{fill:transparent; stroke:var(--land-line); stroke-width:.45; vector-effect:non-scaling-stroke; opacity:0; pointer-events:none}
+.kmap.z4 .dongp{opacity:.5}
+.kmap .lbl4{display:none}
+.kmap .lbl4 text{opacity:.85}
+.kmap.z4 .lbl4{display:block}
+.kmap.z4 .lbl3{display:none}
 .kmap .selo{fill:none; stroke:var(--date); stroke-width:2.2; vector-effect:non-scaling-stroke; pointer-events:none}
 .map-cap{position:absolute; left:8px; top:8px; z-index:2; background:var(--card); border:1.5px solid var(--date); color:var(--ink); font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:999px; box-shadow:var(--shadow); cursor:pointer}
 .kmap .city{fill:var(--muted-solid); opacity:.55}
