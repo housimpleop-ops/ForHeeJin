@@ -76,9 +76,10 @@ function applyMapView(){
   /* 확대 단계별로 지명이 점점 자세해짐 */
   svg.classList.toggle("z2", mapView.w < 200);
   svg.classList.toggle("z3", mapView.w < 100);
-  /* 글씨·점·핀은 확대해도 화면상 같은 크기 유지 */
+  /* 글씨·점·핀은 확대해도 화면상 같은 크기 유지 (지역 선택 중엔 글씨 크게) */
   const k = mapView.w/300;
-  const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k).toFixed(2)+"px"; };
+  const boost = (mapSel && !mapSel.zoomed) ? 1.7 : 1;
+  const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k*boost).toFixed(2)+"px"; };
   setFs(".lbl1", 9); setFs(".lbl2", 7.5); setFs(".lbl3", 6.5);
   svg.querySelectorAll(".lbl1 circle").forEach(c=>c.setAttribute("r", (1.8*k).toFixed(2)));
   const sc = Math.max(0.3, Math.sqrt(k));
@@ -86,8 +87,11 @@ function applyMapView(){
     if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+sc.toFixed(3)+")");
   });
 }
-/* ---------- 지역 선택: 탭하면 경계 강조 + 그 지역으로 확대 ---------- */
-let mapSel = null;
+/* ---------- 지역 선택 (2단계) ----------
+   1번째 탭: 경계 강조 + 지명 글씨 크게 (확대는 안 함)
+   2번째 탭(같은 지역): 그 지역으로 확대
+   3번째 탭 또는 이름칩 ✕: 선택 해제                       */
+let mapSel = null; // {type, i, zoomed}
 function zoomToBBox(b, minW){
   const bw = b[2]-b[0], bh = b[3]-b[1];
   mapView.w = Math.min(300, Math.max(bw*1.35, bh*1.35*300/420, minW));
@@ -100,15 +104,24 @@ function clearRegionSel(){
   mapSel = null;
   const o = document.querySelector("#mainMap .selo"); if(o) o.setAttribute("d","");
   const cap = $("#mapCap"); if(cap) cap.hidden = true;
+  applyMapView();
 }
 function selectRegion(type, i){
   const s = (type==="sido" ? SIDO_SHAPES : SGG_SHAPES)[i];
   if(!s) return;
-  if(mapSel && mapSel.type===type && mapSel.i===i){ clearRegionSel(); return; }
-  mapSel = { type, i };
+  const same = mapSel && mapSel.type===type && mapSel.i===i;
+  if(same && mapSel.zoomed){ clearRegionSel(); return; }   /* 3번째 탭 → 해제 */
+  if(same){                                                /* 2번째 탭 → 확대 */
+    mapSel.zoomed = true;
+    const cap = $("#mapCap"); if(cap) cap.textContent = "📍 "+s.n+"  ✕";
+    zoomToBBox(s.b, type==="sido" ? 60 : 28);
+    return;
+  }
+  /* 1번째 탭 → 경계 강조 + 글씨 크게 */
+  mapSel = { type, i, zoomed:false };
   const o = document.querySelector("#mainMap .selo"); if(o) o.setAttribute("d", s.d);
-  const cap = $("#mapCap"); if(cap){ cap.hidden = false; cap.textContent = "📍 "+s.n+"  ✕"; }
-  zoomToBBox(s.b, type==="sido" ? 60 : 28);
+  const cap = $("#mapCap"); if(cap){ cap.hidden = false; cap.textContent = "📍 "+s.n+" — 한 번 더 누르면 확대  ✕"; }
+  applyMapView();
 }
 function mapZoomBy(f){
   const cx = mapView.x + mapView.w/2, cy = mapView.y + mapView.h/2;

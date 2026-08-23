@@ -98,6 +98,13 @@ $("#mapChips").addEventListener("click", e=>{
 });
 $("#mapWrap").addEventListener("click", e=>{
   if(mapDragged) return; /* 드래그 후의 클릭은 무시 */
+  /* 이름 칩 ✕ → 선택 해제 */
+  if(e.target.closest("#mapCap")){ clearRegionSel(); return; }
+  /* 지역 탭: 1번 누르면 강조, 2번 누르면 확대 (확대 상태에선 시군구 우선) */
+  const sgg = e.target.closest(".sggp");
+  if(sgg){ selectRegion("sgg", +sgg.dataset.gi); return; }
+  const sido = e.target.closest(".land");
+  if(sido){ selectRegion("sido", +sido.dataset.si); return; }
   const pin = e.target.closest(".pin"); if(!pin) return;
   const id = pin.dataset.id;
   document.querySelectorAll("#mainMap .pin").forEach(p=>p.classList.toggle("hot", p.dataset.id===id));
