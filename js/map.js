@@ -86,9 +86,9 @@ function applyMapView(){
   const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k*boost).toFixed(2)+"px"; };
   setFs(".lbl1", 9); setFs(".lbl2", 7.5); setFs(".lbl3", 6.5); setFs(".lbl4", 5.5);
   svg.querySelectorAll(".lbl1 circle").forEach(c=>c.setAttribute("r", (1.8*k).toFixed(2)));
-  const sc = Math.max(0.3, Math.sqrt(k));
+  /* 핀은 확대·축소와 무관하게 화면상 같은 크기(작은 점)로 */
   svg.querySelectorAll(".pin").forEach(p=>{
-    if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+sc.toFixed(3)+")");
+    if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+k.toFixed(4)+")");
   });
 }
 /* ---------- 동(洞) 레이어 — 많이 확대했을 때만 그 지역 파일을 불러옴 ---------- */
@@ -284,6 +284,11 @@ function initKakaoMap(){
   kmap = new kakao.maps.Map(document.getElementById("kmapDiv"), {
     center: new kakao.maps.LatLng(37.62, 126.87), // 우리 동네(향동) 근처
     level: 8,
+  });
+  /* 지도를 콕 찍으면 그 자리로 일정 만들기 */
+  kakao.maps.event.addListener(kmap, "click", e=>{
+    const ll = e.latLng;
+    kakaoPickPlace(ll.getLat(), ll.getLng(), "지도에서 찍은 위치");
   });
 }
 function renderKakaoMarkers(){

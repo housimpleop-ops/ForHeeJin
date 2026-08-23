@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=9">
+<link rel="stylesheet" href="css/style.css?v=10">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=9"></script>
+<script src="js/config.js?v=10"></script>
 </head>
 <body>
 
@@ -61,6 +61,7 @@
         </div>
         <div id="mapWrap"></div>
         <div class="legend" id="mapLegend"><span><i class="f"></i>다녀온 곳</span><span><i class="o"></i>갈 곳</span><span>🏠 우리 동네</span></div>
+        <button class="addbtn" id="mapAdd">+ 여기에 일정 추가 ✨</button>
         <div id="kmapWrap" hidden>
           <div class="wadd" style="margin:0 0 8px">
             <input type="text" id="kSearchIn" placeholder="장소 검색 (예: 월미도, 봉스튜디오)">
@@ -361,7 +362,8 @@
   <div class="f-lb">날짜</div>
   <input type="date" class="f-in" id="shDate">
   <div class="f-lb">어디서 · 뭐 하기</div>
-  <input type="text" class="f-in" id="shTitleIn" placeholder="예) 평화의공원 러닝, 월미도 데이트">
+  <input type="text" class="f-in" id="shTitleIn" placeholder="예) 평화의공원 러닝, 월미도 데이트" autocomplete="off">
+  <div id="shPickOut"></div>
   <div class="f-lb">메모 (선택)</div>
   <input type="text" class="f-in" id="shMemo" placeholder="예) 6시 출발, 주차는 8부두">
   <div id="shKcalRow" hidden>
@@ -494,16 +496,16 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=9"></script>
-<script src="js/data-run.js?v=9"></script>
-<script src="js/state.js?v=9"></script>
-<script src="js/saju.js?v=9"></script>
-<script src="js/map-borders.js?v=9"></script>
-<script src="js/map.js?v=9"></script>
-<script src="js/notify.js?v=9"></script>
-<script src="js/store.js?v=9"></script>
-<script src="js/views.js?v=9"></script>
-<script src="js/sheets.js?v=9"></script>
-<script src="js/app.js?v=9"></script>
+<script src="js/data.js?v=10"></script>
+<script src="js/data-run.js?v=10"></script>
+<script src="js/state.js?v=10"></script>
+<script src="js/saju.js?v=10"></script>
+<script src="js/map-borders.js?v=10"></script>
+<script src="js/map.js?v=10"></script>
+<script src="js/notify.js?v=10"></script>
+<script src="js/store.js?v=10"></script>
+<script src="js/views.js?v=10"></script>
+<script src="js/sheets.js?v=10"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>

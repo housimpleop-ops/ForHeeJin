@@ -76,6 +76,7 @@ function renderMap(){
   $("#mapWrap").hidden = mapMode!=="art";
   $("#mapLegend").hidden = mapMode!=="art";
   $("#kmapWrap").hidden = mapMode!=="real";
+  $("#mapAdd").style.display = (mode==="readonly" || mapMode!=="art") ? "none" : "";
   if(mapMode==="real"){
     loadKakao(()=>{ initKakaoMap(); kmap.relayout(); renderKakaoMarkers(); });
   }

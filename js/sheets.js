@@ -9,8 +9,16 @@ let sheet = null;   // {mode:'add'|'edit', blob, ev:{...}}
 let mSheet = null;  // {mode, blob, item:{...}}
 let qSheet = null;  // {mode, board, item:{...}}
 
-/* ---------- 공용 ---------- */
+/* ---------- 공용 ----------
+   시트를 열 때 브라우저 방문기록을 하나 쌓아서, 폰 뒤로가기로 닫히게 한다. */
 function closeAllSheets(){ closeSheet(); closeMSheet(); closeQSheet(); closeNSheet(); }
+function anySheetOpen(){ return !!(sheet || mSheet || qSheet || nSheet); }
+function pushSheetState(){ try{ history.pushState({sheet:1}, ""); }catch(_){ } }
+/* 취소·저장 버튼으로 닫을 때는 방문기록도 같이 되돌린다 */
+function closeSheetViaUI(){
+  if(history.state && history.state.sheet) history.back();
+  else closeAllSheets();
+}
 function blobToDataURL(b){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(b); }); }
 /* 사진을 900px 이하 JPEG로 줄이기 (용량 절약) */
 function shrink(file){ return new Promise((res,rej)=>{
@@ -45,13 +53,55 @@ function openSheet(m, ev){
   if(sheet.ev.photo){ spv.src = photoSrc(sheet.ev); spv.hidden = false; } else { spv.hidden = true; spv.removeAttribute("src"); }
   $("#shMapWrap").innerHTML = mapSVG("shMap");
   $("#shPlaceOut").innerHTML = "";
+  runPickOn = false; $("#shPickOut").innerHTML = "";
   syncSheetUI();
-  $("#scrim").classList.add("open"); $("#sheet").classList.add("open");
+  $("#scrim").classList.add("open"); $("#sheet").classList.add("open"); pushSheetState();
   /* 제목이 있는데 위치가 없으면 → 자동으로 장소 후보 찾아주기 */
   if(sheet.ev.title && sheet.ev.lat==null && sheet.ev.x==null && (window.COUPLE_CONFIG||{}).KAKAO_JS_KEY){
     sheetPlaceSearch(sheet.ev.title);
   }
 }
+/* ---------- 러닝 스팟 후보 (운동 일정일 때 제목칸을 누르면) ---------- */
+let runPickOn = false;
+function runPickToggle(on){
+  runPickOn = on;
+  renderRunPick();
+  syncSheetUI(); /* 미니 지도에 후보 핀도 같이 */
+}
+function runPickCandidates(){
+  const q = $("#shTitleIn").value.trim();
+  let list = RUN_SPOTS.slice();
+  if(q) list = list.filter(s=>s.n.indexOf(q)>=0 || (s.a||"").indexOf(q)>=0);
+  else list = list.filter(s=>s.r==="경기북부" || s.r==="서울" || s.r==="인천"); /* 기본은 집 근처 */
+  return list.slice(0, 40);
+}
+function renderRunPick(){
+  const box = $("#shPickOut");
+  if(!runPickOn || !sheet || sheet.ev.type!=="run"){ box.innerHTML = ""; return; }
+  const list = runPickCandidates();
+  box.innerHTML = `<div class="pickhd"><span>🏃 러닝 스팟 ${list.length}곳 — 누르면 채워져요</span>
+      <button type="button" id="shPickAll" style="color:var(--run); font-weight:700">전체 보기 ↗</button></div>
+    <div class="picklist">`
+    + (list.length ? list.map(s=>`<button type="button" class="wi" data-pick="${esc(s.n)}">
+        <span class="tx"><b>${esc(s.n)}</b>${s.km?` · ${s.km}km`:""}<br>
+        <span style="font-size:11.5px; color:var(--muted-solid)">${esc(s.r)} ${esc(s.a||"")}</span></span>
+      </button>`).join("") : `<div class="empty" style="padding:8px">검색 결과가 없어요</div>`)
+    + `</div>`;
+}
+function runPickApply(name){
+  const s = RUN_SPOTS.find(x=>x.n===name); if(!s || !sheet) return;
+  sheet.ev.title = s.n;
+  $("#shTitleIn").value = s.n;
+  const memo = [s.kmTxt || (s.km?s.km+"km":""), s.pkTxt].filter(Boolean).join(" · ");
+  if(!$("#shMemo").value) $("#shMemo").value = memo.slice(0, 120);
+  if(s.lat!=null && s.lng!=null){
+    sheet.ev.lat = s.lat; sheet.ev.lng = s.lng;
+    const p = latLngToSvg(s.lat, s.lng); sheet.ev.x = p.x; sheet.ev.y = p.y;
+  }
+  runPickToggle(false);
+  $("#shLocTxt").textContent = "📍 "+s.n+" — 위치 등록됨 ✓";
+}
+
 /* 일정 제목(또는 입력한 검색어)으로 카카오 장소 후보 보여주기
    제목 전체로 못 찾으면 가장 긴 단어로 재시도 (예: "봉스튜디오 촬영" → "봉스튜디오") */
 function sheetPlaceSearch(qOverride){
@@ -81,7 +131,13 @@ function syncSheetUI(){
   $("#shKcalRow").hidden = sheet.ev.type!=="run";
   document.querySelectorAll("#shBy button").forEach(b=>b.classList.toggle("on", b.dataset.v===sheet.ev.by));
   const has = sheet.ev.x!=null;
-  $("#shMap .pins").innerHTML = has ? pinHTML(sheet.ev,false) : "";
+  /* 러닝 스팟 고르는 중이면 미니 지도에 후보 핀도 함께 */
+  const cand = (runPickOn && sheet.ev.type==="run")
+    ? runPickCandidates().filter(s=>s.lat!=null)
+        .map(s=>{ const p=latLngToSvg(s.lat,s.lng);
+          return `<g class="pin cand run" data-cand="${esc(s.n)}" transform="translate(${p.x},${p.y})" style="cursor:pointer"><circle class="c" r="4.5"/></g>`; }).join("")
+    : "";
+  $("#shMap .pins").innerHTML = cand + (has ? pinHTML(sheet.ev,false) : "");
   $("#shLocTxt").textContent = has ? "위치 표시됨 — 다시 누르면 옮겨져요" : "지도를 눌러 위치를 표시하세요";
   $("#shLocClear").hidden = !has;
 }
@@ -104,6 +160,24 @@ function bindSheet(){
     syncSheetUI();
   });
   $("#shLocClear").addEventListener("click", ()=>{ if(sheet){ sheet.ev.x=null; sheet.ev.y=null; sheet.ev.lat=null; sheet.ev.lng=null; syncSheetUI(); } });
+  /* 제목칸을 누르면 러닝 스팟 후보 (운동 일정일 때) */
+  $("#shTitleIn").addEventListener("focus", ()=>{ if(sheet && sheet.ev.type==="run") runPickToggle(true); });
+  $("#shTitleIn").addEventListener("input", ()=>{ if(runPickOn) renderRunPick(); });
+  $("#shPickOut").addEventListener("click", e=>{
+    if(e.target.closest("#shPickAll")){
+      const keep = { date: $("#shDate").value, by: sheet.ev.by };
+      closeSheetViaUI();
+      runF.region = "all"; runF.dist="all"; runF.surf="all"; runF.want={};
+      renderRun(); goTab("run");
+      return;
+    }
+    const b = e.target.closest("[data-pick]"); if(b) runPickApply(b.dataset.pick);
+  });
+  /* 미니 지도의 후보 핀 */
+  $("#shMapWrap").addEventListener("click", e=>{
+    const c = e.target.closest("[data-cand]");
+    if(c){ e.stopPropagation(); runPickApply(c.dataset.cand); }
+  }, true);
   $("#shPlaceFind").addEventListener("click", ()=>sheetPlaceSearch());
   $("#shPlaceOut").addEventListener("click", e=>{
     const b = e.target.closest(".ksr"); if(!b || !sheet) return;
@@ -124,14 +198,14 @@ function bindSheet(){
       const pv = $("#shPreview"); pv.src = URL.createObjectURL(blob); pv.hidden = false;
     }catch(_){ banner("사진을 불러오지 못했어요. 다른 사진으로 시도해 주세요."); }
   });
-  $("#shCancel").addEventListener("click", closeSheet);
+  $("#shCancel").addEventListener("click", closeSheetViaUI);
   $("#shDel").addEventListener("click", ()=>{
     if(!sheet) return;
     const id = sheet.ev.id, ph = sheet.ev.photo;
     DATA.events = DATA.events.filter(e=>e.id!==id);
     let files = null;
     if(mode==="shared" && ph && ph.indexOf("data:")!==0){ files = {}; files[ph] = null; }
-    closeSheet(); save({kind:"ev-del", id}, files);
+    closeSheetViaUI(); save({kind:"ev-del", id}, files);
   });
   $("#shSave").addEventListener("click", async ()=>{
     if(!sheet) return;
@@ -157,7 +231,7 @@ function bindSheet(){
     selDate = ev.date;
     const d = new Date(ev.date+"T00:00:00"); calY=d.getFullYear(); calM=d.getMonth();
     const stash = (ev.photo && ev.photo.indexOf("data:")===0) ? Object.assign({},ev,{photo:null}) : ev;
-    closeSheet(); save({kind:"ev", item:stash}, files);
+    closeSheetViaUI(); save({kind:"ev", item:stash}, files);
   });
   /* 캘린더 내보내기 */
   $("#shGcal").addEventListener("click", ()=>{
@@ -201,7 +275,7 @@ function openMSheet(m, item){
   const pv = $("#msPreview");
   if(mSheet.item.photo){ pv.src = photoSrc(mSheet.item); pv.hidden = false; } else { pv.hidden = true; pv.removeAttribute("src"); }
   syncMSheetUI();
-  $("#scrim").classList.add("open"); $("#msheet").classList.add("open");
+  $("#scrim").classList.add("open"); $("#msheet").classList.add("open"); pushSheetState();
 }
 function syncMSheetUI(){
   document.querySelectorAll("#msSlot button").forEach(b=>b.classList.toggle("on", b.dataset.v===mSheet.item.slot));
@@ -224,14 +298,14 @@ function bindMSheet(){
       const pv = $("#msPreview"); pv.src = URL.createObjectURL(blob); pv.hidden = false;
     }catch(_){ banner("사진을 불러오지 못했어요. 다른 사진으로 시도해 주세요."); }
   });
-  $("#msCancel").addEventListener("click", closeMSheet);
+  $("#msCancel").addEventListener("click", closeSheetViaUI);
   $("#msDel").addEventListener("click", ()=>{
     if(!mSheet) return;
     const it = mSheet.item;
     DATA.meals = DATA.meals.filter(x=>x.id!==it.id);
     let files = null;
     if(mode==="shared" && it.photo && it.photo.indexOf("data:")!==0){ files = {}; files[it.photo] = null; }
-    closeMSheet(); save({kind:"ml-del", id:it.id}, files);
+    closeSheetViaUI(); save({kind:"ml-del", id:it.id}, files);
   });
   $("#msSave").addEventListener("click", async ()=>{
     if(!mSheet) return;
@@ -253,7 +327,7 @@ function bindMSheet(){
     if(i>=0) DATA.meals[i]=it; else DATA.meals.push(it);
     mealDate = it.date;
     const stash = (it.photo && it.photo.indexOf("data:")===0) ? Object.assign({},it,{photo:null}) : it;
-    closeMSheet(); save({kind:"ml", item:stash}, files);
+    closeSheetViaUI(); save({kind:"ml", item:stash}, files);
   });
 }
 
@@ -268,7 +342,7 @@ function openNSheet(){
   $("#nsPlaceOut").innerHTML = ""; $("#nsPlaceSel").hidden = true;
   const pv = $("#nsPreview"); pv.hidden = true; pv.removeAttribute("src");
   syncNSheetUI();
-  $("#scrim").classList.add("open"); $("#nsheet").classList.add("open");
+  $("#scrim").classList.add("open"); $("#nsheet").classList.add("open"); pushSheetState();
 }
 function syncNSheetUI(){
   $("#nsCat").innerHTML = NCATS.map(c=>`<button type="button" data-v="${c[0]}" class="${c[0]===nSheet.cat?"on":""}">${c[1]} ${c[0]}</button>`).join("");
@@ -304,7 +378,7 @@ function bindNSheet(){
     $("#nsPlaceOut").innerHTML = "";
     const sel = $("#nsPlaceSel"); sel.hidden = false; sel.textContent = "📍 "+b.dataset.name+" — 장소 붙였어요 ✓";
   });
-  $("#nsCancel").addEventListener("click", closeNSheet);
+  $("#nsCancel").addEventListener("click", closeSheetViaUI);
   $("#nsSend").addEventListener("click", ()=>{
     if(!nSheet || mode==="readonly") return;
     const text = $("#nsText").value.trim();
@@ -321,7 +395,7 @@ function bindNSheet(){
       }
     }
     DATA.notes.push(item);
-    closeNSheet();
+    closeSheetViaUI();
     save({kind:"nt", item: (item.photo&&item.photo.indexOf("data:")===0)?Object.assign({},item,{photo:null}):item}, files);
   });
 }
@@ -341,7 +415,7 @@ function openQSheet(board, itemOrCat, isNew){
   $("#qsMemo").value = qSheet.item.memo||"";
   $("#qsDel").hidden = isNew;
   syncQSheetUI();
-  $("#scrim").classList.add("open"); $("#qsheet").classList.add("open");
+  $("#scrim").classList.add("open"); $("#qsheet").classList.add("open"); pushSheetState();
 }
 function syncQSheetUI(){
   $("#qsDone").textContent = qSheet.item.done ? "⭐ 완료했어요! (누르면 취소)" : "⬜ 아직이에요 — 누르면 완료!";
@@ -356,12 +430,12 @@ function qSheetChange(){
 function bindQSheet(){
   $("#qsDone").addEventListener("click", ()=>{ if(qSheet){ qSheet.item.done = !qSheet.item.done; syncQSheetUI(); } });
   $("#qsWho").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b&&qSheet){ qSheet.item.who=b.dataset.v; syncQSheetUI(); } });
-  $("#qsCancel").addEventListener("click", closeQSheet);
+  $("#qsCancel").addEventListener("click", closeSheetViaUI);
   $("#qsDel").addEventListener("click", ()=>{
     if(!qSheet) return;
     const b = qSheet.board, id = qSheet.item.id;
-    if(b==="wed"){ DATA.wedding = DATA.wedding.filter(x=>x.id!==id); closeQSheet(); save({kind:"wd-del", id}); }
-    else { DATA.boards[b] = DATA.boards[b].filter(x=>x.id!==id); closeQSheet(); save({kind:"bd-del", board:b, id}); }
+    if(b==="wed"){ DATA.wedding = DATA.wedding.filter(x=>x.id!==id); closeSheetViaUI(); save({kind:"wd-del", id}); }
+    else { DATA.boards[b] = DATA.boards[b].filter(x=>x.id!==id); closeSheetViaUI(); save({kind:"bd-del", board:b, id}); }
   });
   $("#qsSave").addEventListener("click", ()=>{
     if(!qSheet) return;
@@ -374,7 +448,7 @@ function bindQSheet(){
     const i = arr.findIndex(x=>x.id===it.id);
     if(i>=0) arr[i]=it; else arr.push(it);
     const change = qSheetChange();
-    closeQSheet(); save(change);
+    closeSheetViaUI(); save(change);
   });
   /* 달력에 일정으로도 추가 */
   $("#qsToCal").addEventListener("click", ()=>{

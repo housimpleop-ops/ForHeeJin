@@ -14,13 +14,21 @@ const VIEW_PARENT = {
   trip:"plan", wed:"plan", home:"plan", smoke:"plan", body:"plan", invest:"plan", meal:"plan", show:"plan", run:"plan",
   fate:"box", us:"box", fest:"box", benefit:"box",
 };
-function goTab(t){
+function goTab(t, fromBack){
   tab = t;
   const parent = VIEW_PARENT[t] || "plan";
   document.querySelectorAll("nav.tabbar button").forEach(x=>x.classList.toggle("on", x.dataset.tab===parent));
   ALL_VIEWS.forEach(v=>{ const el=$("#view-"+v); if(el) el.hidden = v!==t; });
   window.scrollTo(0,0);
+  /* 폰 뒤로가기로 이전 화면에 돌아갈 수 있게 방문기록에 남김 */
+  if(!fromBack){ try{ history.pushState({tab:t}, ""); }catch(_){ } }
 }
+/* 뒤로가기: 시트가 열려 있으면 시트만 닫고, 아니면 이전 화면으로 */
+window.addEventListener("popstate", e=>{
+  if(anySheetOpen()){ closeAllSheets(); return; }
+  const st = e.state || {};
+  goTab(st.tab || "cal", true);
+});
 document.querySelector("nav.tabbar").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   goTab(b.dataset.tab);
@@ -115,7 +123,14 @@ $("#kSearchOut").addEventListener("click", e=>{
 $("#kPickAdd").addEventListener("click", ()=>{
   if(!kPick || mode==="readonly") return;
   const p = latLngToSvg(kPick.lat, kPick.lng);
-  openSheet("add", { type:"date", sub:"기타", title:kPick.name, lat:kPick.lat, lng:kPick.lng, x:p.x, y:p.y });
+  const generic = kPick.name === "지도에서 찍은 위치";
+  openSheet("add", { type:"date", sub:"기타", title: generic ? "" : kPick.name,
+    lat:kPick.lat, lng:kPick.lng, x:p.x, y:p.y });
+});
+/* 그림 지도에서 바로 일정 추가 (달력과 같은 창) */
+$("#mapAdd").addEventListener("click", ()=>{
+  if(mode==="readonly") return;
+  openSheet("add");
 });
 $("#mapChips").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
@@ -490,11 +505,12 @@ $("#usWrap").addEventListener("keydown", e=>{
 });
 
 /* ---------- 시트·로그인 ---------- */
-$("#scrim").addEventListener("click", closeAllSheets);
+$("#scrim").addEventListener("click", closeSheetViaUI);
 bindSheet(); bindMSheet(); bindQSheet(); bindNSheet();
 $("#loginForm").addEventListener("submit", e=>{ e.preventDefault(); loginSubmit(); });
 $("#setNoti").addEventListener("click", askNotify);
 
 /* ---------- 부팅 ---------- */
+try{ history.replaceState({tab:"cal"}, ""); }catch(_){ }
 initNotify();
 initStore();
