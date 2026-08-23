@@ -69,7 +69,16 @@ function renderMap(){
     bindMainMapNav();
   }
   const list = DATA.events.filter(e=>e.x!=null && (mapFilter==="all"||e.type===mapFilter));
-  $("#mainMap .pins").innerHTML = list.map(e=>pinHTML(e,false)).join("");
+  /* 러닝 스팟은 '운동' 필터일 때만 지도에 띄운다 */
+  const spots = mapRunSpots();
+  const spotPins = spots.map(s=>{
+    const p = latLngToSvg(s.lat, s.lng);
+    return `<g class="pin cand run ${mapSpotSel===s.n?"picked":""}" data-spot="${esc(s.n)}" data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y})" style="cursor:pointer"><circle class="c" r="4.5"/></g>`;
+  }).join("");
+  $("#mainMap .pins").innerHTML = spotPins + list.map(e=>pinHTML(e,false)).join("");
+  renderRunSpotBar();
+  renderMapSpotInfo();
+  renderMapSearch();
   applyMapView();
   /* 그림 지도 ↔ 진짜 지도 전환 */
   document.querySelectorAll("#mapMode button").forEach(b=>b.classList.toggle("on", b.dataset.m===mapMode));
@@ -83,6 +92,58 @@ function renderMap(){
   const sorted = DATA.events.filter(e=>mapFilter==="all"||e.type===mapFilter)
     .slice().sort((a,b)=>b.date.localeCompare(a.date));
   $("#mapList").innerHTML = sorted.length ? sorted.map(e=>evCard(e,true)).join("") : `<div class="empty">아직 기록이 없어요 🐾</div>`;
+}
+
+/* ---------- 지도: 러닝 스팟 겹쳐 보기 (운동 필터일 때만) ---------- */
+function mapRunSpots(){
+  if(mapFilter!=="run" || mapMode!=="art") return [];
+  return RUN_SPOTS.filter(s=>s.lat!=null && (mapSpotRegion==="all" || s.r===mapSpotRegion));
+}
+function renderRunSpotBar(){
+  const on = (mapFilter==="run" && mapMode==="art");
+  $("#runSpotBar").hidden = !on;
+  if(!on) return;
+  const cnt = r => RUN_SPOTS.filter(s=>s.lat!=null && (r==="all"||s.r===r)).length;
+  $("#runSpotRegion").innerHTML = [["all","전국"]].concat(RUN_REGIONS.map(r=>[r,r]))
+    .map(([v,l])=>`<button data-sr="${v}" class="${mapSpotRegion===v?"on":""}">${l} ${cnt(v)}</button>`).join("");
+}
+function renderMapSpotInfo(){
+  const box = $("#mapSpotInfo");
+  const s = mapSpotSel ? RUN_SPOTS.find(x=>x.n===mapSpotSel) : null;
+  if(!s || mapFilter!=="run" || mapMode!=="art"){ box.innerHTML = ""; return; }
+  const su = RUN_SURFACE[s.s]||{l:"",em:"🏃"}, el = RUN_ELEV[s.el]||{l:"",em:""}, pk = RUN_PARK[s.pk]||{l:"",em:""};
+  box.innerHTML = `<div class="card" style="margin-top:10px">
+    <div class="trip-h"><span class="nm">🏃 ${esc(s.n)}</span>
+      ${s.km!=null?`<span class="dday">${s.km}km</span>`:""}
+      <button class="del" data-act="spot-close" aria-label="닫기">✕</button></div>
+    <div class="trip-dt">${esc(s.r)} · ${esc(s.a||"")}${s.kmTxt?" · "+esc(s.kmTxt):""}</div>
+    <div class="chips" style="margin:8px 0 0">
+      <span class="rtag">${su.em} ${su.l}</span><span class="rtag">${el.em} ${el.l}</span>
+      <span class="rtag">🌳 ${RUN_SHADE[s.sh]||"?"}</span><span class="rtag">🦟 ${RUN_BUG[s.bug]||"?"}</span>
+      <span class="rtag">${pk.em} ${pk.l}</span>
+    </div>
+    ${s.tip?`<div class="memo" style="margin-top:8px">💡 ${esc(s.tip)}</div>`:""}
+    <div class="cal-sync">
+      <button data-act="spot-plan">🗓️ 여기 뛰러 가기</button>
+      <button data-act="spot-real">📍 진짜 지도로</button>
+    </div>
+  </div>`;
+}
+/* ---------- 지도 검색 (우리 일정 + 러닝 스팟) ---------- */
+function renderMapSearch(){
+  const box = $("#mapSearchOut");
+  const q = mapSearchQ.trim();
+  if(!q){ box.innerHTML = ""; return; }
+  const evs = DATA.events.filter(e=>e.title.indexOf(q)>=0 || (e.memo||"").indexOf(q)>=0).slice(0,6);
+  const sps = RUN_SPOTS.filter(s=>s.n.indexOf(q)>=0 || (s.a||"").indexOf(q)>=0).slice(0,8);
+  if(!evs.length && !sps.length){ box.innerHTML = `<div class="empty" style="padding:8px">'${esc(q)}' 검색 결과가 없어요 🔍</div>`; return; }
+  box.innerHTML =
+    (evs.length ? `<div class="wl-h">🗓️ 우리 일정 ${evs.length}</div>`
+      + evs.map(e=>`<button class="wi" data-sev="${e.id}"><span class="tx">${subEm(e.type,e.sub)} <b>${esc(e.title)}</b>
+        <br><span style="font-size:11.5px; color:var(--muted-solid)">${e.date.replace(/-/g,".")}${e.x!=null?" · 📍 지도에 있음":""}</span></span></button>`).join("") : "")
+    + (sps.length ? `<div class="wl-h">🏃 러닝 스팟 ${sps.length}</div>`
+      + sps.map(s=>`<button class="wi" data-sspot="${esc(s.n)}"><span class="tx"><b>${esc(s.n)}</b>${s.km?` · ${s.km}km`:""}
+        <br><span style="font-size:11.5px; color:var(--muted-solid)">${esc(s.r)} ${esc(s.a||"")}</span></span></button>`).join("") : "");
 }
 
 /* ---------- 축제 ---------- */

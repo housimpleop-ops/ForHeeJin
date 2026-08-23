@@ -135,13 +135,75 @@ $("#mapAdd").addEventListener("click", ()=>{
 $("#mapChips").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   mapFilter = b.dataset.f;
+  if(mapFilter!=="run") mapSpotSel = null; /* 운동 필터를 벗어나면 스팟 선택 해제 */
   document.querySelectorAll("#mapChips button").forEach(x=>x.classList.toggle("on", x===b));
   renderMap();
+  if(mapFilter==="run") fitToSpots(); /* 스팟이 한눈에 들어오게 */
+});
+/* 지금 지도에 띄운 러닝 스팟들이 다 보이도록 확대 */
+function fitToSpots(){
+  const list = mapRunSpots(); if(!list.length) return;
+  const pts = list.map(s=>latLngToSvg(s.lat, s.lng));
+  zoomToBBox([Math.min(...pts.map(p=>p.x)), Math.min(...pts.map(p=>p.y)),
+              Math.max(...pts.map(p=>p.x)), Math.max(...pts.map(p=>p.y))], 40);
+}
+/* 러닝 스팟 지역 고르기 */
+$("#runSpotRegion").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  mapSpotRegion = b.dataset.sr; mapSpotSel = null;
+  renderMap();
+  fitToSpots(); /* 고른 지역이 화면에 들어오도록 */
+});
+/* 지도 검색 */
+$("#mapSearch").addEventListener("input", e=>{ mapSearchQ = e.target.value; renderMapSearch(); });
+$("#mapSearchClear").addEventListener("click", ()=>{ mapSearchQ=""; $("#mapSearch").value=""; renderMapSearch(); });
+$("#mapSearchOut").addEventListener("click", e=>{
+  const ev = e.target.closest("[data-sev]");
+  if(ev){
+    const it = DATA.events.find(x=>x.id===ev.dataset.sev); if(!it) return;
+    if(it.lat!=null) mapFocus(it.lat, it.lng);
+    else if(it.x!=null){ zoomToBBox([it.x-6,it.y-6,it.x+6,it.y+6], 30);
+      document.querySelectorAll("#mainMap .pin").forEach(p=>p.classList.toggle("hot", p.dataset.id===it.id)); }
+    else if(mode!=="readonly"){ openSheet("edit", it); }
+    return;
+  }
+  const sp = e.target.closest("[data-sspot]");
+  if(sp){
+    const s = RUN_SPOTS.find(x=>x.n===sp.dataset.sspot); if(!s) return;
+    mapFilter = "run"; mapSpotRegion = s.r; mapSpotSel = s.n;
+    document.querySelectorAll("#mapChips button").forEach(x=>x.classList.toggle("on", x.dataset.f==="run"));
+    renderMap();
+    zoomToBBox((p=>[p.x-4,p.y-4,p.x+4,p.y+4])(latLngToSvg(s.lat,s.lng)), 20);
+    $("#mapSpotInfo").scrollIntoView({behavior:"smooth", block:"center"});
+  }
+});
+/* 지도 위 러닝 스팟 카드 */
+$("#mapSpotInfo").addEventListener("click", e=>{
+  const act = e.target.closest("[data-act]"); if(!act) return;
+  const s = RUN_SPOTS.find(x=>x.n===mapSpotSel); if(!s) return;
+  if(act.dataset.act==="spot-close"){ mapSpotSel=null; renderMap(); return; }
+  if(act.dataset.act==="spot-plan"){
+    if(mode==="readonly") return;
+    const p = latLngToSvg(s.lat, s.lng);
+    openSheet("add", { type:"run", sub:"러닝", title:s.n,
+      memo:[s.kmTxt||(s.km?s.km+"km":""), s.pkTxt].filter(Boolean).join(" · ").slice(0,120),
+      lat:s.lat, lng:s.lng, x:p.x, y:p.y });
+    return;
+  }
+  if(act.dataset.act==="spot-real"){ mapFocus(s.lat, s.lng); }
 });
 $("#mapWrap").addEventListener("click", e=>{
   if(mapDragged) return; /* 드래그 후의 클릭은 무시 */
   /* 이름 칩 ✕ → 선택 해제 */
   if(e.target.closest("#mapCap")){ clearRegionSel(); return; }
+  /* 러닝 스팟 점 → 상세 카드 */
+  const spot = e.target.closest("[data-spot]");
+  if(spot){
+    mapSpotSel = (mapSpotSel===spot.dataset.spot) ? null : spot.dataset.spot;
+    renderMap();
+    if(mapSpotSel) $("#mapSpotInfo").scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
   /* 지역 탭: 1번 누르면 강조, 2번 누르면 확대 (확대 상태에선 시군구 우선) */
   const sgg = e.target.closest(".sggp");
   if(sgg){ selectRegion("sgg", +sgg.dataset.gi); return; }

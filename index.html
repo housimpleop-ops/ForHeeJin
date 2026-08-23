@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=10">
+<link rel="stylesheet" href="css/style.css?v=11">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=10"></script>
+<script src="js/config.js?v=11"></script>
 </head>
 <body>
 
@@ -59,7 +59,17 @@
           <button data-f="date">💛 데이트</button>
           <button data-f="wed">💍 결혼</button>
         </div>
+        <div class="wadd" style="margin:0 0 8px">
+          <input type="text" id="mapSearch" placeholder="🔍 우리 일정 · 러닝 스팟 검색" autocomplete="off">
+          <button id="mapSearchClear" style="background:var(--soft); color:var(--muted-solid)">✕</button>
+        </div>
+        <div id="mapSearchOut"></div>
+        <div id="runSpotBar" hidden>
+          <div class="us-note" style="margin:0 2px 4px">🏃 러닝 스팟을 지역별로 골라보세요 — 지도의 초록 점을 누르면 자세히 나와요</div>
+          <div class="chips" id="runSpotRegion" style="margin:0 0 8px"></div>
+        </div>
         <div id="mapWrap"></div>
+        <div id="mapSpotInfo"></div>
         <div class="legend" id="mapLegend"><span><i class="f"></i>다녀온 곳</span><span><i class="o"></i>갈 곳</span><span>🏠 우리 동네</span></div>
         <button class="addbtn" id="mapAdd">+ 여기에 일정 추가 ✨</button>
         <div id="kmapWrap" hidden>
@@ -496,16 +506,16 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=10"></script>
-<script src="js/data-run.js?v=10"></script>
-<script src="js/state.js?v=10"></script>
-<script src="js/saju.js?v=10"></script>
-<script src="js/map-borders.js?v=10"></script>
-<script src="js/map.js?v=10"></script>
-<script src="js/notify.js?v=10"></script>
-<script src="js/store.js?v=10"></script>
-<script src="js/views.js?v=10"></script>
-<script src="js/sheets.js?v=10"></script>
-<script src="js/app.js?v=10"></script>
+<script src="js/data.js?v=11"></script>
+<script src="js/data-run.js?v=11"></script>
+<script src="js/state.js?v=11"></script>
+<script src="js/saju.js?v=11"></script>
+<script src="js/map-borders.js?v=11"></script>
+<script src="js/map.js?v=11"></script>
+<script src="js/notify.js?v=11"></script>
+<script src="js/store.js?v=11"></script>
+<script src="js/views.js?v=11"></script>
+<script src="js/sheets.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>
