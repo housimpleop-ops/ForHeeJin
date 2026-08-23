@@ -553,8 +553,8 @@ const PLAN_TREE = [
     ["pet","🐾","반려동물"],["smoke","🚭","금연"],["body","📊","몸 만들기"],["invest","🪙","재테크"]]},
   { h:"📔 매일 기록", kids:[
     ["meal","🍚","식단"],["show","📺","같이 보기"],["fridge","🧊","냉장고·장보기"]]},
-  { h:"🏃 뛰러 가자", kids:[
-    ["run","🗺️","러닝 스팟 찾기"]]},
+  { h:"🧭 어디 갈까", kids:[
+    ["run","🏃","러닝 스팟"],["spot","🧭","카페·맛집·등산·숙박"]]},
 ];
 const BOX_TREE = [
   { h:"💑 우리 이야기", kids:[["fate","🔮","우리 궁합"],["us","🤙","우리 약속"]]},
@@ -592,6 +592,7 @@ function planStatus(key){
     case "fate": return (DATA.profile && DATA.profile.cs && DATA.profile.cs.birth && DATA.profile.hj && DATA.profile.hj.birth) ? "궁합 완성 💘" : "생일 입력하기";
     case "us": return DATA.wishes.length ? DATA.wishes.length+"개 적음" : "비어 있어요";
     case "run": return "전국 "+RUN_SPOTS.length+"곳 중에서 고르기";
+    case "spot": return SPOTS.length ? "전국 "+SPOTS.length+"곳" : "조사 중이에요 🔍";
     case "fest": return "가볼 곳 "+FESTS.length+"곳";
     case "benefit": return "챙길 혜택 6가지";
   }
@@ -676,6 +677,71 @@ function renderRun(){
     : `<div class="card"><div class="empty">러닝 스팟을 조사해서 채우는 중이에요 🏃‍♂️💨</div></div>`;
 }
 
+/* ---------- 스팟 찾기 (카페·맛집·등산·숙박·해변·계곡·전시) ---------- */
+function spotMatches(){
+  let list = spotsOfCat(spotF.cat);
+  if(spotF.region!=="all") list = list.filter(s=>s.r===spotF.region);
+  if(spotF.sub!=="all") list = list.filter(s=>s.sub===spotF.sub || (s.tags||[]).indexOf(spotF.sub)>=0);
+  const q = spotF.q.trim();
+  if(q) list = list.filter(s=>s.n.indexOf(q)>=0 || (s.a||"").indexOf(q)>=0 || (s.tags||[]).some(t=>t.indexOf(q)>=0));
+  return list;
+}
+function spotCard(s, i){
+  const rows = (SPOT_ROWS[s.cat]||[]).filter(([k])=>s[k]).map(([k,ic])=>
+    `<div class="ev-sub">${ic} ${esc(String(s[k]))}</div>`).join("");
+  const flags = (SPOT_FLAGS[s.cat]||[]).filter(([k])=>s[k]===true).map(([,l])=>`<span class="rtag">${l}</span>`).join("");
+  const pk = RUN_PARK[s.pk];
+  return `<div class="card spotc" data-i="${i}">
+    <div class="trip-h"><span class="nm">${SPOT_CATS[s.cat].em} ${esc(s.n)}</span>
+      ${s.sub?`<span class="dday">${esc(s.sub)}</span>`:""}</div>
+    <div class="trip-dt">${esc(s.r)} · ${esc(s.a||"")}</div>
+    ${(s.tags&&s.tags.length)||flags||pk ? `<div class="chips" style="margin:8px 0 0">
+      ${(s.tags||[]).map(t=>`<span class="rtag">#${esc(t)}</span>`).join("")}
+      ${flags}${pk?`<span class="rtag">${pk.em} ${pk.l}</span>`:""}
+    </div>`:""}
+    ${rows}
+    ${s.parkSpot?`<div class="memo" style="margin-top:8px">🅿️ <b>추천 주차</b> — ${esc(s.parkSpot)}</div>`
+      : (s.pkTxt?`<div class="ev-sub">🅿️ ${esc(s.pkTxt)}</div>`:"")}
+    ${s.season?`<div class="ev-sub">📅 ${esc(s.season)}</div>`:""}
+    ${s.tip?`<div class="memo" style="margin-top:8px">💡 ${esc(s.tip)}</div>`:""}
+    <div class="cal-sync">
+      <button data-act="spotc-plan">🗓️ 일정으로 담기</button>
+      <button data-act="spotc-map">📍 지도에서 보기</button>
+    </div>
+  </div>`;
+}
+function renderSpot(){
+  /* 분야 칩 */
+  $("#spotCat").innerHTML = Object.keys(SPOT_CATS).map(c=>{
+    const n = spotsOfCat(c).length;
+    return `<button data-c="${c}" class="${spotF.cat===c?"on":""}">${SPOT_CATS[c].em} ${SPOT_CATS[c].l} ${n}</button>`;
+  }).join("");
+  const inCat = spotsOfCat(spotF.cat);
+  /* 지역 칩 — 그 분야에 실제로 있는 지역만 */
+  const regions = RUN_REGIONS.filter(r=>inCat.some(s=>s.r===r));
+  $("#spotRegion").innerHTML = `<button data-g="all" class="${spotF.region==="all"?"on":""}">전체</button>`
+    + regions.map(r=>`<button data-g="${r}" class="${spotF.region===r?"on":""}">${r} ${inCat.filter(s=>s.r===r).length}</button>`).join("");
+  /* 세부 종류 칩 — 그 분야의 sub + 자주 나오는 태그 */
+  const subs = [];
+  inCat.forEach(s=>{ if(s.sub && subs.indexOf(s.sub)<0) subs.push(s.sub); });
+  const tagCount = {};
+  inCat.forEach(s=>(s.tags||[]).forEach(t=>{ tagCount[t]=(tagCount[t]||0)+1; }));
+  const topTags = Object.keys(tagCount).filter(t=>subs.indexOf(t)<0).sort((a,b)=>tagCount[b]-tagCount[a]).slice(0,6);
+  $("#spotSub").innerHTML = `<button data-s="all" class="${spotF.sub==="all"?"on":""}">전체</button>`
+    + subs.map(v=>`<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">${esc(v)}</button>`).join("")
+    + topTags.map(v=>`<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">#${esc(v)}</button>`).join("");
+  /* 목록 */
+  const list = spotMatches();
+  const all = allSpots();
+  $("#spotCount").textContent = inCat.length
+    ? `조건에 맞는 곳 ${list.length}곳 / ${SPOT_CATS[spotF.cat].l} 전체 ${inCat.length}곳`
+    : "";
+  $("#spotList").innerHTML = inCat.length
+    ? (list.length ? list.map(s=>spotCard(s, all.indexOf(s))).join("")
+                   : `<div class="card"><div class="empty">조건에 맞는 곳이 없어요. 조건을 조금 풀어볼까요? 🙂</div></div>`)
+    : `<div class="card"><div class="empty">${SPOT_CATS[spotF.cat].em} ${SPOT_CATS[spotF.cat].l} — 아직 조사 중이에요 🔍<br><span style="font-size:12px">블로그 후기를 비교하며 모으고 있어요</span></div></div>`;
+}
+
 /* ---------- 설정 ---------- */
 function renderSet(){
   document.querySelectorAll("#setMe button").forEach(b=>b.classList.toggle("on", b.dataset.v===me));
@@ -702,5 +768,5 @@ function renderMe(){
 function renderAll(){
   renderMe(); renderCal(); renderMap(); renderFest(); renderMeal(); renderNote();
   renderTrip(); renderWed(); renderHome(); renderFate(); renderBody(); renderShow();
-  renderSmoke(); renderInvest(); renderUs(); renderRun(); renderPlanHub(); renderBoxHub(); renderSet();
+  renderSmoke(); renderInvest(); renderUs(); renderRun(); renderSpot(); renderPlanHub(); renderBoxHub(); renderSet();
 }

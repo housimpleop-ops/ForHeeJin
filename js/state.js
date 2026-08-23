@@ -25,6 +25,8 @@ let mapSearchQ = "";          // 지도 검색어
 let noteFilter = "all"; // 쪽지 필터: all | chat | card | log
 /* 러닝 스팟 필터 */
 let runF = { region:"all", dist:"all", surf:"all", want:{} };
+/* 스팟 찾기 필터 (카페·맛집·등산·숙박·해변·계곡·전시) */
+let spotF = { cat:"cafe", region:"all", sub:"all", q:"" };
 let homeBoard = "home";         // 살림 노트 현재 보드
 let bodyP = "cs", smokeP = "cs";
 let invKindSel = "주식";

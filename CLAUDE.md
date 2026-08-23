@@ -76,3 +76,13 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
   화면에 걸치는 시도 파일만 fetch해서 그림 → 처음 로딩은 가볍게 유지
 - 원본: southkorea-maps (통계청 2018). 변환 스크립트는 세션 scratchpad의 convert_borders2.py / convert_dong.py
 - 조작: 한 손가락 드래그=이동, 두 손가락=확대·축소, 휠=확대, ＋/－/전체 버튼, 지역 탭 2단계(강조→확대)
+
+## 스팟 데이터 (가볼 곳 모음)
+- `js/data-run.js` — 러닝 156곳(RUN_SPOTS). 러닝 전용 항목(km·노면·경사·그늘·벌레) 때문에 파일 분리 유지
+- `js/data-spots.js` — 나머지 분야(SPOTS) + 분야 정의(SPOT_CATS)·카드 표시 규칙(SPOT_ROWS/SPOT_FLAGS)
+  - 분야: cafe 카페 / food 맛집 / hike 등산 / stay 숙박 / beach 해변 / valley 계곡 / culture 전시·구경
+  - `allSpots()`가 러닝+나머지를 합쳐 하나로 다룬다
+- 공통 항목: cat·n·r(지역)·a·sub·tags[]·pk·pkTxt·**parkSpot(추천 주차 위치)**·season·tip·lat·lng·conf
+- 분야별 추가 항목은 SPOT_ROWS(카드 줄)·SPOT_FLAGS(알약)에만 등록하면 화면에 자동 반영
+- 화면: 계획🌳 → 어디 갈까 → `view-spot`(분야·지역·세부·검색 필터) / 러닝은 `view-run` 유지
+- 조사 원칙: 장소마다 블로그 후기 2~3개 교차검증, 값이 엇갈리면 최다 언급 채택 + conf 하향
