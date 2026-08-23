@@ -447,7 +447,7 @@ $("#pfForm").addEventListener("click", e=>{
 $("#pfSave").addEventListener("click", ()=>{
   if(mode==="readonly") return;
   const pf = { cs:{}, hj:{} };
-  document.querySelectorAll(".pf-birth").forEach(i=>pf[i.dataset.p].birth = i.value||null);
+  ["cs","hj"].forEach(p=>pf[p].birth = birthValue(p));
   document.querySelectorAll(".pf-time").forEach(s=>pf[s.dataset.p].time = +s.value);
   document.querySelectorAll(".mbti-row").forEach(r=>{
     const ls = Array.prototype.map.call(r.querySelectorAll(".pair button.on"), b=>b.dataset.l);

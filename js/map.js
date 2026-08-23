@@ -3,11 +3,38 @@
    좌표계: viewBox 0 0 300 420. 일정의 x,y는 이 좌표로 저장됨.
    ============================================================ */
 
+/* 지역 이름을 놓을 자리 (경계 상자 가운데) — 라벨을 데이터에서 자동 생성 */
+function shapeCenter(s){ return { x:(s.b[0]+s.b[2])/2, y:(s.b[1]+s.b[3])/2 }; }
+/* 시도별 파스텔 색 (아기자기하게) */
+const SIDO_TONE = 8;
+
 function mapSVG(id){
+  /* 시도 이름 — 서울·대전처럼 큰 도에 둘러싸인 곳은 겹치지 않게 자리를 살짝 옮김 */
+  const placed = [];
+  const sidoLbl = SIDO_SHAPES
+    .map((s,i)=>({ s, i, area:(s.b[2]-s.b[0])*(s.b[3]-s.b[1]) }))
+    .sort((a,b)=>b.area-a.area)          // 큰 도부터 자리 잡기
+    .map(({s})=>{
+      const c = shapeCenter(s);
+      let y = c.y;
+      for(let g=0; g<8; g++){
+        const hit = placed.some(p=>Math.abs(p.x-c.x)<24 && Math.abs(p.y-y)<9);
+        if(!hit) break;
+        y = c.y - (g+1)*9;               // 위로 한 칸씩 피하기
+      }
+      placed.push({x:c.x, y});
+      return `<text x="${c.x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle">${esc(s.n.replace(/(특별자치|특별|광역)?(시|도)$/,""))}</text>`;
+    }).join("");
+  const sggLbl = SGG_SHAPES.map(s=>{
+    const c = shapeCenter(s);
+    return `<text x="${c.x.toFixed(1)}" y="${c.y.toFixed(1)}" text-anchor="middle">${esc(s.n)}</text>`;
+  }).join("");
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
-  <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land" data-si="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="dong-g"></g>
+  <g class="lbl0">${sidoLbl}</g>
+  <g class="lbl3">${sggLbl}</g>
   <g class="lbl4"></g>
   <g>
     <rect class="inset-b" x="238" y="12" width="54" height="32" rx="6"/>
@@ -15,40 +42,7 @@ function mapSVG(id){
     <text x="265" y="38" text-anchor="middle" font-size="7">울릉도·독도</text>
   </g>
   <g class="lbl1" style="font-size:9px">
-    <circle class="city" cx="93" cy="95" r="1.8"/><text x="98" y="98">서울</text>
-    <circle class="city" cx="222" cy="88" r="1.8"/><text x="203" y="91">강릉</text>
-    <circle class="city" cx="121" cy="179" r="1.8"/><text x="126" y="182">대전</text>
-    <circle class="city" cx="104" cy="216" r="1.8"/><text x="85" y="219">전주</text>
-    <circle class="city" cx="206" cy="212" r="1.8"/><text x="211" y="215">대구</text>
-    <circle class="city" cx="83" cy="261" r="1.8"/><text x="64" y="264">광주</text>
-    <circle class="city" cx="232" cy="252" r="1.8"/><text x="237" y="255">부산</text>
-    <circle class="city" cx="138" cy="282" r="1.8"/><text x="143" y="285">여수</text>
-    <text x="62" y="403" text-anchor="middle">제주</text>
     <text x="82" y="88" font-size="9" text-anchor="middle">🏠</text>
-  </g>
-  <g class="lbl2" style="font-size:7.5px">
-    <text x="73" y="102">인천</text><text x="96" y="116">수원</text><text x="103" y="105">성남</text>
-    <text x="78" y="84">고양🏠</text><text x="107" y="120">용인</text><text x="128" y="159">청주</text>
-    <text x="104" y="147">천안</text><text x="114" y="170">세종</text><text x="255" y="202">포항</text>
-    <text x="212" y="256">창원</text><text x="252" y="235">울산</text><text x="145" y="73">춘천</text>
-    <text x="160" y="111">원주</text><text x="51" y="283">목포</text><text x="128" y="276">순천</text>
-    <text x="172" y="259">진주</text><text x="215" y="164">안동</text><text x="188" y="195">구미</text>
-    <text x="76" y="205">군산</text><text x="56" y="149">서산</text><text x="205" y="51">속초</text>
-    <text x="62" y="386">서귀포</text>
-  </g>
-  <g class="lbl3" style="font-size:6.5px">
-    <text x="79" y="80">파주</text><text x="74" y="91">김포</text><text x="79" y="100">부천</text>
-    <text x="82" y="112">안산</text><text x="91" y="107">안양</text><text x="96" y="83">의정부</text>
-    <text x="109" y="90">남양주</text><text x="109" y="97">하남</text><text x="102" y="135">평택</text>
-    <text x="82" y="120">화성</text><text x="80" y="108">시흥</text><text x="84" y="101">광명</text>
-    <text x="125" y="116">이천</text><text x="139" y="114">여주</text><text x="128" y="100">양평</text>
-    <text x="130" y="77">가평</text><text x="108" y="73">포천</text><text x="104" y="93">구리</text>
-    <text x="114" y="133">안성</text><text x="99" y="124">오산</text><text x="58" y="82">강화</text>
-  </g>
-  <g>
-    <rect class="inset-b" x="216" y="368" width="76" height="44" rx="8"/>
-    <text x="254" y="388" text-anchor="middle" font-size="9">🌏 해외</text>
-    <text x="254" y="401" text-anchor="middle" font-size="6.5">해외 일정은 여기에 콕!</text>
   </g>
   <path class="selo"/>
   <g class="pins"></g>
@@ -84,8 +78,17 @@ function applyMapView(){
   const k = mapView.w/300;
   const boost = (mapSel && !mapSel.zoomed) ? 1.7 : 1;
   const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k*boost).toFixed(2)+"px"; };
-  setFs(".lbl1", 9); setFs(".lbl2", 7.5); setFs(".lbl3", 6.5); setFs(".lbl4", 5.5);
-  svg.querySelectorAll(".lbl1 circle").forEach(c=>c.setAttribute("r", (1.8*k).toFixed(2)));
+  setFs(".lbl0", 8.5); setFs(".lbl1", 9); setFs(".lbl3", 6); setFs(".lbl4", 5);
+  /* 시군구 이름은 화면에 보이는 것만 (글자 겹침 방지) */
+  const g3 = svg.querySelector(".lbl3");
+  if(g3){
+    const showAll = mapView.w < 45;
+    g3.querySelectorAll("text").forEach(t=>{
+      const x = +t.getAttribute("x"), y = +t.getAttribute("y");
+      const inView = x>=mapView.x && x<=mapView.x+mapView.w && y>=mapView.y && y<=mapView.y+mapView.h;
+      t.style.display = (inView && (showAll || mapView.w < 100)) ? "" : "none";
+    });
+  }
   /* 핀은 확대·축소와 무관하게 화면상 같은 크기(작은 점)로 */
   svg.querySelectorAll(".pin").forEach(p=>{
     if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+k.toFixed(4)+")");

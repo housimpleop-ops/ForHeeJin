@@ -367,10 +367,9 @@ function renderFate(){
   $("#pfForm").innerHTML = ["cs","hj"].map(p=>{
     const o=pf[p]||{};
     return `<div class="wl-h">${p==="cs"?"🧑":"👩"} ${PEOPLE[p]}</div>
-    <div class="tr-row">
-      <div style="flex:1"><div class="f-lb">생년월일 (양력)</div><input type="date" class="f-in pf-birth" data-p="${p}" value="${o.birth||""}"></div>
-      <div style="width:132px; flex:none"><div class="f-lb">태어난 시</div><select class="f-in pf-time" data-p="${p}">${timeOptions(o.time!=null?+o.time:-1)}</select></div>
-    </div>
+    <div class="f-lb">생년월일 (양력)</div>
+    ${birthPicker(p, o.birth)}
+    <div class="f-lb">태어난 시</div><select class="f-in pf-time" data-p="${p}">${timeOptions(o.time!=null?+o.time:-1)}</select>
     <div class="f-lb">MBTI</div>${mbtiRow(p,o.mbti||"")}`;
   }).join("");
   $("#pfSave").style.display = mode==="readonly"?"none":"";

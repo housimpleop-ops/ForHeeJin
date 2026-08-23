@@ -87,6 +87,28 @@ const AXES=[["E","I"],["S","N"],["T","F"],["J","P"]];
 function mbtiRow(p, val){
   return `<div class="mbti-row" data-p="${p}">`+AXES.map(ax=>`<span class="pair">`+ax.map(L=>`<button type="button" data-l="${L}" class="${val&&val.indexOf(L)>=0?"on":""}">${L}</button>`).join("")+`</span>`).join("")+`</div>`;
 }
+/* 생일 입력 — 달력 대신 년·월·일 고르기 (폰에서 훨씬 편함) */
+function birthPicker(p, val){
+  const [y,m,d] = (val||"").split("-").map(Number);
+  const nowY = new Date().getFullYear();
+  const years = [];
+  for(let i=nowY; i>=1940; i--) years.push(i);
+  const opt = (list, cur, unit) => list.map(v=>`<option value="${v}" ${v===cur?"selected":""}>${v}${unit}</option>`).join("");
+  const days = []; for(let i=1;i<=31;i++) days.push(i);
+  const months = []; for(let i=1;i<=12;i++) months.push(i);
+  return `<div class="birth-row" data-p="${p}">
+    <select class="f-in bp-y" data-p="${p}"><option value="">연도</option>${opt(years, y, "년")}</select>
+    <select class="f-in bp-m" data-p="${p}"><option value="">월</option>${opt(months, m, "월")}</select>
+    <select class="f-in bp-d" data-p="${p}"><option value="">일</option>${opt(days, d, "일")}</select>
+  </div>`;
+}
+function birthValue(p){
+  const y = document.querySelector(`.bp-y[data-p="${p}"]`).value;
+  const m = document.querySelector(`.bp-m[data-p="${p}"]`).value;
+  const d = document.querySelector(`.bp-d[data-p="${p}"]`).value;
+  if(!y || !m || !d) return null;
+  return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+}
 function timeOptions(sel){
   const names=["자시 23~01","축시 01~03","인시 03~05","묘시 05~07","진시 07~09","사시 09~11","오시 11~13","미시 13~15","신시 15~17","유시 17~19","술시 19~21","해시 21~23"];
   return `<option value="-1">모름</option>`+names.map((n,i)=>`<option value="${i}" ${sel===i?"selected":""}>${n}</option>`).join("");
