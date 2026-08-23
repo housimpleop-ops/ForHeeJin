@@ -38,7 +38,13 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
          shows[], smoke:{cs,hj}, invest:{goal,notes[]} }
 ```
 
-- events: {id,date,type(run|date|wed),sub,title,memo,kcal,by(cs|hj),done,x,y,lat,lng,photo}
+- events: {id,date,type(run|date|wed),sub,title,memo,felCs,felHj,spot,kcal,by(cs|hj),done,x,y,lat,lng,photo}
+  - felCs/felHj = 그날의 느낌(각자 한 칸씩). spot={cat,n}은 스팟 참조 —
+    **메모에 장소 설명을 복사해 넣지 않는다.** 카드 아래 `spotInfoHTML()`이 원본에서 읽어 보여준다.
+- trips: {id,title,start,nights,items[{id,text,done}], wish[{id,kind(go|eat|do),text,note,link,photo,by,done}]}
+  - wish = 하고싶은거·먹고싶은거·가보고싶은거. 사진은 photos/{id}.jpg, 링크는 noteParts()가 유튜브·인스타·일반으로 갈라 렌더.
+  - 시트는 `#wsheet` / `openWish(trip, kind, w)` (sheets.js [2.7]). 새 시트를 추가하면
+    closeAllSheets·anySheetOpen·bind*Sheet 세 곳에 반드시 등록할 것.
   - x,y는 그림 지도 SVG viewBox(300×420) 좌표, lat/lng는 카카오맵용 실좌표.
   - map.js의 svgToLatLng/latLngToSvg로 상호 변환 — 두 지도가 같은 핀 공유. photo는 storage 경로.
   - 카카오맵: config.js의 KAKAO_JS_KEY(도메인 잠금), 지도 탭 [그림/진짜] 전환, 장소 검색→일정 만들기.
@@ -58,6 +64,14 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
   index.html 섹션 + ALL_VIEWS + VIEW_PARENT + (views.js) PLAN_TREE/BOX_TREE + planStatus 한 줄.
 - "지금 보는 사람"(me) 전환은 설정 탭에 있다.
 
+## 화면 규칙 몇 가지
+- 쪽지 피드는 **옛날이 위, 최근이 아래**(보통 메신저 순서). renderNote()에서 오름차순 정렬만 하고
+  reverse 하지 않는다. 아래쪽을 보고 있었으면 렌더 후 자동으로 맨 아래로 내려간다.
+- 글자를 눌러 그 자리에서 고치는 건 views.js의 `inlineEdit(el, 현재값, 저장콜백)`.
+  저장콜백에 null이 오면 취소이니 다시 렌더만 하면 된다.
+- 여행 제목·날짜는 `tripEdit`(수정 중인 여행 id)에 담아 renderTrip()이 편집 폼을 그린다 —
+  다시 렌더돼도 편집 상태가 안 날아간다.
+
 ## 스킬트리 규칙
 - 결혼(wedding)·아이(boards.baby)는 체크리스트를 스킬트리(qtree)로 그림. 노드 탭 → qsheet(날짜·장소·메모·담당).
 - 목표형 화면(금연 타임라인, 몸무게 목표, 저축 목표)은 qpathHTML() 마일스톤 경로로 그림.
@@ -65,6 +79,8 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
 ## 이력
 - 2026-08-21 v1: 클로드 아티팩트 단일 파일로 첫 버전 (기능 동일)
 - 2026-08-22 v2: 파일 분리 + Supabase + 로그인 + 스킬트리. 이 저장소 시작.
+- 2026-08-23 v27: 스팟 470곳(좌표 100%)·러닝 주차 156곳, 여행 위시 칸, 일정마다 느낌 칸,
+  쪽지 시간순, 제목·항목 눌러서 수정
 
 ## 다음에 할 일(사용자가 원할 때)
 - 카카오맵 실제 지도(키 필요), 관광공사 축제 API, 실시간 시세, 사진→kcal AI, 캘린더 양방향 동기화
@@ -80,7 +96,8 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
 ## 스팟 데이터 (가볼 곳 모음)
 - `js/data-run.js` — 러닝 156곳(RUN_SPOTS). 러닝 전용 항목(km·노면·경사·그늘·벌레) 때문에 파일 분리 유지
 - `js/data-spots.js` — 나머지 분야(SPOTS) + 분야 정의(SPOT_CATS)·카드 표시 규칙(SPOT_ROWS/SPOT_FLAGS)
-  - 분야: cafe 카페 / food 맛집 / hike 등산 / stay 숙박 / beach 해변 / valley 계곡 / culture 전시·구경
+  - 분야: cafe 카페 / food 맛집 / hike 등산 / stay 숙박 / beach 해변 / valley 계곡 /
+    culture 전시·구경 / fest 축제 / camp 캠핑 / drive 드라이브
   - `allSpots()`가 러닝+나머지를 합쳐 하나로 다룬다
 - 공통 항목: cat·n·r(지역)·a·sub·tags[]·pk·pkTxt·**parkSpot(추천 주차 위치)**·season·tip·lat·lng·conf
 - 분야별 추가 항목은 SPOT_ROWS(카드 줄)·SPOT_FLAGS(알약)에만 등록하면 화면에 자동 반영
@@ -90,8 +107,9 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
   등산의 `level`을 `lvTxt`(한글 난이도)로 바꿔준다. 새 분야를 넣을 땐 여기도 확인할 것
 
 ### 현재 수량 (2026-08-23)
-러닝 156 / 카페 65 / 전시·구경 45 / 맛집 41 / 등산 39 / 숙박 36 / 해변 11 / 계곡 8 = **401곳**
-좌표는 394곳(98%). 8개 분류 전부 그림지도에 겹쳐 볼 수 있다.
+맛집 96 / 등산 85 / 카페 64 / 전시·구경 45 / 해변 44 / 숙박 36 / 축제 27 / 캠핑 25 /
+계곡 24 / 드라이브 24 = **스팟 470곳** + 러닝 156곳
+좌표는 470/470(100%), 러닝 추천 주차는 156/156(100%). 전 분류를 그림지도에 겹쳐 볼 수 있다.
 
 ### 좌표 채우는 법
 카카오 장소검색을 브라우저에서 돌려 채웠다. 배포된 사이트(도메인이 등록돼 있어야 SDK가 뜬다)에서
@@ -100,12 +118,16 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
 그래도 같은 이름의 다른 지점이 잡히는 경우가 있어(리플로우 북한산점→스타필드 고양점,
 정발산→김대중사저기념관, 봄날카페→제주시내 동명 카페) 결과 목록을 눈으로 한 번 훑어야 한다.
 
+### 데이터 손질 도구 (tools/)
+- `merge-spots.py` — `tools/spot-*.json` 을 전부 읽어 중복 제거 후 SPOTS 배열을 통째로 다시 쓴다.
+  기존 데이터를 남기려면 현재 SPOTS 를 `spot-000-current.json` 으로 먼저 덤프할 것
+- `merge-parkspot.py <park.json>` — `{"이름":"주차 설명"}` 을 data-run.js 에 끼워 넣는다(기존 값은 안 건드림)
+- `apply-patch.py <patch.json>` — `[{cat,n,채울 항목…}]` 로 SPOTS 항목 일부만 갱신. conf:low 는 mid 로 올린다
+
 ### 아직 비어 있는 곳
-- 좌표 없는 7곳 — 리플로우 북한산점(폐점 의심), 봄날카페, 별채반 교동쌈밥,
-  광교산 형제봉, 수리산 태을봉, 홍천 인마이라이프, 속초 비로소
-- 해변·계곡 21곳 미조사(강원 동해안 11·제주 6·강원/지리산 계곡 8) — 세션 웹검색 한도 소진으로 중단
-- 러닝 156곳에 `parkSpot`(추천 주차 위치)이 아직 없다. `pkTxt`만 있음
-- 추가 예정 분야: 축제·쇼핑·드라이브·캠핑·공연
+- conf:low 18곳 — 후기 표본이 얕은 곳들. 보강하려면 `apply-patch.py` 로 부분 갱신
+- 경주 숙영식당은 카카오·웹 어디에도 안 잡혀 뺐다(좌표 확인 불가 → 넣지 않는다는 원칙)
+- 추가 예정 분야: 쇼핑·공연
 
 ### 그림지도 스팟 레이어
 - 상태: `mapSpotCat`(off 또는 분야) · `mapSpotRegion` · `mapSpotSel`
