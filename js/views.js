@@ -255,8 +255,8 @@ function renderNote(){
   DATA.meals.forEach(m=>{ if(m.text||m.photo) feed.push({src:"ml", id:m.id, date:m.date, by:m.by, text:m.text, photo:m.photo?photoSrc(m):null, ctx:(SLOTS[m.slot]?SLOTS[m.slot].em+" "+SLOTS[m.slot].label:"")+(MKIND[m.mkind]?" · "+MKIND[m.mkind]:""), luv:m.luv}); });
   DATA.notes.forEach(n=>feed.push({src:"nt", ntype:n.ntype||"chat", cat:n.cat, evdate:n.evdate, place:n.place, lat:n.lat, lng:n.lng,
     id:n.id, date:n.date, by:n.by, text:n.text, photo:n.photo?photoSrc(n):null, media:n.media?(photoCache[n.id]||mediaUrl(n.media)):null, mtype:n.mtype, ctx:null, luv:n.luv}));
+  /* 옛날 대화가 위, 최근 대화가 아래 — 보통 메신저처럼 */
   feed.sort((a,b)=> a.date===b.date ? String(a.id).localeCompare(String(b.id)) : a.date.localeCompare(b.date));
-  feed.reverse();
   /* 필터: 전체 / 대화 / 상황 / 기록(일정·식단에서 온 것) */
   const shown = feed.filter(f=>
     noteFilter==="all" ? true :
@@ -291,10 +291,35 @@ function renderNote(){
         ${mine && f.src==="nt" && mode!=="readonly" ? `<button class="ndel" data-act="ndel" aria-label="삭제">✕</button>`:""}
       </div></div>`;
   });
+  /* 최근 쪽지가 맨 아래에 쌓이므로, 아래쪽을 보고 있었으면 자동으로 따라 내려간다 */
+  const de = document.documentElement;
+  const wasBottom = (de.scrollHeight - window.scrollY - window.innerHeight) < 240;
   $("#noteFeed").innerHTML = html || `<div class="empty">아직 쪽지가 없어요. 첫 쪽지를 보내보세요 💌</div>`;
+  if(wasBottom && !$("#view-note").hidden) requestAnimationFrame(()=>window.scrollTo(0, de.scrollHeight));
   const ro = mode==="readonly";
   $("#noteIn").parentElement.style.display = ro?"none":"";
   $("#emoRow").style.display = ro?"none":"";
+}
+
+/* ---------- 글자를 눌러서 그 자리에서 고치기 ---------- */
+function inlineEdit(el, cur, onSave){
+  if(el.dataset.editing) return;
+  el.dataset.editing = "1";
+  const inp = document.createElement("input");
+  inp.type = "text"; inp.maxLength = 200; inp.value = cur; inp.className = "inline-in";
+  el.textContent = ""; el.appendChild(inp);
+  inp.focus(); inp.setSelectionRange(cur.length, cur.length);
+  let fin = false;
+  const end = ok=>{
+    if(fin) return; fin = true; delete el.dataset.editing;
+    const v = inp.value.trim();
+    onSave(ok && v && v!==cur ? v : null);
+  };
+  inp.addEventListener("keydown", e=>{ e.stopPropagation();
+    if(e.key==="Enter"){ e.preventDefault(); end(true); }
+    if(e.key==="Escape"){ e.preventDefault(); end(false); } });
+  inp.addEventListener("blur", ()=>end(true));
+  inp.addEventListener("click", e=>e.stopPropagation());
 }
 
 /* ---------- 여행 ---------- */
@@ -304,6 +329,34 @@ function ddayTxt(start){
   const diff = Math.round((s-t)/86400000);
   return diff>0 ? "D-"+diff : diff===0 ? "D-DAY 🎉" : "다녀옴 🧡";
 }
+let tripEdit = null;          /* 제목·날짜를 고치는 중인 여행 id */
+const WISH_KINDS = { go:["📍","가보고 싶은 곳"], eat:["🍜","먹고 싶은 것"], do:["🎡","하고 싶은 것"] };
+function wishHTML(t){
+  const ws = t.wish||[];
+  return Object.keys(WISH_KINDS).map(k=>{
+    const list = ws.filter(w=>w.kind===k), km = WISH_KINDS[k];
+    return `<div class="wl-h">${km[0]} ${km[1]} <span class="wl-n">${list.length}</span></div>`
+      + (list.length ? `<div class="wgrid">` + list.map(w=>{
+          const parts = noteParts([w.note, w.link].filter(Boolean).join(" "));
+          return `<div class="wcard ${w.done?"done":""}" data-wish="${w.id}">
+            ${w.photo?`<img src="${esc(photoSrc(w))}" alt="" loading="lazy" onerror="this.hidden=true">`:""}
+            <div class="wc-bd">
+              <div class="wc-tx">${esc(w.text)}</div>
+              ${parts.text?`<div class="wc-nt">${esc(parts.text)}</div>`:""}
+              ${parts.yt.map(id=>`<button class="ytthumb" data-yt="${id}" aria-label="유튜브 재생"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy"><span class="play">▶</span></button>`).join("")}
+              ${parts.ig.map(u=>`<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener">📸 인스타 보러가기 ↗</a>`).join("")}
+              ${parts.links.map(u=>`<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener">🔗 ${esc(u.length>28?u.slice(0,28)+"…":u)}</a>`).join("")}
+              <div class="wc-ft"><span>${PEOPLE[w.by]||""}</span>
+                ${mode!=="readonly"?`<button class="wc-b" data-act="ws-done">${w.done?"✅ 했어요":"○ 아직"}</button>
+                <button class="wc-b" data-act="ws-edit">✏️</button>
+                <button class="wc-b" data-act="ws-del">✕</button>`:(w.done?`<span>✅</span>`:"")}
+              </div>
+            </div></div>`;
+        }).join("") + `</div>`
+        : `<div class="empty" style="padding:6px 4px; text-align:left">아직 없어요</div>`)
+      + (mode!=="readonly"?`<button class="addbtn wl-add" data-act="ws-new" data-kind="${k}">+ ${km[1]} 올리기</button>`:"");
+  }).join("");
+}
 function renderTrip(){
   const fmt = s=>{ if(!s) return "?"; const d=new Date(s+"T00:00:00"); return (d.getMonth()+1)+"/"+d.getDate()+"("+["일","월","화","수","목","금","토"][d.getDay()]+")"; };
   const list = DATA.trips.slice().sort((a,b)=>(a.start||"").localeCompare(b.start||""));
@@ -311,19 +364,31 @@ function renderTrip(){
     let end=""; if(t.start){ const d=new Date(t.start+"T00:00:00"); d.setDate(d.getDate()+(+t.nights||0)); end=ymd(d); }
     const its = t.items||[];
     const done = its.filter(i=>i.done).length, pct = its.length?Math.round(done/its.length*100):0;
+    const editing = tripEdit===t.id && mode!=="readonly";
     return `<div class="card" data-trip="${t.id}">
       <div class="trip-h"><span class="nm">✈️ ${esc(t.title)} · ${+t.nights>0?t.nights+"박 "+(+t.nights+1)+"일":"당일치기"}</span>
         <span class="dday">${ddayTxt(t.start)}</span>
-        ${mode!=="readonly"?`<button class="del" data-act="tr-del" aria-label="여행 삭제">✕</button>`:""}</div>
-      <div class="trip-dt">${fmt(t.start)} 출발 → ${fmt(end)} 도착</div>
+        ${mode!=="readonly"?`<button class="del" data-act="tr-edit" aria-label="여행 고치기" title="제목·날짜 고치기">✏️</button>
+        <button class="del" data-act="tr-del" aria-label="여행 삭제">✕</button>`:""}</div>
+      ${editing ? `<div class="tr-edit">
+          <div class="f-lb">어디로</div>
+          <input type="text" class="f-in" data-e="title" maxlength="40" value="${esc(t.title)}">
+          <div class="tr-row">
+            <div style="flex:1"><div class="f-lb">출발일</div><input type="date" class="f-in" data-e="start" value="${esc(t.start||"")}"></div>
+            <div style="width:110px"><div class="f-lb">몇 박?</div><input type="number" class="f-in" data-e="nights" min="0" max="60" value="${+t.nights||0}"></div>
+          </div>
+          <div class="tr-erow"><button class="cancel" data-act="tr-ecancel">취소</button><button class="save" data-act="tr-esave">저장</button></div>
+        </div>`
+        : `<div class="trip-dt">${fmt(t.start)} 출발 → ${fmt(end)} 도착</div>`}
       <div class="wprog" style="margin-top:8px"><div class="wprog-bar" style="width:${pct}%; background:var(--run)"></div></div>
       <div class="wprog-txt">한국에서 준비할 것 ${done}/${its.length} (${pct}%)</div>
       ${its.map(i=>`<div class="wi ${i.done?"done":""}" data-id="${i.id}">
         <input type="checkbox" class="chk" data-act="tr-chk" style="accent-color:var(--run)" ${i.done?"checked":""} ${mode==="readonly"?"disabled":""}>
-        <span class="tx">${esc(i.text)}</span>
+        <span class="tx" ${mode!=="readonly"?`data-act="tr-itext" title="눌러서 고치기"`:""}>${esc(i.text)}</span>
         ${mode!=="readonly"?`<button class="del" data-act="tr-idel" aria-label="삭제">✕</button>`:""}
       </div>`).join("")}
       ${mode!=="readonly"?`<div class="wadd"><input type="text" maxlength="80" placeholder="추가 (예: KE721 예약번호 ABC123)"><button data-act="tr-iadd">추가</button></div>`:""}
+      <div class="wl-sec">${wishHTML(t)}</div>
     </div>`;
   }).join("") : `<div class="empty">아직 계획한 여행이 없어요 🌏 어디부터 갈까요?</div>`;
 }

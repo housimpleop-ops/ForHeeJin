@@ -373,9 +373,9 @@ textarea.feel-in + textarea.feel-in{margin-top:6px}
 /* [20] 바텀시트 */
 #scrim{position:fixed; inset:0; background:rgba(15,18,26,.45); z-index:40; display:none}
 #scrim.open{display:block}
-#sheet,#msheet,#qsheet,#nsheet{position:fixed; left:0; right:0; bottom:0; z-index:41; display:none}
-#sheet.open,#msheet.open,#qsheet.open,#nsheet.open{display:block}
-#sheet .in,#msheet .in,#qsheet .in,#nsheet .in{max-width:560px; margin:0 auto; background:var(--card); border-radius:20px 20px 0 0; padding:18px 18px max(20px, env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; border:1px solid var(--line); border-bottom:0}
+#sheet,#msheet,#qsheet,#nsheet,#wsheet{position:fixed; left:0; right:0; bottom:0; z-index:41; display:none}
+#sheet.open,#msheet.open,#qsheet.open,#nsheet.open,#wsheet.open{display:block}
+#sheet .in,#msheet .in,#qsheet .in,#nsheet .in,#wsheet .in{max-width:560px; margin:0 auto; background:var(--card); border-radius:20px 20px 0 0; padding:18px 18px max(20px, env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; border:1px solid var(--line); border-bottom:0}
 .sh-title{font-family:"Gowun Batang", serif; font-size:18px; font-weight:700; margin-bottom:14px}
 .f-lb{font-size:12.5px; color:var(--muted-solid); font-weight:600; margin:12px 0 5px; letter-spacing:.04em}
 .seg{display:flex; gap:6px}
@@ -403,3 +403,30 @@ textarea.feel-in + textarea.feel-in{margin-top:6px}
 #login h2{font-family:"Gowun Batang", serif; font-size:22px; text-align:center}
 #login .sub{font-size:12px; color:var(--muted-solid); text-align:center; margin:6px 0 16px}
 #login .err{font-size:12px; color:var(--danger); margin-top:8px; min-height:1.2em}
+
+/* ---------- [26] 여행 위시 · 인라인 수정 ---------- */
+.inline-in{width:100%; font:inherit; color:var(--ink); background:var(--soft);
+  border:1.5px solid var(--run); border-radius:8px; padding:4px 8px}
+.tr-edit{margin-top:8px; padding:12px; border:1px dashed var(--line); border-radius:14px; background:var(--soft)}
+.tr-edit .f-lb{margin-top:6px}
+.tr-erow{display:flex; gap:8px; margin-top:12px}
+.tr-erow button{flex:1; padding:11px; border-radius:12px; font-size:14px; font-weight:700; border:1px solid var(--line)}
+.tr-erow .cancel{background:var(--card); color:var(--muted-solid)}
+.tr-erow .save{background:var(--ink); color:#fff; border-color:var(--ink)}
+.wl-sec{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line)}
+.wl-n{display:inline-block; min-width:18px; padding:0 5px; margin-left:4px; border-radius:999px;
+  background:var(--soft); color:var(--muted-solid); font-size:11px; text-align:center}
+.wl-add{margin:8px 0 4px; font-size:13px; padding:9px}
+.wgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px}
+.wcard{border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); display:flex; flex-direction:column}
+.wcard.done{opacity:.55}
+.wcard.done .wc-tx{text-decoration:line-through}
+.wcard > img{width:100%; display:block; aspect-ratio:4/3; object-fit:cover}
+.wc-bd{padding:8px 9px 7px; display:flex; flex-direction:column; flex:1}
+.wc-tx{font-size:13.5px; font-weight:600; line-height:1.45; word-break:break-word}
+.wc-nt{font-size:12px; color:var(--muted-solid); line-height:1.5; margin-top:4px; white-space:pre-wrap; word-break:break-word}
+.wc-ft{display:flex; align-items:center; gap:4px; margin-top:auto; padding-top:8px; font-size:11px; color:var(--muted-solid)}
+.wc-ft > span:first-child{margin-right:auto}
+.wc-b{background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:3px 7px; font-size:11px; color:var(--muted-solid)}
+#wsPreview{width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-top:8px; display:block}
+#wsPreview[hidden]{display:none}

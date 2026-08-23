@@ -11,8 +11,8 @@ let qSheet = null;  // {mode, board, item:{...}}
 
 /* ---------- 공용 ----------
    시트를 열 때 브라우저 방문기록을 하나 쌓아서, 폰 뒤로가기로 닫히게 한다. */
-function closeAllSheets(){ closeSheet(); closeMSheet(); closeQSheet(); closeNSheet(); }
-function anySheetOpen(){ return !!(sheet || mSheet || qSheet || nSheet); }
+function closeAllSheets(){ closeSheet(); closeMSheet(); closeQSheet(); closeNSheet(); closeWSheet(); }
+function anySheetOpen(){ return !!(sheet || mSheet || qSheet || nSheet || wSheet); }
 function pushSheetState(){ try{ history.pushState({sheet:1}, ""); }catch(_){ } }
 /* 취소·저장 버튼으로 닫을 때는 방문기록도 같이 되돌린다 */
 function closeSheetViaUI(){
@@ -403,6 +403,81 @@ function bindNSheet(){
     DATA.notes.push(item);
     closeSheetViaUI();
     save({kind:"nt", item: (item.photo&&item.photo.indexOf("data:")===0)?Object.assign({},item,{photo:null}):item}, files);
+  });
+}
+
+/* ============================================================
+   [2.7] 여행 위시 시트 — 하고싶은거·먹고싶은거·가보고싶은거
+         글 + 사진 + 링크를 다 담는다
+   ============================================================ */
+let wSheet = null; // {tripId, blob, item, isNew}
+
+function openWish(trip, kind, w){
+  const isNew = !w;
+  wSheet = { tripId: trip.id, blob:null, isNew,
+    item: Object.assign({ id:uid(), kind: kind||"go", text:"", note:"", link:"", photo:null, by:me, done:false }, w||{}) };
+  const km = WISH_KINDS[wSheet.item.kind] || WISH_KINDS.go;
+  $("#wsTitle").textContent = km[1] + " " + km[0];
+  $("#wsText").value = wSheet.item.text||"";
+  $("#wsNote").value = wSheet.item.note||"";
+  $("#wsLink").value = wSheet.item.link||"";
+  $("#wsDel").hidden = isNew;
+  const pv = $("#wsPreview");
+  const src = wSheet.item.photo ? photoSrc(wSheet.item) : null;
+  if(src){ pv.src = src; pv.hidden = false; } else { pv.hidden = true; pv.removeAttribute("src"); }
+  syncWSheetUI();
+  $("#scrim").classList.add("open"); $("#wsheet").classList.add("open"); pushSheetState();
+}
+function syncWSheetUI(){
+  document.querySelectorAll("#wsKind button").forEach(b=>b.classList.toggle("on", b.dataset.v===wSheet.item.kind));
+  document.querySelectorAll("#wsBy button").forEach(b=>b.classList.toggle("on", b.dataset.v===wSheet.item.by));
+  const km = WISH_KINDS[wSheet.item.kind] || WISH_KINDS.go;
+  $("#wsTitle").textContent = km[1] + " " + km[0];
+}
+function closeWSheet(){ wSheet=null; $("#scrim").classList.remove("open"); $("#wsheet").classList.remove("open"); }
+
+function bindWSheet(){
+  $("#wsKind").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b&&wSheet){ wSheet.item.kind=b.dataset.v; syncWSheetUI(); } });
+  $("#wsBy").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b&&wSheet){ wSheet.item.by=b.dataset.v; syncWSheetUI(); } });
+  $("#wsPhotoBtn").addEventListener("click", ()=>$("#wsPhoto").click());
+  $("#wsPhoto").addEventListener("change", async e=>{
+    const f = e.target.files && e.target.files[0]; e.target.value="";
+    if(!f || !wSheet) return;
+    try{
+      const blob = await shrink(f);
+      wSheet.blob = blob;
+      const pv = $("#wsPreview"); pv.src = URL.createObjectURL(blob); pv.hidden = false;
+    }catch(_){ banner("사진을 불러오지 못했어요. 다른 사진으로 시도해 주세요."); }
+  });
+  $("#wsCancel").addEventListener("click", closeSheetViaUI);
+  $("#wsDel").addEventListener("click", ()=>{
+    if(!wSheet) return;
+    const trip = DATA.trips.find(t=>t.id===wSheet.tripId); const id = wSheet.item.id;
+    closeSheetViaUI();
+    if(!trip) return;
+    trip.wish = (trip.wish||[]).filter(x=>x.id!==id);
+    save({kind:"tr", item:trip});
+  });
+  $("#wsSave").addEventListener("click", ()=>{
+    if(!wSheet || mode==="readonly") return;
+    const trip = DATA.trips.find(t=>t.id===wSheet.tripId); if(!trip){ closeSheetViaUI(); return; }
+    const it = wSheet.item;
+    it.text = $("#wsText").value.trim();
+    it.note = $("#wsNote").value.trim();
+    it.link = $("#wsLink").value.trim();
+    if(!it.text && !it.note && !it.link && !wSheet.blob && !it.photo){ $("#wsText").focus(); return; }
+    if(!it.text) it.text = it.link || it.note.slice(0,40);
+    let files = null;
+    if(wSheet.blob && mode==="shared"){
+      it.photo = "photos/"+it.id+".jpg";
+      files = {}; files[it.photo] = wSheet.blob;
+      photoCache[it.id] = URL.createObjectURL(wSheet.blob);
+    }
+    trip.wish = trip.wish||[];
+    const i = trip.wish.findIndex(x=>x.id===it.id);
+    if(i>=0) trip.wish[i] = it; else trip.wish.push(it);
+    closeSheetViaUI();
+    save({kind:"tr", item:trip}, files);
   });
 }
 

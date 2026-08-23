@@ -456,6 +456,13 @@ $("#trAdd").addEventListener("click", ()=>{
   save({kind:"tr", item});
 });
 $("#tripList").addEventListener("click", e=>{
+  const yt = e.target.closest(".ytthumb");
+  if(yt){
+    const wrap = document.createElement("div");
+    wrap.className = "ytwrap";
+    wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${yt.dataset.yt}?autoplay=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+    yt.replaceWith(wrap); return;
+  }
   if(mode==="readonly") return;
   const card = e.target.closest("[data-trip]"); if(!card) return;
   const trip = DATA.trips.find(t=>t.id===card.dataset.trip); if(!trip) return;
@@ -470,10 +477,39 @@ $("#tripList").addEventListener("click", e=>{
     trip.items = trip.items||[]; trip.items.push({ id:uid(), text, done:false }); inp.value="";
     save({kind:"tr", item:trip}); return;
   }
+  /* 제목·날짜 고치기 */
+  if(act.dataset.act==="tr-edit"){ tripEdit = tripEdit===trip.id ? null : trip.id; renderTrip(); return; }
+  if(act.dataset.act==="tr-ecancel"){ tripEdit = null; renderTrip(); return; }
+  if(act.dataset.act==="tr-esave"){
+    const box = act.closest(".tr-edit");
+    const title = box.querySelector('[data-e="title"]').value.trim();
+    if(!title){ box.querySelector('[data-e="title"]').focus(); return; }
+    trip.title = title;
+    trip.start = box.querySelector('[data-e="start"]').value || trip.start;
+    trip.nights = Math.max(0, +box.querySelector('[data-e="nights"]').value||0);
+    tripEdit = null; save({kind:"tr", item:trip}); return;
+  }
+  /* 위시(하고싶은거·먹고싶은거·가보고싶은거) */
+  if(act.dataset.act==="ws-new"){ openWish(trip, act.dataset.kind, null); return; }
+  const wc = e.target.closest("[data-wish]");
+  if(wc){
+    const w = (trip.wish||[]).find(x=>x.id===wc.dataset.wish);
+    if(w){
+      if(act.dataset.act==="ws-edit"){ openWish(trip, w.kind, w); return; }
+      if(act.dataset.act==="ws-done"){ w.done = !w.done; save({kind:"tr", item:trip}); return; }
+      if(act.dataset.act==="ws-del"){
+        if(!confirm("이 항목을 지울까요?")) return;
+        trip.wish = trip.wish.filter(x=>x.id!==w.id); save({kind:"tr", item:trip}); return;
+      }
+    }
+  }
   const row = e.target.closest(".wi"); if(!row) return;
   const it = (trip.items||[]).find(x=>x.id===row.dataset.id); if(!it) return;
   if(act.dataset.act==="tr-chk"){ it.done = act.checked; save({kind:"tr", item:trip}); }
   if(act.dataset.act==="tr-idel"){ trip.items = trip.items.filter(x=>x.id!==it.id); save({kind:"tr", item:trip}); }
+  if(act.dataset.act==="tr-itext"){
+    inlineEdit(act, it.text, v=>{ if(v){ it.text = v; save({kind:"tr", item:trip}); } else renderTrip(); });
+  }
 });
 $("#tripList").addEventListener("keydown", e=>{
   if(e.key==="Enter" && e.target.matches(".wadd input")) e.target.parentElement.querySelector("button").click();
@@ -608,7 +644,7 @@ $("#usWrap").addEventListener("keydown", e=>{
 
 /* ---------- 시트·로그인 ---------- */
 $("#scrim").addEventListener("click", closeSheetViaUI);
-bindSheet(); bindMSheet(); bindQSheet(); bindNSheet();
+bindSheet(); bindMSheet(); bindQSheet(); bindNSheet(); bindWSheet();
 $("#loginForm").addEventListener("submit", e=>{ e.preventDefault(); loginSubmit(); });
 $("#setNoti").addEventListener("click", askNotify);
 
