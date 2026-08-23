@@ -19,8 +19,9 @@ let selDate = ymd(today);       // 달력에서 고른 날
 let mealDate = ymd(today);      // 식단 탭 날짜
 let mapFilter = "all";
 let mapMode = "art";          // 지도 탭: art=그림 지도, real=카카오맵
-let mapSpotRegion = "경기북부"; // 지도에 띄울 러닝 스팟 지역 (운동 필터일 때만)
-let mapSpotSel = null;        // 지도에서 고른 러닝 스팟 이름
+let mapSpotCat = "off";       // 그림지도에 겹쳐 볼 스팟 분야 (off면 안 띄움)
+let mapSpotRegion = "경기북부"; // 그 분야에서 볼 지역
+let mapSpotSel = null;        // 지도에서 고른 스팟 이름
 let mapSearchQ = "";          // 지도 검색어
 let noteFilter = "all"; // 쪽지 필터: all | chat | card | log
 /* 러닝 스팟 필터 */

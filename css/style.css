@@ -297,10 +297,17 @@ nav.tabbar button.on .lb{font-weight:700}
 #shPickOut .picklist{max-height:210px; overflow-y:auto}
 #shPickOut .wi{cursor:pointer}
 #shPickOut .wi .tx b{font-size:14px}
-.pin.cand circle.c{fill:var(--run-soft); stroke:var(--run); stroke-dasharray:2 1.5}
-.pin.cand.picked circle.c{fill:var(--run); stroke:var(--ink); stroke-dasharray:none; stroke-width:2.5}
+/* 가볼 곳 점 — 분야 색으로 작게, 고른 것만 진하게 */
+.pin.cand circle.c{stroke-width:1.5}
+.pin.cand.run circle.c{fill:var(--run-soft); stroke:var(--run)}
+.pin.cand.date circle.c{fill:var(--date-soft); stroke:var(--date)}
+.pin.cand.fest circle.c{fill:var(--fest-soft); stroke:var(--fest)}
+.pin.cand.picked circle.c{stroke:var(--ink); stroke-width:2.5}
+.pin.cand.picked.run circle.c{fill:var(--run)}
+.pin.cand.picked.date circle.c{fill:var(--date)}
+.pin.cand.picked.fest circle.c{fill:var(--fest)}
 #mapSearchOut .wi{cursor:pointer; text-align:left}
-#runSpotRegion button{font-size:12px}
+#runSpotRegion button, #mapSpotCat button{font-size:12px}
 
 /* [15.5] 러닝 스팟 */
 .rtag{font-size:11.5px; padding:4px 10px; border-radius:999px; background:var(--soft); color:var(--muted-solid); white-space:nowrap}

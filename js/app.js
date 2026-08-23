@@ -163,19 +163,24 @@ $("#mapAdd").addEventListener("click", ()=>{
 $("#mapChips").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   mapFilter = b.dataset.f;
-  if(mapFilter!=="run") mapSpotSel = null; /* 운동 필터를 벗어나면 스팟 선택 해제 */
   document.querySelectorAll("#mapChips button").forEach(x=>x.classList.toggle("on", x===b));
   renderMap();
-  if(mapFilter==="run") fitToSpots(); /* 스팟이 한눈에 들어오게 */
 });
-/* 지금 지도에 띄운 러닝 스팟들이 다 보이도록 확대 */
+/* 지금 지도에 띄운 스팟들이 다 보이도록 확대 */
 function fitToSpots(){
-  const list = mapRunSpots(); if(!list.length) return;
+  const list = mapSpots(); if(!list.length) return;
   const pts = list.map(s=>latLngToSvg(s.lat, s.lng));
   zoomToBBox([Math.min(...pts.map(p=>p.x)), Math.min(...pts.map(p=>p.y)),
               Math.max(...pts.map(p=>p.x)), Math.max(...pts.map(p=>p.y))], 40);
 }
-/* 러닝 스팟 지역 고르기 */
+/* 지도에 겹쳐 볼 분야 고르기 */
+$("#mapSpotCat").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  mapSpotCat = b.dataset.sc; mapSpotSel = null;
+  renderMap();
+  if(mapSpotCat!=="off") fitToSpots();
+});
+/* 스팟 지역 고르기 */
 $("#runSpotRegion").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   mapSpotRegion = b.dataset.sr; mapSpotSel = null;
@@ -197,24 +202,25 @@ $("#mapSearchOut").addEventListener("click", e=>{
   }
   const sp = e.target.closest("[data-sspot]");
   if(sp){
-    const s = RUN_SPOTS.find(x=>x.n===sp.dataset.sspot); if(!s) return;
-    mapFilter = "run"; mapSpotRegion = s.r; mapSpotSel = s.n;
-    document.querySelectorAll("#mapChips button").forEach(x=>x.classList.toggle("on", x.dataset.f==="run"));
+    const s = mapSpotPool().find(x=>x.n===sp.dataset.sspot); if(!s) return;
+    mapSpotCat = s.cat; mapSpotRegion = s.r; mapSpotSel = s.n;
     renderMap();
     zoomToBBox((p=>[p.x-4,p.y-4,p.x+4,p.y+4])(latLngToSvg(s.lat,s.lng)), 20);
     $("#mapSpotInfo").scrollIntoView({behavior:"smooth", block:"center"});
   }
 });
-/* 지도 위 러닝 스팟 카드 */
+/* 지도 위 스팟 카드 */
 $("#mapSpotInfo").addEventListener("click", e=>{
   const act = e.target.closest("[data-act]"); if(!act) return;
-  const s = RUN_SPOTS.find(x=>x.n===mapSpotSel); if(!s) return;
+  const s = mapSpotPool().find(x=>x.n===mapSpotSel); if(!s) return;
   if(act.dataset.act==="spot-close"){ mapSpotSel=null; renderMap(); return; }
   if(act.dataset.act==="spot-plan"){
     if(mode==="readonly") return;
     const p = latLngToSvg(s.lat, s.lng);
-    openSheet("add", { type:"run", sub:"러닝", title:s.n,
-      memo:[s.kmTxt||(s.km?s.km+"km":""), s.pkTxt].filter(Boolean).join(" · ").slice(0,120),
+    const run = s.cat==="run" || s.cat==="hike";
+    openSheet("add", { type: run?"run":"date", sub: s.cat==="run"?"러닝":(s.cat==="hike"?"등산":(s.sub||"나들이")),
+      title:s.n,
+      memo:[s.cat==="run"?(s.kmTxt||(s.km?s.km+"km":"")):"", s.parkSpot||s.pkTxt].filter(Boolean).join(" · ").slice(0,160),
       lat:s.lat, lng:s.lng, x:p.x, y:p.y });
     return;
   }
