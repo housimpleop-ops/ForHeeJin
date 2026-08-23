@@ -1,5 +1,6 @@
 /* ============================================================
-   data-spots.js — 러닝 외 모든 스팟 (카페·맛집·등산·숙박·해변·계곡·전시…)
+   data-spots.js — 러닝 외 모든 스팟
+   (카페·맛집·등산·숙박·해변·계곡·전시구경·축제·캠핑·드라이브)
    러닝은 data-run.js의 RUN_SPOTS에 따로 있고, allSpots()가 둘을 합쳐준다.
 
    공통 항목: cat, n(이름), r(지역), a(위치), sub(세부분류), tags[],
@@ -17,6 +18,9 @@ const SPOT_CATS = {
   beach:   { l:"해변",     em:"🌊", color:"run" },
   valley:  { l:"계곡",     em:"🏞️", color:"run" },
   culture: { l:"전시·구경", em:"🎨", color:"fest" },
+  fest:    { l:"축제",     em:"🎪", color:"fest" },
+  camp:    { l:"캠핑",     em:"⛺", color:"run" },
+  drive:   { l:"드라이브",  em:"🚗", color:"date" },
 };
 
 /* 카드에 보여줄 줄 — [항목키, 앞에 붙일 아이콘·라벨] */
@@ -28,6 +32,9 @@ const SPOT_ROWS = {
   beach:  [["water","🌊"],["surfLv","🏄"],["diveInfo","🤿"],["crowd","👥"]],
   valley: [["water","💧"],["crowd","👥"]],
   culture:[["fee","🎫"],["hours","🕘"],["stay","⏱️"]],
+  fest:   [["when","📅"],["fee","🎫"],["hours","🕘"],["crowd","👥"]],
+  camp:   [["price","💳"],["site","⛺"],["water","🚰"],["mart","🛒"]],
+  drive:  [["kmTxt","📏"],["view","👀"],["road","🛣️"],["stopBy","📍"]],
 };
 
 /* 태그(작은 알약)로 보여줄 항목 — [항목키, 참일 때 문구] */
@@ -39,6 +46,7 @@ const SPOT_FLAGS = {
   beach:  [["shower","🚿 샤워장"],["wc","🚻 화장실"],["pet","🐾 애견동반"]],
   valley: [["shower","🚿 샤워장"],["wc","🚻 화장실"],["pet","🐾 애견동반"]],
   culture:[["indoor","🏠 실내(비와도 OK)"]],
+  camp:   [["elec","🔌 전기"],["shower","🚿 샤워장"],["wc","🚻 화장실"],["pet","🐾 애견동반"]],
 };
 
 /* 조사 결과가 여기에 쌓임 */
