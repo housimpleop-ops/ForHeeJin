@@ -5,11 +5,8 @@
 
 function mapSVG(id){
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
-  <path class="land" d="M60,78 L86,70 L112,62 L150,52 L200,38
-    L208,50 L216,62 L230,80 L238,106 L248,140 L256,176 L266,200 L262,226 L256,240 L242,262
-    L232,272 L224,279 L206,283 L188,287 L174,291 L158,288 L145,296 L131,286 L119,299 L101,291 L86,303 L71,297 L60,301 L48,287
-    L53,271 L58,251 L61,231 L62,218 L57,205 L55,190 L47,172 L52,160 L66,150 L71,136 L61,126 L69,106 L59,91 Z"/>
-  <ellipse class="land" cx="62" cy="380" rx="25" ry="10.5" transform="rotate(-8 62 380)"/>
+  <path class="land" d="${BORDER_SIDO}"/>
+  <path class="b-sgg" d="${BORDER_SGG}"/>
   <g>
     <rect class="inset-b" x="238" y="12" width="54" height="32" rx="6"/>
     <circle class="city" cx="252" cy="24" r="3"/><circle class="city" cx="276" cy="21" r="1.5"/>
