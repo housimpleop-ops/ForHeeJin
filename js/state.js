@@ -20,6 +20,8 @@ let mealDate = ymd(today);      // 식단 탭 날짜
 let mapFilter = "all";
 let mapMode = "art"; // 지도 탭: art=그림 지도, real=카카오맵
 let noteFilter = "all"; // 쪽지 필터: all | chat | card | log
+/* 러닝 스팟 필터 */
+let runF = { region:"all", dist:"all", surf:"all", want:{} };
 let homeBoard = "home";         // 살림 노트 현재 보드
 let bodyP = "cs", smokeP = "cs";
 let invKindSel = "주식";

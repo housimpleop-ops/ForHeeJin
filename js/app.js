@@ -8,10 +8,10 @@
 /* ---------- 탭 이동 ----------
    하단 6탭: 달력·지도·쪽지·계획(허브)·서랍(허브)·설정
    세부 화면은 허브에서 트리로 들어가고, 탭바에는 부모 허브가 켜진다. */
-const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit"];
+const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit","run"];
 const VIEW_PARENT = {
   cal:"cal", map:"map", note:"note", plan:"plan", box:"box", set:"set",
-  trip:"plan", wed:"plan", home:"plan", smoke:"plan", body:"plan", invest:"plan", meal:"plan", show:"plan",
+  trip:"plan", wed:"plan", home:"plan", smoke:"plan", body:"plan", invest:"plan", meal:"plan", show:"plan", run:"plan",
   fate:"box", us:"box", fest:"box", benefit:"box",
 };
 function goTab(t){
@@ -37,6 +37,33 @@ function goFromHub(key){
 }
 $("#planTree").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(b) goFromHub(b.dataset.go); });
 $("#boxTree").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(b) goFromHub(b.dataset.go); });
+
+/* ---------- 러닝 스팟 ---------- */
+$("#runRegion").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b){ runF.region=b.dataset.g; renderRun(); } });
+$("#runDist").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b){ runF.dist=b.dataset.d; renderRun(); } });
+$("#runSurf").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b){ runF.surf=b.dataset.s; renderRun(); } });
+$("#runWant").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const w=b.dataset.w; runF.want[w] = !runF.want[w]; renderRun();
+});
+$("#runList").addEventListener("click", e=>{
+  const card = e.target.closest(".runc"); if(!card) return;
+  const p = RUN_SPOTS[+card.dataset.i]; if(!p) return;
+  const act = e.target.closest("[data-act]"); if(!act) return;
+  if(act.dataset.act==="run-plan"){
+    if(mode==="readonly") return;
+    const xy = (p.lat!=null && p.lng!=null) ? latLngToSvg(p.lat, p.lng) : {x:null,y:null};
+    openSheet("add", { type:"run", sub:"러닝", title:p.n,
+      memo:[p.kmTxt||(p.km?p.km+"km":""), p.pkTxt].filter(Boolean).join(" · "),
+      lat:p.lat, lng:p.lng, x:xy.x, y:xy.y });
+    return;
+  }
+  if(act.dataset.act==="run-map"){
+    if(p.lat!=null && p.lng!=null) mapFocus(p.lat, p.lng);
+    else { mapMode="real"; goTab("map"); renderMap(); loadKakao(()=>{ initKakaoMap(); kmap.relayout(); $("#kSearchIn").value=p.n; kakaoSearch(p.n); }); }
+    return;
+  }
+});
 
 /* ---------- 설정 ---------- */
 $("#setMe").addEventListener("click", e=>{

@@ -492,6 +492,8 @@ const PLAN_TREE = [
     ["pet","🐾","반려동물"],["smoke","🚭","금연"],["body","📊","몸 만들기"],["invest","🪙","재테크"]]},
   { h:"📔 매일 기록", kids:[
     ["meal","🍚","식단"],["show","📺","같이 보기"],["fridge","🧊","냉장고·장보기"]]},
+  { h:"🏃 뛰러 가자", kids:[
+    ["run","🗺️","러닝 스팟 찾기"]]},
 ];
 const BOX_TREE = [
   { h:"💑 우리 이야기", kids:[["fate","🔮","우리 궁합"],["us","🤙","우리 약속"]]},
@@ -528,6 +530,7 @@ function planStatus(key){
     case "fridge": return DATA.fridge.length+"개 · 장보기 "+DATA.shop.length+"개";
     case "fate": return (DATA.profile && DATA.profile.cs && DATA.profile.cs.birth && DATA.profile.hj && DATA.profile.hj.birth) ? "궁합 완성 💘" : "생일 입력하기";
     case "us": return DATA.wishes.length ? DATA.wishes.length+"개 적음" : "비어 있어요";
+    case "run": return "전국 "+RUN_SPOTS.length+"곳 중에서 고르기";
     case "fest": return "가볼 곳 "+FESTS.length+"곳";
     case "benefit": return "챙길 혜택 6가지";
   }
@@ -541,6 +544,76 @@ function treeHubHTML(tree){
 }
 function renderPlanHub(){ $("#planTree").innerHTML = treeHubHTML(PLAN_TREE); }
 function renderBoxHub(){ $("#boxTree").innerHTML = treeHubHTML(BOX_TREE); }
+
+/* ---------- 러닝 스팟 찾기 ---------- */
+function runMatches(){
+  return RUN_SPOTS.filter(p=>{
+    if(runF.region!=="all" && p.r!==runF.region) return false;
+    if(runF.dist!=="all"){
+      const km = p.km;
+      if(km==null) return false;
+      if(runF.dist==="s" && !(km<=3)) return false;
+      if(runF.dist==="m" && !(km>3 && km<=6)) return false;
+      if(runF.dist==="l" && !(km>6)) return false;
+    }
+    if(runF.surf!=="all" && p.s!==runF.surf) return false;
+    if(runF.want.flat && p.el!=="flat") return false;
+    if(runF.want.shade && !(p.sh>=2)) return false;
+    if(runF.want.nobug && !(p.bug<=0)) return false;
+    if(runF.want.park && p.pk!=="free") return false;
+    if(runF.want.lit && p.lit!==true) return false;
+    if(runF.want.wc && p.wc!==true) return false;
+    return true;
+  });
+}
+function runCard(p, i){
+  const su = RUN_SURFACE[p.s]||{l:p.s,em:"🏃"};
+  const el = RUN_ELEV[p.el]||{l:"",em:""};
+  const pk = RUN_PARK[p.pk]||{l:"",em:""};
+  return `<div class="card runc" data-i="${i}">
+    <div class="trip-h"><span class="nm">🏃 ${esc(p.n)}</span>
+      ${p.km!=null?`<span class="dday">${p.km}km</span>`:""}</div>
+    <div class="trip-dt">${esc(p.r)} · ${esc(p.a||"")}${p.kmTxt?" · "+esc(p.kmTxt):""}</div>
+    <div class="chips" style="margin:8px 0 0">
+      <span class="rtag">${su.em} ${su.l}</span>
+      <span class="rtag">${el.em} ${el.l}</span>
+      <span class="rtag">🌳 ${RUN_SHADE[p.sh]||"?"}</span>
+      <span class="rtag">🦟 ${RUN_BUG[p.bug]||"?"}</span>
+      <span class="rtag">${pk.em} ${pk.l}</span>
+      ${p.lit?`<span class="rtag">💡 야간 조명</span>`:""}
+      ${p.wc?`<span class="rtag">🚻 화장실</span>`:""}
+      ${p.water?`<span class="rtag">🚰 음수대</span>`:""}
+    </div>
+    ${p.pkTxt?`<div class="ev-sub">🅿️ ${esc(p.pkTxt)}</div>`:""}
+    ${p.season?`<div class="ev-sub">📅 ${esc(p.season)}</div>`:""}
+    ${p.tip?`<div class="memo" style="margin-top:8px">💡 ${esc(p.tip)}</div>`:""}
+    <div class="cal-sync">
+      <button data-act="run-plan">🗓️ 여기 뛰러 가기</button>
+      <button data-act="run-map">📍 지도에서 보기</button>
+    </div>
+  </div>`;
+}
+function renderRun(){
+  /* 필터 칩 (한 번만 그림) */
+  if(!$("#runRegion").children.length){
+    $("#runRegion").innerHTML = `<button data-g="all" class="on">전체</button>`
+      + RUN_REGIONS.map(r=>`<button data-g="${r}">${r}</button>`).join("");
+    $("#runSurf").innerHTML = `<button data-s="all" class="on">전체</button>`
+      + Object.keys(RUN_SURFACE).map(k=>`<button data-s="${k}">${RUN_SURFACE[k].em} ${RUN_SURFACE[k].l}</button>`).join("");
+  }
+  document.querySelectorAll("#runRegion button").forEach(b=>b.classList.toggle("on", b.dataset.g===runF.region));
+  document.querySelectorAll("#runDist button").forEach(b=>b.classList.toggle("on", b.dataset.d===runF.dist));
+  document.querySelectorAll("#runSurf button").forEach(b=>b.classList.toggle("on", b.dataset.s===runF.surf));
+  document.querySelectorAll("#runWant button").forEach(b=>b.classList.toggle("on", !!runF.want[b.dataset.w]));
+  const list = runMatches();
+  $("#runCount").textContent = RUN_SPOTS.length
+    ? `조건에 맞는 곳 ${list.length}곳 / 전체 ${RUN_SPOTS.length}곳`
+    : "";
+  $("#runList").innerHTML = RUN_SPOTS.length
+    ? (list.length ? list.map((p)=>runCard(p, RUN_SPOTS.indexOf(p))).join("")
+                   : `<div class="card"><div class="empty">조건에 맞는 곳이 없어요. 조건을 조금 풀어볼까요? 🙂</div></div>`)
+    : `<div class="card"><div class="empty">러닝 스팟을 조사해서 채우는 중이에요 🏃‍♂️💨</div></div>`;
+}
 
 /* ---------- 설정 ---------- */
 function renderSet(){
@@ -568,5 +641,5 @@ function renderMe(){
 function renderAll(){
   renderMe(); renderCal(); renderMap(); renderFest(); renderMeal(); renderNote();
   renderTrip(); renderWed(); renderHome(); renderFate(); renderBody(); renderShow();
-  renderSmoke(); renderInvest(); renderUs(); renderPlanHub(); renderBoxHub(); renderSet();
+  renderSmoke(); renderInvest(); renderUs(); renderRun(); renderPlanHub(); renderBoxHub(); renderSet();
 }
