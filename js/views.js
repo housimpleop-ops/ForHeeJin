@@ -13,6 +13,38 @@ function pickQuote(cat){
   return `“${q.t}” — ${q.w}`;
 }
 function evOf(date){ return DATA.events.filter(e=>e.date===date).sort((a,b)=>a.type<b.type?-1:1); }
+/* 일정에 붙은 장소를 스팟 목록에서 찾아온다 (없으면 null) */
+function evSpot(e){
+  if(!e || !e.spot) return null;
+  return allSpots().find(s=>s.cat===e.spot.cat && s.n===e.spot.n) || null;
+}
+/* 장소 정보 칸 — 메모와 따로, 조사해둔 내용을 그대로 보여준다 */
+function spotInfoHTML(s, open){
+  if(!s) return "";
+  const rows = (SPOT_ROWS[s.cat]||[]).filter(([k])=>s[k])
+    .map(([k,ic])=>`<div class="ev-sub">${ic} ${esc(String(s[k]))}</div>`).join("");
+  const flags = (SPOT_FLAGS[s.cat]||[]).filter(([k])=>s[k]===true).map(([,l])=>`<span class="rtag">${l}</span>`).join("");
+  const pk = RUN_PARK[s.pk];
+  const body = rows
+    + (flags||pk ? `<div class="chips" style="margin:6px 0 0">${flags}${pk?`<span class="rtag">${pk.em} ${pk.l}</span>`:""}</div>` : "")
+    + (s.parkSpot?`<div class="memo" style="margin-top:8px">🅿️ <b>추천 주차</b> — ${esc(s.parkSpot)}</div>`
+       : (s.pkTxt?`<div class="ev-sub">🅿️ ${esc(s.pkTxt)}</div>`:""))
+    + (s.season?`<div class="ev-sub">📅 ${esc(s.season)}</div>`:"")
+    + (s.tip?`<div class="memo" style="margin-top:8px">💡 ${esc(s.tip)}</div>`:"");
+  if(!body) return "";
+  return `<details class="spotbox"${open?" open":""}>
+    <summary>${SPOT_CATS[s.cat].em} ${esc(s.n)} 정보 — 가기 좋은 때·주차·팁</summary>
+    <div class="spotbox-in">${body}</div>
+  </details>`;
+}
+/* 두 사람의 느낌 */
+function feelHTML(e){
+  if(!e.felCs && !e.felHj) return "";
+  return `<div class="feels">`
+    + (e.felCs?`<div class="feel cs"><span class="who">창석</span>${esc(e.felCs)}</div>`:"")
+    + (e.felHj?`<div class="feel hj"><span class="who">희진</span>${esc(e.felHj)}</div>`:"")
+    + `</div>`;
+}
 function evCard(e, withDate){
   const t = TYPES[e.type] || TYPES.date;
   const dt = withDate ? `<span>${e.date.slice(5).replace("-","/")}</span> · ` : "";
@@ -22,8 +54,10 @@ function evCard(e, withDate){
       <div class="t"><span class="em">${subEm(e.type,e.sub)}</span>${esc(e.title)}</div>
       <div class="m">${dt}${t.label}${e.sub?" · "+esc(e.sub):""} · ${PEOPLE[e.by]||""}${e.kcal?" · 🔥"+e.kcal+"kcal":""}${e.x!=null?" · 📍":""}</div>
       ${e.memo?`<div class="memo">${esc(e.memo)}</div>`:""}
+      ${feelHTML(e)}
       ${e.photo?`<img class="ev-ph" src="${esc(photoSrc(e))}" alt="" loading="lazy" onerror="this.hidden=true">`:""}
     </div>
+    ${spotInfoHTML(evSpot(e))}
     <button class="done-b ${e.done?"yes":""}" data-act="done">${e.done?"다녀옴 ✓":"계획중"}</button>
   </div>`;
 }

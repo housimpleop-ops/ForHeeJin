@@ -39,12 +39,15 @@ function shrink(file){ return new Promise((res,rej)=>{
    [1] 일정 시트
    ============================================================ */
 function openSheet(m, ev){
-  sheet = { mode:m, blob:null, ev: Object.assign({ id:uid(), date:selDate, type:"run", sub:"러닝", title:"", memo:"", kcal:null, by:me, done:false, x:null, y:null, lat:null, lng:null, photo:null }, ev||{}) };
+  sheet = { mode:m, blob:null, ev: Object.assign({ id:uid(), date:selDate, type:"run", sub:"러닝", title:"", memo:"", felCs:"", felHj:"", spot:null, kcal:null, by:me, done:false, x:null, y:null, lat:null, lng:null, photo:null }, ev||{}) };
   if(!(SUBS[sheet.ev.type]||[]).some(s=>s[0]===sheet.ev.sub)) sheet.ev.sub = SUBS[sheet.ev.type][0][0];
   $("#shTitle").textContent = m==="edit" ? "일정 수정 ✏️" : "일정 추가 ✨";
   $("#shDate").value = sheet.ev.date;
   $("#shTitleIn").value = sheet.ev.title;
   $("#shMemo").value = sheet.ev.memo||"";
+  $("#shFelCs").value = sheet.ev.felCs||"";
+  $("#shFelHj").value = sheet.ev.felHj||"";
+  $("#shSpotInfo").innerHTML = spotInfoHTML(evSpot(sheet.ev), true);
   $("#shKcal").value = sheet.ev.kcal||"";
   $("#shDel").hidden = m!=="edit";
   $("#shDoneRow").hidden = m!=="edit";
@@ -92,8 +95,9 @@ function runPickApply(name){
   const s = RUN_SPOTS.find(x=>x.n===name); if(!s || !sheet) return;
   sheet.ev.title = s.n;
   $("#shTitleIn").value = s.n;
-  const memo = [s.kmTxt || (s.km?s.km+"km":""), s.pkTxt].filter(Boolean).join(" · ");
-  if(!$("#shMemo").value) $("#shMemo").value = memo.slice(0, 120);
+  /* 메모에는 아무것도 넣지 않는다 — 코스·주차 정보는 아래 장소 정보 칸에 따로 뜬다 */
+  sheet.ev.spot = { cat:"run", n:s.n };
+  $("#shSpotInfo").innerHTML = spotInfoHTML(s, true);
   if(s.lat!=null && s.lng!=null){
     sheet.ev.lat = s.lat; sheet.ev.lng = s.lng;
     const p = latLngToSvg(s.lat, s.lng); sheet.ev.x = p.x; sheet.ev.y = p.y;
@@ -213,6 +217,8 @@ function bindSheet(){
     ev.date = $("#shDate").value;
     ev.title = $("#shTitleIn").value.trim() || (TYPES[ev.type].label);
     ev.memo = $("#shMemo").value.trim();
+    ev.felCs = $("#shFelCs").value.trim();
+    ev.felHj = $("#shFelHj").value.trim();
     ev.kcal = ev.type==="run" && $("#shKcal").value ? +$("#shKcal").value : null;
     ev.done = $("#shDone").checked;
     if(!ev.date){ $("#shDate").focus(); return; }

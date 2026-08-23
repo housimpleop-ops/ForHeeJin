@@ -41,8 +41,8 @@ function mapSVG(id){
     <circle class="city" cx="252" cy="24" r="3"/><circle class="city" cx="276" cy="21" r="1.5"/>
     <text x="265" y="38" text-anchor="middle" font-size="7">울릉도·독도</text>
   </g>
-  <g class="lbl1" style="font-size:9px">
-    <text x="82" y="88" font-size="9" text-anchor="middle">🏠</text>
+  <g class="lbl1" style="font-size:6px">
+    <text x="82" y="88" text-anchor="middle">🏠</text>
   </g>
   <path class="selo"/>
   <g class="pins"></g>
@@ -78,7 +78,7 @@ function applyMapView(){
   const k = mapView.w/300;
   const boost = (mapSel && !mapSel.zoomed) ? 1.7 : 1;
   const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k*boost).toFixed(2)+"px"; };
-  setFs(".lbl0", 8.5); setFs(".lbl1", 9); setFs(".lbl3", 6); setFs(".lbl4", 5);
+  setFs(".lbl0", 8.5); setFs(".lbl1", 6); setFs(".lbl3", 6); setFs(".lbl4", 5);
   /* 시군구 이름은 화면에 보이는 것만 (글자 겹침 방지) */
   const g3 = svg.querySelector(".lbl3");
   if(g3){

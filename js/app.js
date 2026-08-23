@@ -61,8 +61,7 @@ $("#runList").addEventListener("click", e=>{
   if(act.dataset.act==="run-plan"){
     if(mode==="readonly") return;
     const xy = (p.lat!=null && p.lng!=null) ? latLngToSvg(p.lat, p.lng) : {x:null,y:null};
-    openSheet("add", { type:"run", sub:"러닝", title:p.n,
-      memo:[p.kmTxt||(p.km?p.km+"km":""), p.pkTxt].filter(Boolean).join(" · "),
+    openSheet("add", { type:"run", sub:"러닝", title:p.n, spot:{cat:"run", n:p.n},
       lat:p.lat, lng:p.lng, x:xy.x, y:xy.y });
     return;
   }
@@ -88,10 +87,11 @@ $("#spotList").addEventListener("click", e=>{
     if(mode==="readonly") return;
     /* 분야에 맞는 일정 종류로 담기 */
     const asRun = (s.cat==="run" || s.cat==="hike");
-    const subMap = { cafe:"카페", food:"맛집", stay:"호텔·여행", beach:"바다", valley:"계곡", culture:"전시·기념관", hike:"등산", run:"러닝" };
+    const subMap = { cafe:"카페", food:"맛집", stay:"호텔·여행", beach:"바다", valley:"계곡", culture:"전시·기념관",
+                     hike:"등산", run:"러닝", fest:"축제", camp:"캠핑", drive:"드라이브" };
     const xy = (s.lat!=null && s.lng!=null) ? latLngToSvg(s.lat, s.lng) : {x:null,y:null};
     openSheet("add", { type: asRun ? "run" : "date", sub: subMap[s.cat] || "기타", title: s.n,
-      memo: [s.signature, s.kmTxt, s.priceLow, s.parkSpot].filter(Boolean).join(" · ").slice(0,120),
+      spot:{cat:s.cat, n:s.n},
       lat:s.lat, lng:s.lng, x:xy.x, y:xy.y });
     return;
   }
@@ -219,8 +219,7 @@ $("#mapSpotInfo").addEventListener("click", e=>{
     const p = latLngToSvg(s.lat, s.lng);
     const run = s.cat==="run" || s.cat==="hike";
     openSheet("add", { type: run?"run":"date", sub: s.cat==="run"?"러닝":(s.cat==="hike"?"등산":(s.sub||"나들이")),
-      title:s.n,
-      memo:[s.cat==="run"?(s.kmTxt||(s.km?s.km+"km":"")):"", s.parkSpot||s.pkTxt].filter(Boolean).join(" · ").slice(0,160),
+      title:s.n, spot:{cat:s.cat, n:s.n},
       lat:s.lat, lng:s.lng, x:p.x, y:p.y });
     return;
   }

@@ -306,6 +306,22 @@ nav.tabbar button.on .lb{font-weight:700}
 .pin.cand.picked.run circle.c{fill:var(--run)}
 .pin.cand.picked.date circle.c{fill:var(--date)}
 .pin.cand.picked.fest circle.c{fill:var(--fest)}
+/* 일정에 붙는 장소 정보 — 메모와 섞이지 않게 접히는 칸으로 */
+.spotbox{margin:8px 0 0; border:1px solid var(--line); border-radius:12px; background:var(--soft); overflow:hidden}
+.spotbox summary{cursor:pointer; padding:9px 12px; font-size:13px; font-weight:600; color:var(--muted-solid); list-style:none}
+.spotbox summary::-webkit-details-marker{display:none}
+.spotbox summary::after{content:" ▾"; opacity:.6}
+.spotbox[open] summary::after{content:" ▴"}
+.spotbox-in{padding:0 12px 10px}
+.spotbox-in .ev-sub{margin-top:5px}
+/* 두 사람의 느낌 */
+textarea.feel-in{resize:vertical; min-height:44px; font-family:inherit; line-height:1.5}
+textarea.feel-in + textarea.feel-in{margin-top:6px}
+.feels{margin-top:8px; display:flex; flex-direction:column; gap:5px}
+.feel{font-size:13px; line-height:1.55; padding:7px 10px; border-radius:10px; background:var(--soft)}
+.feel .who{display:inline-block; font-size:11px; font-weight:700; margin-right:6px; padding:1px 7px; border-radius:8px}
+.feel.cs .who{background:var(--run-soft); color:var(--run)}
+.feel.hj .who{background:var(--date-soft); color:var(--date)}
 #mapSearchOut .wi{cursor:pointer; text-align:left}
 #runSpotRegion button, #mapSpotCat button{font-size:12px}
 

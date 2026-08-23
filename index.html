@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=22">
+<link rel="stylesheet" href="css/style.css?v=23">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=22"></script>
+<script src="js/config.js?v=23"></script>
 </head>
 <body>
 
@@ -395,8 +395,12 @@
   <div class="f-lb">어디서 · 뭐 하기</div>
   <input type="text" class="f-in" id="shTitleIn" placeholder="예) 평화의공원 러닝, 월미도 데이트" autocomplete="off">
   <div id="shPickOut"></div>
+  <div id="shSpotInfo"></div>
   <div class="f-lb">메모 (선택)</div>
-  <input type="text" class="f-in" id="shMemo" placeholder="예) 6시 출발, 주차는 8부두">
+  <input type="text" class="f-in" id="shMemo" placeholder="예) 6시 출발, 희진이 데리러 가기">
+  <div class="f-lb" style="margin-top:12px">그날의 느낌 (선택) 💭</div>
+  <textarea class="f-in feel-in" id="shFelCs" rows="2" placeholder="창석이의 느낌"></textarea>
+  <textarea class="f-in feel-in" id="shFelHj" rows="2" placeholder="희진이의 느낌"></textarea>
   <div id="shKcalRow" hidden>
     <div class="f-lb">소모 칼로리 (선택) 🔥</div>
     <input type="number" class="f-in" id="shKcal" min="0" placeholder="예) 300">
@@ -527,17 +531,17 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=22"></script>
-<script src="js/data-run.js?v=22"></script>
-<script src="js/data-spots.js?v=22"></script>
-<script src="js/state.js?v=22"></script>
-<script src="js/saju.js?v=22"></script>
-<script src="js/map-borders.js?v=22"></script>
-<script src="js/map.js?v=22"></script>
-<script src="js/notify.js?v=22"></script>
-<script src="js/store.js?v=22"></script>
-<script src="js/views.js?v=22"></script>
-<script src="js/sheets.js?v=22"></script>
-<script src="js/app.js?v=22"></script>
+<script src="js/data.js?v=23"></script>
+<script src="js/data-run.js?v=23"></script>
+<script src="js/data-spots.js?v=23"></script>
+<script src="js/state.js?v=23"></script>
+<script src="js/saju.js?v=23"></script>
+<script src="js/map-borders.js?v=23"></script>
+<script src="js/map.js?v=23"></script>
+<script src="js/notify.js?v=23"></script>
+<script src="js/store.js?v=23"></script>
+<script src="js/views.js?v=23"></script>
+<script src="js/sheets.js?v=23"></script>
+<script src="js/app.js?v=23"></script>
 </body>
 </html>
