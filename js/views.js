@@ -610,15 +610,21 @@ const PLAN_TREE = [
   { h:"📔 매일 기록", kids:[
     ["meal","🍚","식단"],["show","📺","같이 보기"],["fridge","🧊","냉장고·장보기"]]},
   { h:"🧭 어디 갈까", kids:[
-    ["run","🏃","러닝 스팟"],["spot","🧭","카페·맛집·등산·숙박"]]},
+    ["run","🏃","러닝 스팟"],["spot","🧭","카페·맛집·등산·숙박"],
+    ["spot:fest","🎪","축제"],["spot:camp","⛺","캠핑"],["spot:drive","🚗","드라이브"]]},
 ];
 const BOX_TREE = [
   { h:"💑 우리 이야기", kids:[["fate","🔮","우리 궁합"],["us","🤙","우리 약속"]]},
-  { h:"🗂️ 참고 자료", kids:[["fest","🎪","축제 구경"],["benefit","🎁","나라 혜택"]]},
+  { h:"🗂️ 참고 자료", kids:[["fest","🎪","축제 달력(예년 기준)"],["benefit","🎁","나라 혜택"]]},
 ];
 /* 각 항목 밑에 보여줄 한 줄 진행 상황 */
 function planStatus(key){
   const pctOf = k => { const p=checkProg(k); return p.t ? "⭐ "+p.pct+"% ("+p.d+"/"+p.t+")" : "시작 전"; };
+  /* spot:축제 처럼 특정 분야로 바로 가는 항목 */
+  if(key.indexOf("spot:")===0){
+    const c = key.slice(5), n = spotsOfCat(c).length;
+    return n ? "전국 "+n+"곳" : "조사 중이에요 🔍";
+  }
   switch(key){
     case "wed": case "home": case "baby": case "pet": return pctOf(key);
     case "trip": {
@@ -649,7 +655,7 @@ function planStatus(key){
     case "us": return DATA.wishes.length ? DATA.wishes.length+"개 적음" : "비어 있어요";
     case "run": return "전국 "+RUN_SPOTS.length+"곳 중에서 고르기";
     case "spot": return SPOTS.length ? "전국 "+SPOTS.length+"곳" : "조사 중이에요 🔍";
-    case "fest": return "가볼 곳 "+FESTS.length+"곳";
+    case "fest": return "예년 일정 "+FESTS.length+"개";
     case "benefit": return "챙길 혜택 6가지";
   }
   return "";
@@ -702,6 +708,7 @@ function runCard(p, i){
       ${p.wc?`<span class="rtag">🚻 화장실</span>`:""}
       ${p.water?`<span class="rtag">🚰 음수대</span>`:""}
     </div>
+    ${p.parkSpot?`<div class="memo" style="margin-top:8px">🅿️ <b>추천 주차</b> — ${esc(p.parkSpot)}</div>`:""}
     ${p.pkTxt?`<div class="ev-sub">🅿️ ${esc(p.pkTxt)}</div>`:""}
     ${p.season?`<div class="ev-sub">📅 ${esc(p.season)}</div>`:""}
     ${p.tip?`<div class="memo" style="margin-top:8px">💡 ${esc(p.tip)}</div>`:""}

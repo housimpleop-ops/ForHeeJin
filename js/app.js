@@ -35,6 +35,13 @@ document.querySelector("nav.tabbar").addEventListener("click", e=>{
 });
 /* 허브 트리에서 항목 선택 (살림 계열은 살림 화면의 해당 보드로) */
 function goFromHub(key){
+  /* "spot:fest" 처럼 특정 분야로 바로 들어가기 */
+  if(key.indexOf("spot:")===0){
+    spotF.cat = key.slice(5); spotF.region = "all"; spotF.sub = "all"; spotF.q = "";
+    renderSpot();
+    goTab("spot");
+    return;
+  }
   if(key==="home"||key==="baby"||key==="pet"||key==="fridge"){
     homeBoard = key;
     renderHome();
