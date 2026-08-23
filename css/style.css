@@ -136,16 +136,17 @@ nav.tabbar button.on .lb{font-weight:700}
 
 /* [8] 지도 */
 .kmap{width:100%; height:auto; display:block; border-radius:12px; background:var(--sea); touch-action:manipulation}
-.kmap .land{fill:var(--land); stroke:var(--land-line); stroke-width:1; stroke-linejoin:round; vector-effect:non-scaling-stroke}
-.kmap .b-sgg{fill:none; stroke:var(--land-line); stroke-width:.7; vector-effect:non-scaling-stroke; opacity:0}
-.kmap.z2 .b-sgg{opacity:.55}
-.kmap.z3 .b-sgg{opacity:.95}
+.kmap .land{fill:var(--land); stroke:var(--land-line); stroke-width:1; stroke-linejoin:round; vector-effect:non-scaling-stroke; cursor:pointer}
+.kmap .sggp{fill:transparent; stroke:var(--land-line); stroke-width:.7; vector-effect:non-scaling-stroke; opacity:0; pointer-events:none}
+.kmap.z2 .sggp{opacity:.55; pointer-events:auto; cursor:pointer}
+.kmap.z3 .sggp{opacity:.95}
+.kmap .selo{fill:none; stroke:var(--date); stroke-width:2.2; vector-effect:non-scaling-stroke; pointer-events:none}
+.map-cap{position:absolute; left:8px; top:8px; z-index:2; background:var(--card); border:1.5px solid var(--date); color:var(--ink); font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:999px; box-shadow:var(--shadow); cursor:pointer}
 .kmap .city{fill:var(--muted-solid); opacity:.55}
-.kmap text{font:8px "IBM Plex Sans KR", sans-serif; fill:var(--muted-solid); pointer-events:none}
+.kmap text{font-family:"IBM Plex Sans KR", sans-serif; fill:var(--muted-solid); pointer-events:none}
 .kmap .inset-b{fill:none; stroke:var(--land-line); stroke-width:.8; stroke-dasharray:2 2}
 /* 확대 단계별 지명: 기본(도시) → z2(시) → z3(시군구, 도시 라벨은 숨김) */
-.kmap .lbl2 text{font-size:4.5px}
-.kmap .lbl3 text{font-size:3px; opacity:.9}
+.kmap .lbl3 text{opacity:.9}
 .kmap .lbl2, .kmap .lbl3{display:none}
 .kmap .lbl2 text, .kmap .lbl3 text{text-anchor:middle}
 .kmap.z2 .lbl2{display:block}

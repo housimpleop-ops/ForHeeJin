@@ -65,7 +65,7 @@ function renderMap(){
       <button id="mapZoomIn" aria-label="확대">＋</button>
       <button id="mapZoomOut" aria-label="축소">－</button>
       <button id="mapZoomReset" aria-label="전체 보기" style="font-size:11px">전체</button>
-    </div>`;
+    </div><div class="map-cap" id="mapCap" hidden></div>`;
     bindMainMapNav();
   }
   const list = DATA.events.filter(e=>e.x!=null && (mapFilter==="all"||e.type===mapFilter));

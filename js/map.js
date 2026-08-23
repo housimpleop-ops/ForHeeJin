@@ -5,14 +5,14 @@
 
 function mapSVG(id){
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
-  <path class="land" d="${BORDER_SIDO}"/>
-  <path class="b-sgg" d="${BORDER_SGG}"/>
+  <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land" data-si="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
   <g>
     <rect class="inset-b" x="238" y="12" width="54" height="32" rx="6"/>
     <circle class="city" cx="252" cy="24" r="3"/><circle class="city" cx="276" cy="21" r="1.5"/>
     <text x="265" y="38" text-anchor="middle" font-size="7">울릉도·독도</text>
   </g>
-  <g class="lbl1">
+  <g class="lbl1" style="font-size:9px">
     <circle class="city" cx="93" cy="95" r="1.8"/><text x="98" y="98">서울</text>
     <circle class="city" cx="222" cy="88" r="1.8"/><text x="203" y="91">강릉</text>
     <circle class="city" cx="121" cy="179" r="1.8"/><text x="126" y="182">대전</text>
@@ -24,7 +24,7 @@ function mapSVG(id){
     <text x="62" y="403" text-anchor="middle">제주</text>
     <text x="82" y="88" font-size="9" text-anchor="middle">🏠</text>
   </g>
-  <g class="lbl2">
+  <g class="lbl2" style="font-size:7.5px">
     <text x="73" y="102">인천</text><text x="96" y="116">수원</text><text x="103" y="105">성남</text>
     <text x="78" y="84">고양🏠</text><text x="107" y="120">용인</text><text x="128" y="159">청주</text>
     <text x="104" y="147">천안</text><text x="114" y="170">세종</text><text x="255" y="202">포항</text>
@@ -34,7 +34,7 @@ function mapSVG(id){
     <text x="76" y="205">군산</text><text x="56" y="149">서산</text><text x="205" y="51">속초</text>
     <text x="62" y="386">서귀포</text>
   </g>
-  <g class="lbl3">
+  <g class="lbl3" style="font-size:6.5px">
     <text x="79" y="80">파주</text><text x="74" y="91">김포</text><text x="79" y="100">부천</text>
     <text x="82" y="112">안산</text><text x="91" y="107">안양</text><text x="96" y="83">의정부</text>
     <text x="109" y="90">남양주</text><text x="109" y="97">하남</text><text x="102" y="135">평택</text>
@@ -48,6 +48,7 @@ function mapSVG(id){
     <text x="254" y="388" text-anchor="middle" font-size="9">🌏 해외</text>
     <text x="254" y="401" text-anchor="middle" font-size="6.5">해외 일정은 여기에 콕!</text>
   </g>
+  <path class="selo"/>
   <g class="pins"></g>
 </svg>`;
 }
@@ -75,11 +76,39 @@ function applyMapView(){
   /* 확대 단계별로 지명이 점점 자세해짐 */
   svg.classList.toggle("z2", mapView.w < 200);
   svg.classList.toggle("z3", mapView.w < 100);
-  /* 핀은 확대해도 적당한 크기 유지 */
-  const sc = Math.max(0.3, Math.sqrt(mapView.w/300));
+  /* 글씨·점·핀은 확대해도 화면상 같은 크기 유지 */
+  const k = mapView.w/300;
+  const setFs = (sel, base)=>{ const g=svg.querySelector(sel); if(g) g.style.fontSize = (base*k).toFixed(2)+"px"; };
+  setFs(".lbl1", 9); setFs(".lbl2", 7.5); setFs(".lbl3", 6.5);
+  svg.querySelectorAll(".lbl1 circle").forEach(c=>c.setAttribute("r", (1.8*k).toFixed(2)));
+  const sc = Math.max(0.3, Math.sqrt(k));
   svg.querySelectorAll(".pin").forEach(p=>{
     if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+sc.toFixed(3)+")");
   });
+}
+/* ---------- 지역 선택: 탭하면 경계 강조 + 그 지역으로 확대 ---------- */
+let mapSel = null;
+function zoomToBBox(b, minW){
+  const bw = b[2]-b[0], bh = b[3]-b[1];
+  mapView.w = Math.min(300, Math.max(bw*1.35, bh*1.35*300/420, minW));
+  clampMapView();
+  mapView.x = (b[0]+b[2])/2 - mapView.w/2;
+  mapView.y = (b[1]+b[3])/2 - mapView.h/2;
+  clampMapView(); applyMapView();
+}
+function clearRegionSel(){
+  mapSel = null;
+  const o = document.querySelector("#mainMap .selo"); if(o) o.setAttribute("d","");
+  const cap = $("#mapCap"); if(cap) cap.hidden = true;
+}
+function selectRegion(type, i){
+  const s = (type==="sido" ? SIDO_SHAPES : SGG_SHAPES)[i];
+  if(!s) return;
+  if(mapSel && mapSel.type===type && mapSel.i===i){ clearRegionSel(); return; }
+  mapSel = { type, i };
+  const o = document.querySelector("#mainMap .selo"); if(o) o.setAttribute("d", s.d);
+  const cap = $("#mapCap"); if(cap){ cap.hidden = false; cap.textContent = "📍 "+s.n+"  ✕"; }
+  zoomToBBox(s.b, type==="sido" ? 60 : 28);
 }
 function mapZoomBy(f){
   const cx = mapView.x + mapView.w/2, cy = mapView.y + mapView.h/2;
@@ -87,7 +116,7 @@ function mapZoomBy(f){
   mapView.x = cx - mapView.w/2; mapView.y = cy - mapView.h/2; clampMapView();
   applyMapView();
 }
-function mapReset(){ mapView = { x:0, y:0, w:300, h:420 }; applyMapView(); }
+function mapReset(){ clearRegionSel(); mapView = { x:0, y:0, w:300, h:420 }; applyMapView(); }
 function bindMainMapNav(){
   const svg = $("#mainMap");
   let dragging = false, moved = false, sx = 0, sy = 0;
