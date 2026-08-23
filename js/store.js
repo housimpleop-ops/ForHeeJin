@@ -62,11 +62,18 @@ async function startShared(){
   guards();
   banner("");
   renderAll();
-  /* 상대가 저장하면 이 화면도 바로 갱신 */
+  notifyToday();
+  /* 상대가 저장하면 이 화면도 바로 갱신 + 새 쪽지는 폰 알림 */
   SB.channel("couple-state")
     .on("postgres_changes", { event:"*", schema:"public", table:"couple_state", filter:"id=eq.main" }, async ()=>{
       const { data: d } = await SB.from("couple_state").select("data").eq("id","main").maybeSingle();
-      if(d && d.data){ DATA = d.data; guards(); renderAll(); }
+      if(d && d.data){
+        const prevIds = new Set(DATA.notes.map(n=>n.id));
+        DATA = d.data; guards(); renderAll();
+        DATA.notes.filter(n=>!prevIds.has(n.id) && n.by!==me).slice(-2).forEach(n=>{
+          showNote("💌 "+(PEOPLE[n.by]||"")+(n.cat?" · "+n.cat:"")+" 쪽지", n.text || "사진·음성 쪽지가 왔어요");
+        });
+      }
     })
     .subscribe();
 }

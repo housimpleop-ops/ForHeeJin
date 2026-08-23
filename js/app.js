@@ -156,7 +156,23 @@ async function sendMediaNote(file, mtype){
 }
 $("#noteAudIn").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; sendMediaNote(f,"audio"); });
 $("#noteVidIn").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; sendMediaNote(f,"video"); });
+$("#noteFilterRow").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  noteFilter = b.dataset.f; renderNote();
+});
+$("#noteCardBtn").addEventListener("click", ()=>{ if(mode!=="readonly") openNSheet(); });
 $("#noteFeed").addEventListener("click", e=>{
+  /* 카드의 날짜·장소 배지 */
+  const bdg = e.target.closest(".nbdg");
+  if(bdg){
+    if(bdg.dataset.bdg==="date"){
+      selDate = bdg.dataset.d;
+      const d = new Date(selDate+"T00:00:00"); calY=d.getFullYear(); calM=d.getMonth();
+      renderCal(); goTab("cal");
+    }
+    if(bdg.dataset.bdg==="loc"){ mapFocus(bdg.dataset.lat, bdg.dataset.lng); }
+    return;
+  }
   /* 유튜브 썸네일 → 재생 */
   const yt = e.target.closest(".ytthumb");
   if(yt){
@@ -180,7 +196,8 @@ $("#noteFeed").addEventListener("click", e=>{
   if(act && act.dataset.act==="ndel"){
     DATA.notes = DATA.notes.filter(x=>x.id!==id);
     let files = null;
-    if(mode==="shared" && it.media){ files = {}; files[it.media] = null; }
+    if(mode==="shared" && it.media){ files = files||{}; files[it.media] = null; }
+    if(mode==="shared" && it.photo && String(it.photo).indexOf("data:")!==0){ files = files||{}; files[it.photo] = null; }
     save({kind:"nt-del", id}, files); return;
   }
   if(mode==="readonly") return;
@@ -440,8 +457,10 @@ $("#usWrap").addEventListener("keydown", e=>{
 
 /* ---------- 시트·로그인 ---------- */
 $("#scrim").addEventListener("click", closeAllSheets);
-bindSheet(); bindMSheet(); bindQSheet();
+bindSheet(); bindMSheet(); bindQSheet(); bindNSheet();
 $("#loginForm").addEventListener("submit", e=>{ e.preventDefault(); loginSubmit(); });
+$("#setNoti").addEventListener("click", askNotify);
 
 /* ---------- 부팅 ---------- */
+initNotify();
 initStore();

@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="stylesheet" href="css/style.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
 </head>
 <body>
 
@@ -105,6 +105,12 @@
       <div class="card">
         <div class="sec-title">우리 쪽지 💌</div>
         <div class="us-note" style="margin:0 2px 10px">일정·식단에 메모나 사진을 남기면 여기에 다 모여요. 유튜브·인스타 링크를 붙여넣으면 영상으로 보여요 🎬</div>
+        <div class="chips" id="noteFilterRow" style="margin:0 0 8px">
+          <button data-f="all" class="on">전체</button>
+          <button data-f="chat">💬 대화</button>
+          <button data-f="card">💌 상황</button>
+          <button data-f="log">📔 기록</button>
+        </div>
         <div class="emoRow" id="emoRow">
           <button>🥰</button><button>😘</button><button>💕</button><button>🫶</button><button>✨</button>
           <button>🐥</button><button>🎀</button><button>😚</button><button>🌸</button><button>🍀</button>
@@ -113,7 +119,11 @@
         </div>
         <input type="file" id="noteAudIn" accept="audio/*" capture hidden>
         <input type="file" id="noteVidIn" accept="video/*" capture="environment" hidden>
-        <div class="wadd"><input type="text" id="noteIn" maxlength="300" placeholder="확인해줘~ 난 이래~ 💌 (링크 붙여넣기 OK)"><button id="noteSend">보내기</button></div>
+        <div class="wadd">
+          <input type="text" id="noteIn" maxlength="300" placeholder="확인해줘~ 난 이래~ (링크 OK)">
+          <button id="noteSend">보내기</button>
+          <button id="noteCardBtn" title="상황 쪽지 쓰기" style="background:var(--date)">💌</button>
+        </div>
         <div class="nfeed" id="noteFeed"></div>
       </div>
     </section>
@@ -148,6 +158,9 @@
         <div class="f-lb" style="margin-top:16px">연결 상태</div>
         <div id="setConn" class="us-note" style="margin:0 2px"></div>
         <button class="wide-btn" id="setLogout" hidden>로그아웃</button>
+        <div class="f-lb" style="margin-top:16px">알림</div>
+        <div id="setNotiTxt" class="us-note" style="margin:0 2px"></div>
+        <button class="wide-btn" id="setNoti" hidden>🔔 알림 켜기</button>
         <div class="f-lb" style="margin-top:16px">앱 정보</div>
         <div class="us-note" style="margin:0 2px">계획하는 사이 v2.0 — P가 J를 위해 만든 앱 💛<br>사용법·구조 설명은 저장소의 docs/시작하기.md 와 CLAUDE.md 에 있어요.</div>
       </div>
@@ -412,6 +425,29 @@
   </div>
 </div></div>
 
+<!-- ===== 시트: 상황 쪽지 ===== -->
+<div id="nsheet"><div class="in">
+  <div class="sh-title">상황 쪽지 💌</div>
+  <div class="f-lb">어떤 마음이에요?</div>
+  <div class="chips" id="nsCat" style="margin:0"></div>
+  <div class="f-lb">하고 싶은 말</div>
+  <textarea class="f-in" id="nsText" rows="3" maxlength="500" placeholder="지금 마음을 편하게 적어요"></textarea>
+  <div class="f-lb">사진 (선택)</div>
+  <input type="file" id="nsPhoto" accept="image/*" hidden>
+  <button class="f-in" id="nsPhotoBtn" type="button" style="text-align:left; color:var(--muted-solid)">📷 사진 붙이기</button>
+  <img id="nsPreview" alt="" hidden style="width:100%; border-radius:12px; margin-top:8px; display:block">
+  <div class="f-lb">어떤 날 이야기예요? (선택)</div>
+  <input type="date" class="f-in" id="nsDate">
+  <div class="f-lb">장소 (선택)</div>
+  <div class="wadd" style="margin-top:0"><input type="text" id="nsPlaceQ" placeholder="장소 이름 검색"><button id="nsPlaceBtn" type="button">🔍</button></div>
+  <div id="nsPlaceOut"></div>
+  <div class="us-note" id="nsPlaceSel" style="margin:6px 2px" hidden></div>
+  <div class="sh-row">
+    <button class="cancel" id="nsCancel">취소</button>
+    <button class="save" id="nsSend">보내기 💌</button>
+  </div>
+</div></div>
+
 <!-- ===== 로그인 ===== -->
 <div id="login"><div class="box">
   <h2>계획하는 사이 💛</h2>
@@ -428,13 +464,14 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=3"></script>
-<script src="js/state.js?v=3"></script>
-<script src="js/saju.js?v=3"></script>
-<script src="js/map.js?v=3"></script>
-<script src="js/store.js?v=3"></script>
-<script src="js/views.js?v=3"></script>
-<script src="js/sheets.js?v=3"></script>
-<script src="js/app.js?v=3"></script>
+<script src="js/data.js?v=4"></script>
+<script src="js/state.js?v=4"></script>
+<script src="js/saju.js?v=4"></script>
+<script src="js/map.js?v=4"></script>
+<script src="js/notify.js?v=4"></script>
+<script src="js/store.js?v=4"></script>
+<script src="js/views.js?v=4"></script>
+<script src="js/sheets.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>

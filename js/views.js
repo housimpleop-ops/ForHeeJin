@@ -67,10 +67,10 @@ function renderMap(){
       <button id="mapZoomReset" aria-label="전체 보기" style="font-size:11px">전체</button>
     </div>`;
     bindMainMapNav();
-    applyMapView();
   }
   const list = DATA.events.filter(e=>e.x!=null && (mapFilter==="all"||e.type===mapFilter));
   $("#mainMap .pins").innerHTML = list.map(e=>pinHTML(e,false)).join("");
+  applyMapView();
   /* 그림 지도 ↔ 진짜 지도 전환 */
   document.querySelectorAll("#mapMode button").forEach(b=>b.classList.toggle("on", b.dataset.m===mapMode));
   $("#mapWrap").hidden = mapMode!=="art";
@@ -135,11 +135,19 @@ function renderNote(){
   const feed = [];
   DATA.events.forEach(e=>{ if(e.memo||e.photo) feed.push({src:"ev", id:e.id, date:e.date, by:e.by, text:e.memo, photo:e.photo?photoSrc(e):null, ctx:subEm(e.type,e.sub)+" "+e.title, luv:e.luv}); });
   DATA.meals.forEach(m=>{ if(m.text||m.photo) feed.push({src:"ml", id:m.id, date:m.date, by:m.by, text:m.text, photo:m.photo?photoSrc(m):null, ctx:(SLOTS[m.slot]?SLOTS[m.slot].em+" "+SLOTS[m.slot].label:"")+(MKIND[m.mkind]?" · "+MKIND[m.mkind]:""), luv:m.luv}); });
-  DATA.notes.forEach(n=>feed.push({src:"nt", id:n.id, date:n.date, by:n.by, text:n.text, photo:null, media:n.media?(photoCache[n.id]||mediaUrl(n.media)):null, mtype:n.mtype, ctx:null, luv:n.luv}));
+  DATA.notes.forEach(n=>feed.push({src:"nt", ntype:n.ntype||"chat", cat:n.cat, evdate:n.evdate, place:n.place, lat:n.lat, lng:n.lng,
+    id:n.id, date:n.date, by:n.by, text:n.text, photo:n.photo?photoSrc(n):null, media:n.media?(photoCache[n.id]||mediaUrl(n.media)):null, mtype:n.mtype, ctx:null, luv:n.luv}));
   feed.sort((a,b)=> a.date===b.date ? String(a.id).localeCompare(String(b.id)) : a.date.localeCompare(b.date));
   feed.reverse();
+  /* 필터: 전체 / 대화 / 상황 / 기록(일정·식단에서 온 것) */
+  const shown = feed.filter(f=>
+    noteFilter==="all" ? true :
+    noteFilter==="chat" ? (f.src==="nt" && f.ntype!=="card") :
+    noteFilter==="card" ? (f.src==="nt" && f.ntype==="card") :
+    (f.src!=="nt"));
+  document.querySelectorAll("#noteFilterRow button").forEach(b=>b.classList.toggle("on", b.dataset.f===noteFilter));
   let html = "", lastDate = "";
-  feed.forEach(f=>{
+  shown.forEach(f=>{
     if(f.date!==lastDate){
       lastDate = f.date;
       const d = new Date(f.date+"T00:00:00");
@@ -147,7 +155,9 @@ function renderNote(){
     }
     const mine = f.by===me;
     const parts = noteParts(f.text);
-    html += `<div class="nb ${mine?"mine":""}" data-src="${f.src}" data-id="${f.id}">
+    const catEm = f.cat ? ((NCATS.find(c=>c[0]===f.cat)||[])[1]||"💌") : "";
+    html += `<div class="nb ${mine?"mine":""} ${f.ntype==="card"?"nbc":""}" data-src="${f.src}" data-id="${f.id}">
+      ${f.ntype==="card"&&f.cat?`<div class="ncat">${catEm} ${esc(f.cat)}</div>`:""}
       ${f.ctx?`<div class="ctx">${esc(f.ctx)}</div>`:""}
       ${parts.text?`<div class="tx">${esc(parts.text)}</div>`:""}
       ${f.photo?`<img src="${esc(f.photo)}" alt="" loading="lazy" onerror="this.hidden=true">`:""}
@@ -156,6 +166,8 @@ function renderNote(){
       ${parts.yt.map(id=>`<button class="ytthumb" data-yt="${id}" aria-label="유튜브 재생"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy"><span class="play">▶</span></button>`).join("")}
       ${parts.ig.map(u=>`<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener">📸 인스타 영상 보러가기 ↗</a>`).join("")}
       ${parts.links.map(u=>`<a class="lnk" href="${esc(u)}" target="_blank" rel="noopener">🔗 ${esc(u.length>40?u.slice(0,40)+"…":u)}</a>`).join("")}
+      ${f.evdate?`<button class="nbdg" data-bdg="date" data-d="${f.evdate}">🗓️ ${f.evdate.slice(5).replace("-","/")}</button>`:""}
+      ${f.place&&f.lat!=null?`<button class="nbdg" data-bdg="loc" data-lat="${f.lat}" data-lng="${f.lng}">📍 ${esc(f.place)}</button>`:""}
       <div class="ft"><span>${PEOPLE[f.by]||""}</span>
         ${!mine && mode!=="readonly" ? `<button class="luv ${f.luv?"on":""}" data-act="luv" aria-label="하트">💛</button>` : (f.luv?`<span class="luv on">💛</span>`:"")}
         ${mine && f.src==="nt" && mode!=="readonly" ? `<button class="ndel" data-act="ndel" aria-label="삭제">✕</button>`:""}
@@ -541,6 +553,12 @@ function renderSet(){
     conn.textContent = "📴 이 기기에만 저장 중이에요. 서버 연결은 docs/시작하기.md 순서대로!";
     out.hidden = true;
   }
+  /* 알림 상태 */
+  const nt = $("#setNotiTxt"), nb = $("#setNoti");
+  if(!("Notification" in window)){ nt.textContent = "이 브라우저는 알림을 지원하지 않아요. (홈 화면에 추가한 앱에서 가능)"; nb.hidden = true; }
+  else if(Notification.permission === "granted"){ nt.textContent = "✅ 알림 켜짐 — 새 쪽지와 오늘의 계획을 알려드려요."; nb.hidden = true; }
+  else if(Notification.permission === "denied"){ nt.textContent = "❌ 알림이 차단돼 있어요. 폰 설정 → 앱 알림에서 허용해 주세요."; nb.hidden = true; }
+  else { nt.textContent = "새 쪽지가 오면 폰 알림으로 알려드려요."; nb.hidden = false; }
 }
 
 /* ---------- 헤더 + 전체 다시 그리기 ---------- */

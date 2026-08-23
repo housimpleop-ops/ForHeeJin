@@ -15,7 +15,7 @@ function mapSVG(id){
     <circle class="city" cx="252" cy="24" r="3"/><circle class="city" cx="276" cy="21" r="1.5"/>
     <text x="265" y="38" text-anchor="middle" font-size="7">울릉도·독도</text>
   </g>
-  <g>
+  <g class="lbl1">
     <circle class="city" cx="93" cy="95" r="1.8"/><text x="98" y="98">서울</text>
     <circle class="city" cx="222" cy="88" r="1.8"/><text x="203" y="91">강릉</text>
     <circle class="city" cx="121" cy="179" r="1.8"/><text x="126" y="182">대전</text>
@@ -26,6 +26,25 @@ function mapSVG(id){
     <circle class="city" cx="138" cy="282" r="1.8"/><text x="143" y="285">여수</text>
     <text x="62" y="403" text-anchor="middle">제주</text>
     <text x="82" y="88" font-size="9" text-anchor="middle">🏠</text>
+  </g>
+  <g class="lbl2">
+    <text x="73" y="102">인천</text><text x="96" y="116">수원</text><text x="103" y="105">성남</text>
+    <text x="78" y="84">고양🏠</text><text x="107" y="120">용인</text><text x="128" y="159">청주</text>
+    <text x="104" y="147">천안</text><text x="114" y="170">세종</text><text x="255" y="202">포항</text>
+    <text x="212" y="256">창원</text><text x="252" y="235">울산</text><text x="145" y="73">춘천</text>
+    <text x="160" y="111">원주</text><text x="51" y="283">목포</text><text x="128" y="276">순천</text>
+    <text x="172" y="259">진주</text><text x="215" y="164">안동</text><text x="188" y="195">구미</text>
+    <text x="76" y="205">군산</text><text x="56" y="149">서산</text><text x="205" y="51">속초</text>
+    <text x="62" y="386">서귀포</text>
+  </g>
+  <g class="lbl3">
+    <text x="79" y="80">파주</text><text x="74" y="91">김포</text><text x="79" y="100">부천</text>
+    <text x="82" y="112">안산</text><text x="91" y="107">안양</text><text x="96" y="83">의정부</text>
+    <text x="109" y="90">남양주</text><text x="109" y="97">하남</text><text x="102" y="135">평택</text>
+    <text x="82" y="120">화성</text><text x="80" y="108">시흥</text><text x="84" y="101">광명</text>
+    <text x="125" y="116">이천</text><text x="139" y="114">여주</text><text x="128" y="100">양평</text>
+    <text x="130" y="77">가평</text><text x="108" y="73">포천</text><text x="104" y="93">구리</text>
+    <text x="114" y="133">안성</text><text x="99" y="124">오산</text><text x="58" y="82">강화</text>
   </g>
   <g>
     <rect class="inset-b" x="216" y="368" width="76" height="44" rx="8"/>
@@ -48,7 +67,7 @@ function svgPoint(svg, ev){
 let mapView = { x:0, y:0, w:300, h:420 };
 let mapDragged = false; // 드래그 직후의 클릭이 핀 선택으로 오인되지 않게
 function clampMapView(){
-  mapView.w = Math.min(300, Math.max(50, mapView.w));
+  mapView.w = Math.min(300, Math.max(25, mapView.w)); /* 최대 ×12 — 시군구까지 */
   mapView.h = mapView.w * 420/300;
   mapView.x = Math.max(0, Math.min(300 - mapView.w, mapView.x));
   mapView.y = Math.max(0, Math.min(420 - mapView.h, mapView.y));
@@ -56,6 +75,14 @@ function clampMapView(){
 function applyMapView(){
   const svg = $("#mainMap"); if(!svg) return;
   svg.setAttribute("viewBox", mapView.x+" "+mapView.y+" "+mapView.w+" "+mapView.h);
+  /* 확대 단계별로 지명이 점점 자세해짐 */
+  svg.classList.toggle("z2", mapView.w < 200);
+  svg.classList.toggle("z3", mapView.w < 100);
+  /* 핀은 확대해도 적당한 크기 유지 */
+  const sc = Math.max(0.3, Math.sqrt(mapView.w/300));
+  svg.querySelectorAll(".pin").forEach(p=>{
+    if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+sc.toFixed(3)+")");
+  });
 }
 function mapZoomBy(f){
   const cx = mapView.x + mapView.w/2, cy = mapView.y + mapView.h/2;
@@ -165,7 +192,15 @@ function kakaoPickPlace(lat, lng, name){
 }
 
 function pinHTML(ev, hot){
-  return `<g class="pin ${ev.type} ${ev.done?"done":""} ${hot?"hot":""}" data-id="${ev.id}" transform="translate(${ev.x},${ev.y})" style="cursor:pointer">
+  return `<g class="pin ${ev.type} ${ev.done?"done":""} ${hot?"hot":""}" data-id="${ev.id}" data-x="${ev.x}" data-y="${ev.y}" transform="translate(${ev.x},${ev.y})" style="cursor:pointer">
     <circle class="halo" r="6" fill="none" stroke="var(--${ev.type==="wed"?"fest":ev.type})" stroke-width="1.5" opacity="0"/>
     <circle class="c" r="5.2"/></g>`;
+}
+/* 지도 탭을 특정 위치(카카오맵)로 열기 — 쪽지의 📍 배지에서 사용 */
+function mapFocus(lat, lng){
+  mapMode = "real"; goTab("map"); renderMap();
+  loadKakao(()=>{
+    initKakaoMap(); kmap.relayout(); renderKakaoMarkers();
+    kmap.setLevel(5); kmap.panTo(new kakao.maps.LatLng(+lat, +lng));
+  });
 }

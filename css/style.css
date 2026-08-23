@@ -49,7 +49,8 @@ html,body{background:var(--bg); color:var(--ink);
   font:16px/1.55 "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   -webkit-text-size-adjust:100%;}
 button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0}
-input,select{font:inherit; color:inherit}
+input,select,textarea{font:inherit; color:inherit}
+textarea.f-in{resize:none; line-height:1.5}
 .app{max-width:560px; margin:0 auto; padding:0 14px 86px}
 section[hidden]{display:none}
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
@@ -139,6 +140,14 @@ nav.tabbar button.on .lb{font-weight:700}
 .kmap .city{fill:var(--muted-solid); opacity:.55}
 .kmap text{font:8px "IBM Plex Sans KR", sans-serif; fill:var(--muted-solid); pointer-events:none}
 .kmap .inset-b{fill:none; stroke:var(--land-line); stroke-width:.8; stroke-dasharray:2 2}
+/* 확대 단계별 지명: 기본(도시) → z2(시) → z3(시군구, 도시 라벨은 숨김) */
+.kmap .lbl2 text{font-size:4.5px}
+.kmap .lbl3 text{font-size:3px; opacity:.9}
+.kmap .lbl2, .kmap .lbl3{display:none}
+.kmap .lbl2 text, .kmap .lbl3 text{text-anchor:middle}
+.kmap.z2 .lbl2{display:block}
+.kmap.z3 .lbl2, .kmap.z3 .lbl3{display:block}
+.kmap.z3 .lbl1{display:none}
 .pin circle.c{stroke-width:2.2; fill:var(--card)}
 .pin.run circle.c{stroke:var(--run)} .pin.date circle.c{stroke:var(--date)} .pin.wed circle.c{stroke:var(--fest)}
 .pin.done.run circle.c{fill:var(--run)} .pin.done.date circle.c{fill:var(--date)} .pin.done.wed circle.c{fill:var(--fest)}
@@ -207,6 +216,9 @@ nav.tabbar button.on .lb{font-weight:700}
 .nb .luv{font-size:13px; opacity:.35}
 .nb .luv.on{opacity:1}
 .nb .ndel{font-size:11px; color:var(--muted-solid)}
+.nb.nbc{border:1.5px solid var(--date); background:var(--card)}
+.ncat{display:inline-block; font-size:11.5px; font-weight:700; background:var(--date); color:#fff; padding:3px 11px; border-radius:999px; margin-bottom:6px}
+.nbdg{display:inline-block; margin:6px 6px 0 0; font-size:12px; padding:4px 11px; border-radius:999px; background:var(--soft); color:var(--ink); border:1px solid var(--line)}
 .ytthumb{position:relative; display:block; width:100%; min-width:200px; border-radius:10px; overflow:hidden; margin-top:6px}
 .ytthumb img{width:100%; display:block; aspect-ratio:16/9; object-fit:cover}
 .ytthumb .play{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:36px; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.65)}
@@ -308,9 +320,9 @@ nav.tabbar button.on .lb{font-weight:700}
 /* [20] 바텀시트 */
 #scrim{position:fixed; inset:0; background:rgba(15,18,26,.45); z-index:40; display:none}
 #scrim.open{display:block}
-#sheet,#msheet,#qsheet{position:fixed; left:0; right:0; bottom:0; z-index:41; display:none}
-#sheet.open,#msheet.open,#qsheet.open{display:block}
-#sheet .in,#msheet .in,#qsheet .in{max-width:560px; margin:0 auto; background:var(--card); border-radius:20px 20px 0 0; padding:18px 18px max(20px, env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; border:1px solid var(--line); border-bottom:0}
+#sheet,#msheet,#qsheet,#nsheet{position:fixed; left:0; right:0; bottom:0; z-index:41; display:none}
+#sheet.open,#msheet.open,#qsheet.open,#nsheet.open{display:block}
+#sheet .in,#msheet .in,#qsheet .in,#nsheet .in{max-width:560px; margin:0 auto; background:var(--card); border-radius:20px 20px 0 0; padding:18px 18px max(20px, env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; border:1px solid var(--line); border-bottom:0}
 .sh-title{font-family:"Gowun Batang", serif; font-size:18px; font-weight:700; margin-bottom:14px}
 .f-lb{font-size:12.5px; color:var(--muted-solid); font-weight:600; margin:12px 0 5px; letter-spacing:.04em}
 .seg{display:flex; gap:6px}

@@ -10,7 +10,7 @@ let mSheet = null;  // {mode, blob, item:{...}}
 let qSheet = null;  // {mode, board, item:{...}}
 
 /* ---------- 공용 ---------- */
-function closeAllSheets(){ closeSheet(); closeMSheet(); closeQSheet(); }
+function closeAllSheets(){ closeSheet(); closeMSheet(); closeQSheet(); closeNSheet(); }
 function blobToDataURL(b){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(b); }); }
 /* 사진을 900px 이하 JPEG로 줄이기 (용량 절약) */
 function shrink(file){ return new Promise((res,rej)=>{
@@ -254,6 +254,75 @@ function bindMSheet(){
     mealDate = it.date;
     const stash = (it.photo && it.photo.indexOf("data:")===0) ? Object.assign({},it,{photo:null}) : it;
     closeMSheet(); save({kind:"ml", item:stash}, files);
+  });
+}
+
+/* ============================================================
+   [2.5] 상황 쪽지 시트 — 마음 종류 + 글 + 사진 + 날짜 + 장소
+   ============================================================ */
+let nSheet = null; // {blob, cat, lat, lng, place}
+
+function openNSheet(){
+  nSheet = { blob:null, cat:NCATS[0][0], lat:null, lng:null, place:null };
+  $("#nsText").value = ""; $("#nsDate").value = ""; $("#nsPlaceQ").value = "";
+  $("#nsPlaceOut").innerHTML = ""; $("#nsPlaceSel").hidden = true;
+  const pv = $("#nsPreview"); pv.hidden = true; pv.removeAttribute("src");
+  syncNSheetUI();
+  $("#scrim").classList.add("open"); $("#nsheet").classList.add("open");
+}
+function syncNSheetUI(){
+  $("#nsCat").innerHTML = NCATS.map(c=>`<button type="button" data-v="${c[0]}" class="${c[0]===nSheet.cat?"on":""}">${c[1]} ${c[0]}</button>`).join("");
+}
+function closeNSheet(){ nSheet=null; $("#scrim").classList.remove("open"); $("#nsheet").classList.remove("open"); }
+
+function bindNSheet(){
+  $("#nsCat").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b&&nSheet){ nSheet.cat=b.dataset.v; syncNSheetUI(); } });
+  $("#nsPhotoBtn").addEventListener("click", ()=>$("#nsPhoto").click());
+  $("#nsPhoto").addEventListener("change", async e=>{
+    const f = e.target.files && e.target.files[0]; e.target.value="";
+    if(!f || !nSheet) return;
+    try{
+      const blob = await shrink(f);
+      nSheet.blob = blob;
+      const pv = $("#nsPreview"); pv.src = URL.createObjectURL(blob); pv.hidden = false;
+    }catch(_){ banner("사진을 불러오지 못했어요."); }
+  });
+  $("#nsPlaceBtn").addEventListener("click", ()=>{
+    const q = $("#nsPlaceQ").value.trim(); if(!q){ $("#nsPlaceQ").focus(); return; }
+    $("#nsPlaceOut").innerHTML = '<div class="empty" style="padding:6px">🔍 찾는 중…</div>';
+    kakaoPlaces(q, res=>{
+      if(!nSheet) return;
+      if(!res.length){ $("#nsPlaceOut").innerHTML = '<div class="empty" style="padding:6px">결과가 없어요</div>'; return; }
+      $("#nsPlaceOut").innerHTML = res.slice(0,4).map(r=>'<button type="button" class="wi ksr" data-lat="'+r.y+'" data-lng="'+r.x+'" data-name="'+esc(r.place_name)+'">'
+        + '<span class="tx"><b>'+esc(r.place_name)+'</b><br><span style="font-size:11.5px; color:var(--muted-solid)">'+esc(r.road_address_name||r.address_name||"")+'</span></span></button>').join("");
+    });
+  });
+  $("#nsPlaceQ").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#nsPlaceBtn").click(); } });
+  $("#nsPlaceOut").addEventListener("click", e=>{
+    const b = e.target.closest(".ksr"); if(!b || !nSheet) return;
+    nSheet.lat = +b.dataset.lat; nSheet.lng = +b.dataset.lng; nSheet.place = b.dataset.name;
+    $("#nsPlaceOut").innerHTML = "";
+    const sel = $("#nsPlaceSel"); sel.hidden = false; sel.textContent = "📍 "+b.dataset.name+" — 장소 붙였어요 ✓";
+  });
+  $("#nsCancel").addEventListener("click", closeNSheet);
+  $("#nsSend").addEventListener("click", ()=>{
+    if(!nSheet || mode==="readonly") return;
+    const text = $("#nsText").value.trim();
+    if(!text && !nSheet.blob){ $("#nsText").focus(); return; }
+    const item = { id:uid(), date:ymd(new Date()), by:me, luv:false, ntype:"card",
+      cat:nSheet.cat, text, evdate: $("#nsDate").value||null,
+      place:nSheet.place, lat:nSheet.lat, lng:nSheet.lng, photo:null };
+    let files = null;
+    if(nSheet.blob){
+      if(mode==="shared"){
+        item.photo = "photos/"+item.id+".jpg";
+        files = {}; files[item.photo] = nSheet.blob;
+        photoCache[item.id] = URL.createObjectURL(nSheet.blob);
+      }
+    }
+    DATA.notes.push(item);
+    closeNSheet();
+    save({kind:"nt", item: (item.photo&&item.photo.indexOf("data:")===0)?Object.assign({},item,{photo:null}):item}, files);
   });
 }
 
