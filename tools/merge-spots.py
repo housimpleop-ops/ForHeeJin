@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 JS = r"C:\dev\couple-planner\js\data-spots.js"
 
 CAT_ORDER = ["cafe", "food", "hike", "stay", "beach", "valley", "culture",
-             "fest", "camp", "drive"]
+             "fest", "camp", "drive", "snow", "spa"]
 REG_ORDER = ["경기북부", "서울", "인천", "경기남부", "강원", "충청", "전라", "경상", "제주"]
 CONF_ORDER = ["high", "mid", "low"]
 
