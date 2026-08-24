@@ -27,6 +27,9 @@ REJECT = {
     ("beach", "웅천해변"),
     ("drive", "만항재 414번 지방도 (차로 갈 수 있는 가장 높은 고개)"),
     ("cafe", "행주산성 대대리 135"),
+    # 앞선 차수에서 지점 문제·검증 부족으로 넣지 않기로 한 것들
+    ("cafe", "헤올커피로스터즈"), ("food", "돈사돈 본관"), ("food", "흑돈가 제주본점"),
+    ("food", "다로베"), ("food", "임금님쌀밥집"), ("food", "초원"),
 }
 
 def strings(d):
@@ -69,7 +72,10 @@ def main(jl, out_path):
                     cat, n = r.get("cat"), r.get("n")
                     if not cat or not n: continue
                     if not r.get("r"): continue          # 부분 패치 행은 건너뛴다
-                    key = (cat, n.strip())
+                    # HTML 이스케이프가 섞여 들어오면 이름이 달라 보인다
+                    n = n.replace("&amp;", "&").strip()
+                    r["n"] = n
+                    key = (cat, n)
                     if key in have or key in REJECT: continue
                     # 표기 흔들림 보정 — conf 는 high/mid/low 셋뿐
                     c = str(r.get("conf", "")).lower()
