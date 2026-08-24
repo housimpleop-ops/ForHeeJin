@@ -32,6 +32,8 @@ function mapSVG(id){
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
   <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="road-g">${(typeof ROADS==="undefined"?[]:ROADS).map(r=>
+      `<path class="rd ${r.k}" d="${r.d}"/>`).join("")}</g>
   <g class="dong-g"></g>
   <g class="lbl0">${sidoLbl}</g>
   <g class="lbl3">${sggLbl}</g>
@@ -70,9 +72,10 @@ function applyMapView(){
   const svg = $("#mainMap"); if(!svg) return;
   svg.setAttribute("viewBox", mapView.x+" "+mapView.y+" "+mapView.w+" "+mapView.h);
   /* 확대 단계별로 지명이 점점 자세해짐 */
-  svg.classList.toggle("z2", mapView.w < 200);
-  svg.classList.toggle("z3", mapView.w < 100);
-  svg.classList.toggle("z4", mapView.w < 28); /* 동 단위 */
+  svg.classList.toggle("z2", mapView.w < 190);
+  svg.classList.toggle("z3", mapView.w < 95);   /* 시군구 — 국도가 보이기 시작 */
+  svg.classList.toggle("z4", mapView.w < 26);   /* 동 단위 */
+  svg.classList.toggle("z5", mapView.w < 10);   /* 아주 가까이 */
   updateDongLayer();
   /* 글씨·점·핀은 확대해도 화면상 같은 크기 유지 (지역 선택 중엔 글씨 크게) */
   const k = mapView.w/300;
@@ -89,9 +92,30 @@ function applyMapView(){
       t.style.display = (inView && (showAll || mapView.w < 100)) ? "" : "none";
     });
   }
-  /* 핀은 확대·축소와 무관하게 화면상 같은 크기(작은 점)로 */
+  /* 핀은 확대·축소와 무관하게 화면상 같은 크기로 */
   svg.querySelectorAll(".pin").forEach(p=>{
     if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+k.toFixed(4)+")");
+  });
+  declutterSpots(svg);
+}
+
+/* ---------- 이모지가 서로 겹치지 않게 솎아내기 ----------
+   화면을 격자로 나눠 한 칸에 하나만 남긴다.
+   확대할수록 칸이 좁아지므로 가까이 갈수록 더 많이 나타난다.        */
+function declutterSpots(svg){
+  const spots = svg.querySelectorAll(".pin.spt");
+  if(!spots.length) return;
+  const cell = mapView.w / 13;                  /* 화면 가로에 이모지 13개쯤 */
+  const x1 = mapView.x - cell, y1 = mapView.y - cell;
+  const x2 = mapView.x + mapView.w + cell, y2 = mapView.y + mapView.h + cell;
+  const taken = new Set();
+  spots.forEach(g=>{
+    const x = +g.dataset.x, y = +g.dataset.y;
+    if(x<x1 || x>x2 || y<y1 || y>y2){ g.style.display = "none"; return; }  /* 화면 밖 */
+    if(g.classList.contains("picked")){ g.style.display = ""; return; }    /* 고른 건 항상 */
+    const key = Math.round(x/cell) + "," + Math.round(y/cell);
+    if(taken.has(key)){ g.style.display = "none"; return; }
+    taken.add(key); g.style.display = "";
   });
 }
 /* ---------- 동(洞) 레이어 — 많이 확대했을 때만 그 지역 파일을 불러옴 ---------- */
@@ -135,14 +159,8 @@ function updateDongLayer(){
     g.innerHTML = list.map((s,i)=>`<path class="dongp" data-di="${i}" d="${s.d}"/>`).join("");
     dongShownSido = key;
   }
-  /* 이름표는 화면에 보이는 것만 */
-  const inView = [];
-  for(let i=0;i<list.length && inView.length<60;i++){
-    const b = list[i].b;
-    const cx = (b[0]+b[2])/2, cy = (b[1]+b[3])/2;
-    if(cx>=mapView.x && cx<=mapView.x+mapView.w && cy>=mapView.y && cy<=mapView.y+mapView.h) inView.push([cx,cy,list[i].n]);
-  }
-  lg.innerHTML = inView.map(p=>`<text x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle">${esc(p[2])}</text>`).join("");
+  /* 동 이름은 안 쓴다 — 글씨가 너무 빽빽해져서 (사용자 요청) */
+  if(lg.innerHTML) lg.innerHTML = "";
 }
 
 /* ---------- 지역 선택 (2단계) ----------
@@ -152,7 +170,8 @@ function updateDongLayer(){
 let mapSel = null; // {type, i, zoomed}
 function zoomToBBox(b, minW){
   const bw = b[2]-b[0], bh = b[3]-b[1];
-  mapView.w = Math.min(300, Math.max(bw*1.35, bh*1.35*300/420, minW));
+  /* 고른 지역이 화면을 꽉 채우게 — 여백은 8%만 */
+  mapView.w = Math.min(300, Math.max(bw*1.08, bh*1.08*300/420, minW));
   clampMapView();
   mapView.x = (b[0]+b[2])/2 - mapView.w/2;
   mapView.y = (b[1]+b[3])/2 - mapView.h/2;
@@ -172,7 +191,7 @@ function selectRegion(type, i){
   if(same){                                                /* 2번째 탭 → 확대 */
     mapSel.zoomed = true;
     const cap = $("#mapCap"); if(cap) cap.textContent = "📍 "+s.n+"  ✕";
-    zoomToBBox(s.b, type==="sido" ? 60 : 28);
+    zoomToBBox(s.b, type==="sido" ? 22 : 6);
     return;
   }
   /* 1번째 탭 → 경계 강조 + 글씨 크게 */

@@ -107,8 +107,13 @@ function renderMap(){
   const spots = mapSpots();
   const spotPins = spots.map(s=>{
     const p = latLngToSvg(s.lat, s.lng);
-    const co = (SPOT_CATS[s.cat]||{}).color || "run";
-    return `<g class="pin cand ${co} ${mapSpotSel===s.n?"picked":""}" data-spot="${esc(s.n)}" data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y})" style="cursor:pointer"><circle class="c" r="${mapSpotSel===s.n?4.5:3.4}"/></g>`;
+    const cat = SPOT_CATS[s.cat] || {};
+    const co = cat.color || "run";
+    const on = mapSpotSel===s.n;
+    /* 가볼 곳은 동그란 이모지로 — 지도가 아기자기하게 채워지도록 */
+    return `<g class="pin spt ${co}${on?" picked":""}" data-spot="${esc(s.n)}" data-cat="${s.cat}"`
+      + ` data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y})">`
+      + `<circle class="bg" r="4.4"/><text class="em" y="2.1">${cat.em||"📍"}</text></g>`;
   }).join("");
   $("#mainMap .pins").innerHTML = spotPins + list.map(e=>pinHTML(e,false)).join("");
   renderRunSpotBar();
@@ -133,7 +138,9 @@ function renderMap(){
 function mapSpotPool(){ return allSpots().filter(s=>s.lat!=null); }
 function mapSpots(){
   if(mapSpotCat==="off" || mapMode!=="art") return [];
-  return mapSpotPool().filter(s=>s.cat===mapSpotCat && (mapSpotRegion==="all" || s.r===mapSpotRegion));
+  const inReg = s => (mapSpotRegion==="all" || s.r===mapSpotRegion);
+  if(mapSpotCat==="all") return mapSpotPool().filter(inReg);
+  return mapSpotPool().filter(s=>s.cat===mapSpotCat && inReg(s));
 }
 function renderRunSpotBar(){
   const on = (mapMode==="art");
@@ -142,12 +149,15 @@ function renderRunSpotBar(){
   const pool = mapSpotPool();
   /* 분야 칩 — 좌표가 있는 곳이 하나라도 있는 분야만 */
   $("#mapSpotCat").innerHTML = `<button data-sc="off" class="${mapSpotCat==="off"?"on":""}">끄기</button>`
+    + `<button data-sc="all" class="${mapSpotCat==="all"?"on":""}">✨ 전부 ${pool.length}</button>`
     + Object.keys(SPOT_CATS).filter(c=>pool.some(s=>s.cat===c)).map(c=>{
         const n = pool.filter(s=>s.cat===c).length;
         return `<button data-sc="${c}" class="${mapSpotCat===c?"on":""}">${SPOT_CATS[c].em} ${SPOT_CATS[c].l} ${n}</button>`;
       }).join("");
   /* 지역 칩 — 고른 분야에 실제로 있는 지역만 */
-  const inCat = mapSpotCat==="off" ? [] : pool.filter(s=>s.cat===mapSpotCat);
+  const inCat = mapSpotCat==="off" ? []
+              : mapSpotCat==="all" ? pool
+              : pool.filter(s=>s.cat===mapSpotCat);
   $("#runSpotRegion").hidden = !inCat.length;
   if(!inCat.length){ $("#runSpotRegion").innerHTML = ""; return; }
   $("#runSpotRegion").innerHTML = [["all","전국"]]
