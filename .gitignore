@@ -2,3 +2,10 @@ Thumbs.db
 .DS_Store
 desktop.ini
 _head.html
+
+# 조사할 때 만드는 임시 목록 파일
+gap.txt
+have*.txt
+coords-*.json
+geo-*.js
+geo-*.json
