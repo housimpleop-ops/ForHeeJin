@@ -38,7 +38,11 @@ REJECT = {
     ("spa", "미란다호텔 스파플러스"), ("spa", "울산발리온천"),
     # 여기어때·야놀자·캠핏·구글 어디에도 상호가 없어 실재 확인 불가
     ("stay", "단양 피플스토리펜션"),
+    # 리조트 40곳은 이미 stay 로 병합됨 - resort 표기로 다시 잡히는 것 차단
+    # 폐업 확인 (조사팀 교차검증) - 여행사 사이트엔 아직 이용권이 남아 있으니 주의
+    ("spa", "드래곤힐스파"), ("spa", "변산온천"), ("spa", "변산온천리조텔"),
 }
+REJECT_CAT = {"resort"}
 
 def strings(d):
     if isinstance(d, dict):
@@ -79,12 +83,14 @@ def main(jl, out_path):
                     if not isinstance(r, dict): continue
                     cat, n = r.get("cat"), r.get("n")
                     if not cat or not n: continue
+                    # 프롬프트에 넣은 예시 틀이 데이터로 딸려 들어오는 것 차단
+                    if n in ("장소 이름", "장소·공연 이름", "이름", "장소명"): continue
                     if not r.get("r"): continue          # 부분 패치 행은 건너뛴다
                     # HTML 이스케이프가 섞여 들어오면 이름이 달라 보인다
                     n = n.replace("&amp;", "&").strip()
                     r["n"] = n
                     key = (cat, n)
-                    if key in have or key in REJECT: continue
+                    if key in have or key in REJECT or cat in REJECT_CAT: continue
                     # 표기 흔들림 보정 — conf 는 high/mid/low 셋뿐
                     c = str(r.get("conf", "")).lower()
                     r["conf"] = {"med": "mid", "medium": "mid", "": "low"}.get(c, c)
