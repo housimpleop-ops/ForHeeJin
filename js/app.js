@@ -8,11 +8,11 @@
 /* ---------- 탭 이동 ----------
    하단 6탭: 달력·지도·쪽지·계획(허브)·서랍(허브)·설정
    세부 화면은 허브에서 트리로 들어가고, 탭바에는 부모 허브가 켜진다. */
-const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit","run","spot"];
+const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit","run","spot","runsync"];
 const VIEW_PARENT = {
   cal:"cal", map:"map", note:"note", plan:"plan", box:"box", set:"set",
   trip:"plan", wed:"plan", home:"plan", smoke:"plan", body:"plan", invest:"plan", meal:"plan", show:"plan", run:"plan", spot:"plan",
-  fate:"box", us:"box", fest:"box", benefit:"box",
+  fate:"box", us:"box", fest:"box", benefit:"box", runsync:"box",
 };
 function goTab(t, fromBack){
   tab = t;
@@ -96,7 +96,7 @@ $("#spotList").addEventListener("click", e=>{
     const asRun = (s.cat==="run" || s.cat==="hike");
     const subMap = { cafe:"카페", food:"맛집", stay:"호텔·여행", beach:"바다", valley:"계곡", culture:"전시·기념관",
                      hike:"등산", run:"러닝", fest:"축제", camp:"캠핑", drive:"드라이브",
-                     snow:"스키·썰매", spa:"온천" };
+                     snow:"스키·썰매", spa:"온천", shop:"쇼핑", perf:"공연" };
     const xy = (s.lat!=null && s.lng!=null) ? latLngToSvg(s.lat, s.lng) : {x:null,y:null};
     openSheet("add", { type: asRun ? "run" : "date", sub: subMap[s.cat] || "기타", title: s.n,
       spot:{cat:s.cat, n:s.n},

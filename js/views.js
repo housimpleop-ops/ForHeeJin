@@ -677,11 +677,13 @@ const PLAN_TREE = [
   { h:"🧭 어디 갈까", kids:[
     ["run","🏃","러닝 스팟"],["spot","🧭","카페·맛집·등산·숙박"],
     ["spot:fest","🎪","축제"],["spot:camp","⛺","캠핑"],["spot:drive","🚗","드라이브"],
-    ["spot:snow","⛷️","스키·썰매"],["spot:spa","♨️","온천"]]},
+    ["spot:snow","⛷️","스키·썰매"],["spot:spa","♨️","온천"],
+    ["spot:shop","🛍️","쇼핑·시장"],["spot:perf","🎭","공연"]]},
 ];
 const BOX_TREE = [
   { h:"💑 우리 이야기", kids:[["fate","🔮","우리 궁합"],["us","🤙","우리 약속"]]},
-  { h:"🗂️ 참고 자료", kids:[["fest","🎪","축제 달력(예년 기준)"],["benefit","🎁","나라 혜택"]]},
+  { h:"🗂️ 참고 자료", kids:[["fest","🎪","축제 달력(예년 기준)"],["benefit","🎁","나라 혜택"],
+    ["runsync","⌚","러닝 기록 연동 가이드"]]},
 ];
 /* 각 항목 밑에 보여줄 한 줄 진행 상황 */
 function planStatus(key){
@@ -723,6 +725,7 @@ function planStatus(key){
     case "spot": return SPOTS.length ? "전국 "+SPOTS.length+"곳" : "조사 중이에요 🔍";
     case "fest": return "예년 일정 "+FESTS.length+"개";
     case "benefit": return "챙길 혜택 6가지";
+    case "runsync": return "가민·나이키런·갤럭시·아이폰 → 자동 기록";
   }
   return "";
 }

@@ -23,6 +23,8 @@ const SPOT_CATS = {
   drive:   { l:"드라이브",  em:"🚗", color:"date" },
   snow:    { l:"스키·썰매", em:"⛷️", color:"run" },
   spa:     { l:"온천",     em:"♨️", color:"fest" },
+  shop:    { l:"쇼핑·시장", em:"🛍️", color:"date" },
+  perf:    { l:"공연",     em:"🎭", color:"fest" },
 };
 
 /* 카드에 보여줄 줄 — [항목키, 앞에 붙일 아이콘·라벨] */
@@ -39,6 +41,8 @@ const SPOT_ROWS = {
   drive:  [["kmTxt","📏"],["view","👀"],["road","🛣️"],["stopBy","📍"]],
   snow:   [["when","📅"],["slope","🎿"],["price","💳"],["rental","🎽"],["night","🌙"]],
   spa:    [["water","♨️"],["price","💳"],["hours","🕘"],["stayNear","🏨"]],
+  shop:   [["buy","🛍️"],["eat","🍜"],["hours","🕘"],["day","📅"]],
+  perf:   [["what","🎭"],["price","💳"],["when","📅"],["book","🎟️"]],
 };
 
 /* 태그(작은 알약)로 보여줄 항목 — [항목키, 참일 때 문구] */
@@ -53,6 +57,8 @@ const SPOT_FLAGS = {
   camp:   [["elec","🔌 전기"],["shower","🚿 샤워장"],["wc","🚻 화장실"],["pet","🐾 애견동반"]],
   snow:   [["beginner","🔰 초보 코스"],["sled","🛷 썰매장"],["shuttle","🚌 셔틀버스"],["lesson","🧑‍🏫 강습"]],
   spa:    [["outdoor","🌙 노천탕"],["swimsuit","👙 수영복존"]],
+  shop:   [["indoor","🏠 실내(비와도 OK)"]],
+  perf:   [["indoor","🏠 실내(비와도 OK)"]],
 };
 
 /* 조사 결과가 여기에 쌓임 */

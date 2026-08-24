@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=31">
+<link rel="stylesheet" href="css/style.css?v=32">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=31"></script>
+<script src="js/config.js?v=32"></script>
 </head>
 <body>
 
@@ -155,6 +155,80 @@
         <div class="sec-title">우리 서랍 📦</div>
         <div class="us-note" style="margin:0 2px 12px">우리에 대한 것들, 참고할 것들을 모아뒀어요.</div>
         <div id="boxTree"></div>
+      </div>
+    </section>
+
+    <!-- ===== 러닝 기록 연동 가이드 ===== -->
+    <section id="view-runsync" hidden>
+      <div class="card">
+        <div class="sec-title">러닝 기록, 자동으로 모으기 ⌚</div>
+        <div class="us-note" style="margin:0 2px 10px">각자 쓰는 앱은 달라도 괜찮아요. 목표는 하나 —
+          두 사람의 기록을 <b>Strava</b>(무료 러닝 앱)로 모으는 거예요. 한 번만 설정하면 그 뒤로는 전부 자동이에요.</div>
+        <div class="gflow"><span>⌚ 가민</span><span>👟 나이키런</span><span>📱 갤럭시</span><span>🍎 아이폰</span><em>→</em><span>🟠 Strava</span><em>→</em><span>💕 이 앱</span></div>
+        <div class="gnote">다 되면: 뛰고 나서 아무것도 안 해도 <b>달력에 러닝 기록이 자동으로 생기고</b>(거리·시간·페이스),
+          <b>지도에 뛴 경로가 그려지고</b>, 어느 러닝 스팟에서 뛰었는지도 붙어요.</div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="font-size:16px">0단계 · 둘 다 하기 — Strava 가입 <span class="gtag easy">5분 · 무료</span></div>
+        <ol class="gsteps">
+          <li data-n="1">앱스토어/플레이스토어에서 <b>Strava</b>(스트라바) 설치</li>
+          <li data-n="2">회원가입 (구글/애플 계정으로 가입하면 빨라요)</li>
+          <li data-n="3">끝! 아래에서 자기 앱에 맞는 카드 하나만 따라 하면 돼요</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="font-size:16px">⌚ 가민 시계로 뛰면 <span class="gtag easy">제일 쉬움 · 공식 지원</span></div>
+        <ol class="gsteps">
+          <li data-n="1">폰에서 <b>Garmin Connect</b> 앱 열기</li>
+          <li data-n="2">더보기(≡) → <b>설정</b> → <b>연결된 앱(커넥티드 앱)</b></li>
+          <li data-n="3"><b>Strava</b> 선택 → Strava 로그인 → <b>승인</b></li>
+          <li data-n="4">끝! 이제 시계로 뛰면 경로·페이스·심박까지 알아서 넘어가요</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="font-size:16px">📱 갤럭시 (삼성헬스)로 뛰면 <span class="gtag easy">쉬움 · 앱 하나 필요</span></div>
+        <ol class="gsteps">
+          <li data-n="1">플레이스토어에서 <b>Health Sync</b> 설치 (삼성헬스↔다른 앱을 이어주는 앱)</li>
+          <li data-n="2">처음 열면 물어봐요 — 동기화 <b>원본: 삼성헬스</b> / <b>대상: Strava</b> 선택</li>
+          <li data-n="3">삼성헬스 접근 권한 허용 + Strava 로그인·승인</li>
+          <li data-n="4">동기화 항목에서 <b>활동(운동)</b> 켜기 → 끝!</li>
+        </ol>
+        <div class="gnote">⚠️ 무료 체험 후 몇천 원 한 번 결제하는 앱이에요. 광고 없고 한 번 사면 계속 쓰는 방식 — 이 용도로는 사실상 표준이에요.</div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="font-size:16px">🍎 아이폰 (건강·피트니스·애플워치)으로 뛰면 <span class="gtag easy">쉬움 · 앱 하나 필요</span></div>
+        <ol class="gsteps">
+          <li data-n="1">앱스토어에서 <b>HealthFit</b> 설치 (커피 한 잔 값, 한 번만 결제)</li>
+          <li data-n="2">건강 데이터 접근 <b>모두 허용</b></li>
+          <li data-n="3">HealthFit 설정에서 <b>Strava 연결</b> → 로그인·승인</li>
+          <li data-n="4"><b>자동 내보내기(Auto Export)</b> 켜기 → 끝! 뛰면 알아서 넘어가요</li>
+        </ol>
+        <div class="gnote">무료로 하고 싶으면 <b>RunGap</b> 앱도 돼요 — 보는 건 무료, 내보내기만 시즌권 결제예요.</div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="font-size:16px">👟 나이키 런 클럽(NRC)으로 뛰면 <span class="gtag warn">우회 필요</span></div>
+        <div class="us-note" style="margin:0 2px 6px">나이키가 몇 년 전 외부 연동을 막아서 공식 방법이 없어요. 대신 이렇게 하면 경로까지 통째로 넘어가요:</div>
+        <ol class="gsteps">
+          <li data-n="1"><b>아이폰</b>: <b>RunGap</b> 설치 → 계정 연결에서 <b>Nike 로그인</b> → <b>Strava 연결</b> → 자동 동기화 켜기</li>
+          <li data-n="2"><b>갤럭시</b>: <b>SyncMyTracks</b> 설치 → 원본 Nike / 대상 Strava 연결</li>
+        </ol>
+        <div class="gnote">💡 솔직한 추천: 나이키런을 꼭 써야 하는 게 아니면, 러닝 앱을 <b>Strava로 갈아타는 게</b> 제일 속 편해요. 기록·경로·페이스 다 되고 우회 앱도 필요 없어요.</div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="font-size:16px">💕 마지막 · 이 앱과 잇기 <span class="gtag warn">🔌 준비 중</span></div>
+        <div class="us-note" style="margin:0 2px 6px">여기까지 하면 두 사람 기록이 Strava에 모여요. 이 앱이 자동으로 가져오게 하는 마지막 연결은 딱 한 번, 창석이 하면 돼요:</div>
+        <ol class="gsteps">
+          <li data-n="1">strava.com 로그인 → <b>strava.com/settings/api</b> 접속</li>
+          <li data-n="2">앱 만들기 — 이름은 아무거나(예: 계획하는사이), 웹사이트에 이 앱 주소 입력</li>
+          <li data-n="3">발급된 <b>Client ID</b>와 <b>Client Secret</b>을 클로드에게 전달</li>
+          <li data-n="4">그러면 이 화면에 <b>[Strava 연결하기]</b> 버튼이 생기고, 달력 자동 기록 + 지도 경로 그리기가 켜져요 ✨</li>
+        </ol>
       </div>
     </section>
 
@@ -562,17 +636,17 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=31"></script>
-<script src="js/data-run.js?v=31"></script>
-<script src="js/data-spots.js?v=31"></script>
-<script src="js/state.js?v=31"></script>
-<script src="js/saju.js?v=31"></script>
-<script src="js/map-borders.js?v=31"></script>
-<script src="js/map.js?v=31"></script>
-<script src="js/notify.js?v=31"></script>
-<script src="js/store.js?v=31"></script>
-<script src="js/views.js?v=31"></script>
-<script src="js/sheets.js?v=31"></script>
-<script src="js/app.js?v=31"></script>
+<script src="js/data.js?v=32"></script>
+<script src="js/data-run.js?v=32"></script>
+<script src="js/data-spots.js?v=32"></script>
+<script src="js/state.js?v=32"></script>
+<script src="js/saju.js?v=32"></script>
+<script src="js/map-borders.js?v=32"></script>
+<script src="js/map.js?v=32"></script>
+<script src="js/notify.js?v=32"></script>
+<script src="js/store.js?v=32"></script>
+<script src="js/views.js?v=32"></script>
+<script src="js/sheets.js?v=32"></script>
+<script src="js/app.js?v=32"></script>
 </body>
 </html>
