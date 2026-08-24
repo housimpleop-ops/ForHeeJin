@@ -645,7 +645,7 @@ $("#usWrap").addEventListener("keydown", e=>{
 
 /* ---------- 시트·로그인 ---------- */
 $("#scrim").addEventListener("click", closeSheetViaUI);
-bindSheet(); bindMSheet(); bindQSheet(); bindNSheet(); bindWSheet();
+bindSheet(); bindMSheet(); bindQSheet(); bindNSheet(); bindWSheet(); bindGpx();
 $("#loginForm").addEventListener("submit", e=>{ e.preventDefault(); loginSubmit(); });
 $("#setNoti").addEventListener("click", askNotify);
 
@@ -653,3 +653,98 @@ $("#setNoti").addEventListener("click", askNotify);
 try{ history.replaceState({tab:"cal"}, ""); }catch(_){ }
 initNotify();
 initStore();
+
+/* ---------- 러닝 기록 파일(GPX·TCX) 올리기 ---------- */
+let gpxRun = null;   /* 방금 읽어들인 기록 */
+
+function gpxShow(){
+  const R = $("#gpxResult"), E = $("#gpxErr");
+  if(!gpxRun){ R.hidden = true; return; }
+  E.hidden = true; R.hidden = false;
+  $("#gpxMap").innerHTML = gpxPreviewSVG(gpxRun.pts);
+  $("#gpxKm").textContent   = gpxRun.km.toFixed(2);
+  $("#gpxTime").textContent = gpxClock(gpxRun.secs);
+  $("#gpxPace").textContent = gpxPace(gpxRun.km, gpxRun.secs) || "-";
+  $("#gpxUp").textContent   = gpxRun.up || 0;
+  const near = nearestRunSpot(gpxRun.pts[0]);
+  $("#gpxWhen").innerHTML = "📅 " + gpxRun.date + (gpxRun.time ? " " + gpxRun.time : "") +
+    (near ? " · 📍 " + near : "") +
+    '<br><span style="font-size:11.5px">🟢 출발 → 🔴 도착</span>';
+}
+
+function gpxFail(msg){
+  gpxRun = null;
+  $("#gpxResult").hidden = true;
+  const E = $("#gpxErr"); E.hidden = false; E.innerHTML = msg;
+}
+
+/* 출발 지점에서 2km 안에 있는 러닝 스팟 이름 (있으면) */
+function nearestRunSpot(p){
+  if(!p || typeof RUN_SPOTS === "undefined") return "";
+  let best = null, bd = 2000;
+  RUN_SPOTS.forEach(s=>{
+    if(s.lat==null) return;
+    const d = gpxDist(p, [s.lat, s.lng]);
+    if(d < bd){ bd = d; best = s.n; }
+  });
+  return best || "";
+}
+
+function gpxRead(file){
+  if(!file) return;
+  if(file.size > 12*1024*1024){ gpxFail("파일이 너무 커요(12MB 넘음). 기록 하나만 내보내서 올려주세요."); return; }
+  const fr = new FileReader();
+  fr.onload = () => {
+    const run = parseGPX(String(fr.result||""));
+    if(!run){
+      gpxFail("이 파일에서는 위치 기록을 못 찾았어요.<br>" +
+              "· 확장자가 <b>.gpx</b> 또는 <b>.tcx</b> 인지 봐주세요 (.fit 은 못 읽어요)<br>" +
+              "· 실내 러닝머신 기록은 위치가 없어서 올릴 수 없어요");
+      return;
+    }
+    gpxRun = run; gpxShow();
+  };
+  fr.onerror = () => gpxFail("파일을 읽지 못했어요. 다시 골라주세요.");
+  fr.readAsText(file);
+}
+
+function bindGpx(){
+  const inp = $("#gpxFile"), drop = document.querySelector(".gpx-drop");
+  if(!inp) return;
+  inp.addEventListener("change", e=>{ gpxRead(e.target.files[0]); inp.value=""; });
+
+  /* 컴퓨터에서는 끌어다 놓기도 되게 */
+  if(drop){
+    ["dragenter","dragover"].forEach(t=>drop.addEventListener(t, e=>{
+      e.preventDefault(); drop.classList.add("over"); }));
+    ["dragleave","drop"].forEach(t=>drop.addEventListener(t, e=>{
+      e.preventDefault(); drop.classList.remove("over"); }));
+    drop.addEventListener("drop", e=>{
+      const f = e.dataTransfer && e.dataTransfer.files[0]; if(f) gpxRead(f); });
+  }
+
+  $("#gpxCancel").addEventListener("click", ()=>{ gpxRun=null; $("#gpxResult").hidden=true; $("#gpxErr").hidden=true; });
+
+  $("#gpxSave").addEventListener("click", async ()=>{
+    if(!gpxRun) return;
+    const r = gpxRun, near = nearestRunSpot(r.pts[0]);
+    const bits = [];
+    if(r.secs) bits.push(gpxDur(r.secs));
+    const pace = gpxPace(r.km, r.secs); if(pace) bits.push("페이스 " + pace);
+    if(r.up) bits.push("오르막 " + r.up + "m");
+    const sv = latLngToSvg(r.pts[0][0], r.pts[0][1]);
+    const ev = {
+      id: uid(), date: r.date, type: "run", sub: "러닝",
+      title: (r.time ? r.time + " " : "") + r.km.toFixed(2) + "km 러닝" + (near ? " · " + near : ""),
+      memo: bits.join(" · "), felCs:"", felHj:"", spot: near||null, kcal: Math.round(r.km * 65),
+      by: me, done: true,
+      lat: r.pts[0][0], lng: r.pts[0][1], x: sv.x, y: sv.y,
+      route: r.pts, dist: r.km, secs: r.secs, photo: null,
+    };
+    DATA.events.push(ev);
+    gpxRun = null; $("#gpxResult").hidden = true;
+    await save({ kind:"ev", item: ev });
+    banner("러닝 기록을 저장했어요! 달력과 지도에서 볼 수 있어요 🏃");
+    selDate = ev.date; goTab("cal");
+  });
+}

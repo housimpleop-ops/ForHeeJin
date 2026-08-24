@@ -268,7 +268,7 @@ function svgToLatLng(x, y){ return { lat: 38.8-(y-10)/69, lng: (x-10)/70+125.8 }
 function latLngToSvg(lat, lng){ return { x: Math.round(((lng-125.8)*70+10)*10)/10, y: Math.round(((38.8-lat)*69+10)*10)/10 }; }
 
 let kakaoReady = false, kakaoLoading = false;
-let kmap = null, kMarkers = [], kTempMarker = null, kPick = null;
+let kmap = null, kMarkers = [], kTempMarker = null, kPick = null, kRoutes = [];
 
 function loadKakao(cb){
   if(kakaoReady){ cb(); return; }
@@ -297,7 +297,17 @@ function initKakaoMap(){
 function renderKakaoMarkers(){
   if(!kmap) return;
   kMarkers.forEach(m=>m.setMap(null)); kMarkers = [];
+  kRoutes.forEach(l=>l.setMap(null)); kRoutes = [];
   DATA.events.filter(e=>(mapFilter==="all"||e.type===mapFilter)).forEach(e=>{
+    /* 러닝 기록 파일로 만든 일정이면 뛴 경로를 선으로 그린다 */
+    if(e.route && e.route.length > 1){
+      const line = new kakao.maps.Polyline({
+        map: kmap,
+        path: e.route.map(p=>new kakao.maps.LatLng(p[0], p[1])),
+        strokeWeight: 5, strokeColor: "#45c39f", strokeOpacity: 0.85, strokeStyle: "solid",
+      });
+      kRoutes.push(line);
+    }
     let lat = e.lat, lng = e.lng;
     if(lat==null && e.x!=null){ const c = svgToLatLng(e.x, e.y); lat=c.lat; lng=c.lng; }
     if(lat==null) return;

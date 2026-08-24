@@ -9,3 +9,5 @@ have*.txt
 coords-*.json
 geo-*.js
 geo-*.json
+test-run.gpx
+strava-app-icon.png
