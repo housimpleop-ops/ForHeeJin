@@ -99,7 +99,8 @@ function renderMap(){
       <button id="mapZoomIn" aria-label="확대">＋</button>
       <button id="mapZoomOut" aria-label="축소">－</button>
       <button id="mapZoomReset" aria-label="전체 보기" style="font-size:11px">전체</button>
-    </div><div class="map-cap" id="mapCap" hidden></div>`;
+    </div><div class="map-cap" id="mapCap" hidden></div>
+    <div id="mapSpotPop" hidden></div>`;
     bindMainMapNav();
   }
   const list = DATA.events.filter(e=>e.x!=null && (mapFilter==="all"||e.type===mapFilter));
@@ -165,9 +166,11 @@ function renderRunSpotBar(){
     .map(([v,l])=>`<button data-sr="${v}" class="${mapSpotRegion===v?"on":""}">${l} ${inCat.filter(s=>v==="all"||s.r===v).length}</button>`).join("");
 }
 function renderMapSpotInfo(){
-  const box = $("#mapSpotInfo");
+  const box = $("#mapSpotPop");
+  if(!box) return;
   const s = mapSpotSel ? mapSpotPool().find(x=>x.n===mapSpotSel) : null;
-  if(!s || mapMode!=="art"){ box.innerHTML = ""; return; }
+  if(!s || mapMode!=="art"){ box.innerHTML = ""; box.hidden = true; return; }
+  box.hidden = false;
   const pk = RUN_PARK[s.pk];
   let chips;
   if(s.cat==="run"){
@@ -180,7 +183,7 @@ function renderMapSpotInfo(){
   }
   const rows = (SPOT_ROWS[s.cat]||[]).filter(([k])=>s[k]).slice(0,2)
     .map(([k,ic])=>`<div class="ev-sub">${ic} ${esc(String(s[k]))}</div>`).join("");
-  box.innerHTML = `<div class="card" style="margin-top:10px">
+  box.innerHTML = `<div class="card sp-card">
     <div class="trip-h"><span class="nm">${SPOT_CATS[s.cat].em} ${esc(s.n)}</span>
       ${s.cat==="run"&&s.km!=null?`<span class="dday">${s.km}km</span>`:(s.sub?`<span class="dday">${esc(s.sub)}</span>`:"")}
       <button class="del" data-act="spot-close" aria-label="닫기">✕</button></div>

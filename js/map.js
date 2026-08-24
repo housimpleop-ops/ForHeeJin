@@ -32,7 +32,7 @@ function mapSVG(id){
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
   <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
-  <g class="road-g">${(typeof ROADS==="undefined"?[]:ROADS).map(r=>
+  <g class="road-g">${(typeof ROADS==="undefined"?[]:ROADS).filter(r=>r.k==="ex").map(r=>
       `<path class="rd ${r.k}" d="${r.d}"/>`).join("")}</g>
   <g class="dong-g"></g>
   <g class="lbl0">${sidoLbl}</g>

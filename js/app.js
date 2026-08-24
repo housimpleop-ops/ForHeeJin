@@ -214,11 +214,11 @@ $("#mapSearchOut").addEventListener("click", e=>{
     mapSpotCat = s.cat; mapSpotRegion = s.r; mapSpotSel = s.n;
     renderMap();
     zoomToBBox((p=>[p.x-4,p.y-4,p.x+4,p.y+4])(latLngToSvg(s.lat,s.lng)), 20);
-    $("#mapSpotInfo").scrollIntoView({behavior:"smooth", block:"center"});
   }
 });
 /* 지도 위 스팟 카드 */
-$("#mapSpotInfo").addEventListener("click", e=>{
+document.addEventListener("click", e=>{
+  if(!e.target.closest("#mapSpotPop")) return;
   const act = e.target.closest("[data-act]"); if(!act) return;
   const s = mapSpotPool().find(x=>x.n===mapSpotSel); if(!s) return;
   if(act.dataset.act==="spot-close"){ mapSpotSel=null; renderMap(); return; }
@@ -235,6 +235,7 @@ $("#mapSpotInfo").addEventListener("click", e=>{
 });
 $("#mapWrap").addEventListener("click", e=>{
   if(mapDragged) return; /* 드래그 후의 클릭은 무시 */
+  if(e.target.closest("#mapSpotPop")) return; /* 팝업 안을 누른 건 팝업이 처리 */
   /* 이름 칩 ✕ → 선택 해제 */
   if(e.target.closest("#mapCap")){ clearRegionSel(); return; }
   /* 러닝 스팟 점 → 상세 카드 */
@@ -242,7 +243,6 @@ $("#mapWrap").addEventListener("click", e=>{
   if(spot){
     mapSpotSel = (mapSpotSel===spot.dataset.spot) ? null : spot.dataset.spot;
     renderMap();
-    if(mapSpotSel) $("#mapSpotInfo").scrollIntoView({behavior:"smooth", block:"center"});
     return;
   }
   /* 지역 탭: 1번 누르면 강조, 2번 누르면 확대 (확대 상태에선 시군구 우선) */

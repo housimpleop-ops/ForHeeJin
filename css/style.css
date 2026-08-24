@@ -137,34 +137,30 @@ nav.tabbar button.on .lb{font-weight:700}
 /* [8] 지도 */
 .kmap{width:100%; height:auto; display:block; border-radius:12px; background:var(--sea); touch-action:manipulation}
 /* 시도를 파스텔 색으로 칠해 한눈에 구분 — 경계선은 바탕색으로 얇게 */
-/* 경계선 위계: 한 번에 한 단계만 진하게 — 선이 겹쳐 보이지 않도록 */
-.kmap .land{stroke:#ffffff; stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round;
-  vector-effect:non-scaling-stroke; cursor:pointer; paint-order:stroke fill}
-.kmap.z3 .land{stroke-width:2.4}                 /* 가까이 갈수록 시도 경계는 굵고 뚜렷하게 */
-.kmap.z4 .land{stroke-width:3}
+/* 경계선은 어느 단계에서든 '한 겹'만 그린다.
+   시도 도형과 시군구 도형은 따로 단순화돼 살짝 어긋나므로,
+   둘을 같이 그리면 선이 두 줄로 보인다. 그래서 서로 배타적으로 켠다. */
+.kmap .land{stroke:#ffffff; stroke-width:1.6; stroke-linejoin:round; stroke-linecap:round;
+  vector-effect:non-scaling-stroke; cursor:pointer}
+.kmap.z3 .land{stroke:none}      /* 시군구 선이 켜지는 순간 시도 선은 끈다 */
 .kmap .land.t0{fill:#A8D5BA} .kmap .land.t1{fill:#F6C7B6} .kmap .land.t2{fill:#BFD7ED} .kmap .land.t3{fill:#F3E0A9}
 .kmap .land.t4{fill:#D8C7E8} .kmap .land.t5{fill:#B7E0DC} .kmap .land.t6{fill:#F5CBD8} .kmap .land.t7{fill:#D9E2A9}
-.kmap .sggp{fill:transparent; stroke:#ffffff; stroke-width:1; stroke-linejoin:round;
+/* 시군구 — z2 에선 안 보이지만 눌러서 고를 수는 있게, z3 부터 유일한 경계선이 된다 */
+.kmap .sggp{fill:transparent; stroke:#ffffff; stroke-width:1.6; stroke-linejoin:round;
+  stroke-linecap:round; vector-effect:non-scaling-stroke; opacity:0; pointer-events:none}
+.kmap.z2 .sggp{opacity:0; pointer-events:auto; cursor:pointer}
+.kmap.z3 .sggp{opacity:1}
+/* 동 경계는 아주 가까이 갔을 때만, 그것도 흐릿하게 */
+.kmap .dongp{fill:transparent; stroke:#ffffff; stroke-width:.8; stroke-dasharray:2 3;
   vector-effect:non-scaling-stroke; opacity:0; pointer-events:none}
-.kmap.z2 .sggp{opacity:.55; pointer-events:auto; cursor:pointer}
-.kmap.z3 .sggp{opacity:.9; stroke-width:1.4}
-.kmap.z4 .sggp{opacity:.75; stroke-width:1.8}
-/* 동 경계는 아주 흐린 점선 — 있는 듯 없는 듯 */
-.kmap .dongp{fill:transparent; stroke:#ffffff; stroke-width:.7; stroke-dasharray:2 2.5;
-  vector-effect:non-scaling-stroke; opacity:0; pointer-events:none}
-.kmap.z4 .dongp{opacity:.4}
-.kmap.z5 .dongp{opacity:.55}
+.kmap.z5 .dongp{opacity:.3}
 
 /* ---------- 도로 (대략적인 노선) ---------- */
 .kmap .road-g{pointer-events:none}
 .kmap .rd{fill:none; vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round; opacity:0}
-.kmap .rd.ex{stroke:#5b7cc9; stroke-width:1.6}                      /* 고속도로 */
-.kmap .rd.nat{stroke:#e8974e; stroke-width:1.1; stroke-dasharray:5 3}/* 국도 */
-.kmap .rd.ex{opacity:.62}                                            /* 멀리서도 보임 */
-.kmap.z3 .rd.ex{opacity:.5; stroke-width:2.2}
-.kmap.z3 .rd.nat{opacity:.78}                                        /* 시군구 단위에서 국도 등장 */
+.kmap .rd.ex{stroke:#5b7cc9; stroke-width:1.6; opacity:.55}          /* 고속도로만 표시 */
+.kmap.z3 .rd.ex{stroke-width:2.2; opacity:.45}
 .kmap.z4 .rd.ex{stroke-width:2.8}
-.kmap.z4 .rd.nat{stroke-width:1.6; opacity:.85}
 /* 지명: 확대할수록 시도 → 시군구 → 동 순서로 바뀜 (한 번에 한 단계만 보이게) */
 .kmap text{font-family:"IBM Plex Sans KR", sans-serif; fill:#5A6472; pointer-events:none; font-weight:600;
   paint-order:stroke; stroke:rgba(255,255,255,.75); stroke-width:.5px; stroke-linejoin:round}
@@ -514,3 +510,12 @@ textarea.feel-in + textarea.feel-in{margin-top:6px}
 .legend i.rex{display:inline-block; width:14px; height:0; border-top:3px solid #5b7cc9; border-radius:2px; vertical-align:middle; margin-right:4px}
 .legend i.rnat{display:inline-block; width:14px; height:0; border-top:3px dashed #e8974e; vertical-align:middle; margin-right:4px}
 .legend small{opacity:.7; margin-left:2px}
+
+/* ---------- [30] 지도 위 스팟 팝업 (이모지를 누르면 뜬다) ---------- */
+#mapSpotPop{position:absolute; left:8px; right:56px; bottom:8px; z-index:3;
+  max-height:62%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  animation:popUp .16s ease-out}
+#mapSpotPop[hidden]{display:none}
+#mapSpotPop .sp-card{margin:0; box-shadow:0 6px 24px rgba(0,0,0,.22);
+  border:1.5px solid var(--line)}
+@keyframes popUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
