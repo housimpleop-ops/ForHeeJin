@@ -1,17 +1,17 @@
 입력 파일 2개
   spot-000-current.json        470
-  spot-900-food-new.json        55
+  spot-910-wave1.json          102
 
-중복 제거 후 총 470곳 (좌표 있는 곳 470)
+중복 제거 후 총 572곳 (좌표 있는 곳 470)
 
 분류별:
   cafe      64
   food      96
-  hike      85
+  hike     123
   stay      36
-  beach     44
+  beach     76
   valley    24
-  culture   45
+  culture   77
   fest      27
   camp      25
   drive     24
@@ -19,10 +19,10 @@
 지역별:
   경기북부    83
   서울      70
-  인천      27
-  경기남부    39
-  강원      77
-  충청      36
-  전라      43
-  경상      54
-  제주      41
+  인천      38
+  경기남부    49
+  강원      90
+  충청      56
+  전라      61
+  경상      79
+  제주      46
