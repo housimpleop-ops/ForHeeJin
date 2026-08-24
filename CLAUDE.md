@@ -86,6 +86,25 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
 - 카카오맵 실제 지도(키 필요), 관광공사 축제 API, 실시간 시세, 사진→kcal AI, 캘린더 양방향 동기화
 - 희진 계정 추가(Supabase Authentication → Add user)
 
+## 러닝 기록 파일 올리기 (v36)
+
+`js/gpx.js` — 뛴 기록 파일을 브라우저 안에서만 처리한다. 서버·API 키·구독 전부 불필요.
+(스트라바 API 가 유료라 이 방식으로 정했음)
+
+- `parseGPX(text)` → `{km, secs, up, date, time, name, n, pts}` / 못 읽으면 null
+  - GPX 는 `<trkpt lat lon><time><ele>`, TCX 는 `<Trackpoint><Position>` 을 읽는다. **.fit 은 못 읽음**
+  - 거리는 하버사인 합. **1초 안에 100m 넘게 튀면 그 구간은 건너뛴다**(GPS 튐)
+  - 오르막은 양수 고도차만, 한 번에 30m 넘는 변화는 오류로 보고 무시
+  - `pts` 는 120점으로 솎아내고 소수 5자리 반올림 → **기록 한 건이 약 2.8KB** (jsonb 에 넣어도 부담 없음)
+- `gpxPreviewSVG(pts)` — 저장 전 미리보기. 위도·경도 축척이 달라 `cos(위도)` 로 가로를 보정해야 안 찌그러진다
+- 저장하면 `DATA.events` 에 `type:"run"` 일정이 생기고 `route`(좌표 배열)·`dist`·`secs` 가 함께 들어간다
+- `renderKakaoMarkers()` 가 `e.route` 있는 일정을 `kakao.maps.Polyline` 으로 그린다
+- 출발점에서 2km 안의 `RUN_SPOTS` 를 찾아 제목·spot 에 자동으로 붙인다
+- ⚠️ 실내 러닝머신 기록은 좌표가 없어 못 올린다(안내 화면에 적어 둠)
+- 검증: 시험 GPX 로 파서 10.62km vs 카카오 `Polyline.getLength()` 10,596m — 0.2% 차이
+- ⚠️ 디버깅 주의: `kmap`·`kRoutes` 같은 top-level `let` 은 `window` 에 안 붙는다.
+  콘솔에서 `window.kmap` 은 undefined — 이름 그대로 `kmap` 으로 봐야 한다
+
 ## 지도 데이터
 - `js/map-borders.js` — 시도 17개(SIDO_SHAPES) + 시군구 249개(SGG_SHAPES), 각 {n 이름, c 코드, d 경로, b 범위}
 - `data/dong-{시도코드}.json` — 읍면동 3,504개를 시도별로 분리(총 1.8MB). 많이 확대(viewBox 폭<28)했을 때
