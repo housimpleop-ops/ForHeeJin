@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=34">
+<link rel="stylesheet" href="css/style.css?v=35">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=34"></script>
+<script src="js/config.js?v=35"></script>
 </head>
 <body>
 
@@ -252,12 +252,14 @@
         <div class="us-note" style="margin:0 2px 6px">여기까지 하면 두 사람 기록이 Strava에 모여요. 이 앱이 자동으로 가져오게 하는 마지막 연결은 딱 한 번, 창석이 하면 돼요:</div>
         <ol class="gsteps">
           <li data-n="1">strava.com 로그인 → <b>strava.com/settings/api</b> 접속</li>
-          <li data-n="2">앱 만들기 — 이름은 아무거나(예: 계획하는사이), 웹사이트에 이 앱 주소 입력</li>
-          <li data-n="3">발급된 <b>Client ID</b>와 <b>Client Secret</b>을 클로드에게 전달</li>
+          <li data-n="2">앱 만들기 — 이름은 아무거나(예: 계획하는사이), 웹사이트에 이 앱 주소 입력<br>
+            <b>Authorization Callback Domain</b> 칸에는 <b>housimpleop-ops.github.io</b> 만 (https:// 와 뒤쪽 경로는 빼기)</li>
+          <li data-n="3"><b>Client ID</b>만 클로드에게 전달. <b>Client Secret은 전달하지 말고</b> Supabase에 직접 넣기<br>
+            <span style="color:var(--muted-solid);font-size:12px">저장소가 공개라 비밀키가 코드에 들어가면 안 돼요</span></li>
           <li data-n="4">그러면 이 화면에 <b>[Strava 연결하기]</b> 버튼이 생기고, 달력 자동 기록 + 지도 경로 그리기가 켜져요 ✨</li>
         </ol>
         <div class="gphones">
-          <div class="gphone" style="max-width:200px"><div class="cap">strava.com/settings/api</div><div class="gp-row">내 API 애플리케이션</div><div class="gp-row on">Client ID: 123456</div><div class="gp-row on">Client Secret: ●●●●●●</div></div>
+          <div class="gphone" style="max-width:200px"><div class="cap">strava.com/settings/api</div><div class="gp-row">내 API 애플리케이션</div><div class="gp-row on">Client ID: 123456</div><div class="gp-row">Client Secret: ●●●●●● (직접 보관)</div><div class="gp-row on">Callback Domain</div></div>
           <div class="gp-arrow">›</div>
           <div class="gphone"><div class="cap">이 앱 (연결 후)</div><div class="gp-row btn">🟠 Strava 연결하기</div><div class="gp-row">달력 자동 기록 ✔</div><div class="gp-row">지도에 경로 ✔</div></div>
         </div>
@@ -668,17 +670,17 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=34"></script>
-<script src="js/data-run.js?v=34"></script>
-<script src="js/data-spots.js?v=34"></script>
-<script src="js/state.js?v=34"></script>
-<script src="js/saju.js?v=34"></script>
-<script src="js/map-borders.js?v=34"></script>
-<script src="js/map.js?v=34"></script>
-<script src="js/notify.js?v=34"></script>
-<script src="js/store.js?v=34"></script>
-<script src="js/views.js?v=34"></script>
-<script src="js/sheets.js?v=34"></script>
-<script src="js/app.js?v=34"></script>
+<script src="js/data.js?v=35"></script>
+<script src="js/data-run.js?v=35"></script>
+<script src="js/data-spots.js?v=35"></script>
+<script src="js/state.js?v=35"></script>
+<script src="js/saju.js?v=35"></script>
+<script src="js/map-borders.js?v=35"></script>
+<script src="js/map.js?v=35"></script>
+<script src="js/notify.js?v=35"></script>
+<script src="js/store.js?v=35"></script>
+<script src="js/views.js?v=35"></script>
+<script src="js/sheets.js?v=35"></script>
+<script src="js/app.js?v=35"></script>
 </body>
 </html>
