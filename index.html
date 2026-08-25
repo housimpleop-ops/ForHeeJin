@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=43">
+<link rel="stylesheet" href="css/style.css?v=44">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=43"></script>
+<script src="js/config.js?v=44"></script>
 </head>
 <body>
 
@@ -286,6 +286,15 @@
     <!-- ===== 러닝 스팟 ===== -->
     <section id="view-run" hidden>
       <div class="card">
+        <div class="sec-title">뛴 기록 올리기 📄</div>
+        <div class="us-note" style="margin:0 2px 8px">이미 뛰고 왔다면 기록 파일을 올려 일정으로 남겨요. 지도에 경로가 그려져요</div>
+        <input type="file" id="runGpx" accept=".gpx,.tcx,.xml" hidden>
+        <div class="cal-sync">
+          <button id="runGpxBtn">📄 기록 파일 올리기</button>
+          <button id="runGpxHelp">❓ 파일 내보내는 법</button>
+        </div>
+      </div>
+      <div class="card">
         <div class="sec-title">러닝 스팟 찾기 🏃</div>
         <div class="us-note" style="margin:0 2px 10px">조건을 골라 오늘 뛸 곳을 찾아요. 벌레·그늘·경사는 블로그 후기와 지형으로 정리한 값이라 참고용이에요 🌿</div>
         <div class="f-lb">지역</div>
@@ -537,6 +546,13 @@
   <div class="f-lb" style="margin-top:12px">그날의 느낌 (선택) 💭</div>
   <textarea class="f-in feel-in" id="shFelCs" rows="2" placeholder="창석이의 느낌"></textarea>
   <textarea class="f-in feel-in" id="shFelHj" rows="2" placeholder="희진이의 느낌"></textarea>
+  <div id="shGpxRow" hidden>
+    <div class="f-lb">뛴 기록 붙이기 (선택) 🏃</div>
+    <input type="file" id="shGpx" accept=".gpx,.tcx,.xml" hidden>
+    <button class="f-in" id="shGpxBtn" style="text-align:left; color:var(--muted-solid)" type="button">📄 기록 파일(GPX·TCX) 고르기</button>
+    <div id="shGpxOut" hidden></div>
+    <div class="us-note" style="margin:4px 2px 0; font-size:11.5px">가민·나이키런·애플건강·삼성헬스에서 내보낸 파일이면 돼요. 거리·시간·경로가 자동으로 채워져요</div>
+  </div>
   <div id="shKcalRow" hidden>
     <div class="f-lb">소모 칼로리 (선택) 🔥</div>
     <input type="number" class="f-in" id="shKcal" min="0" placeholder="예) 300">
@@ -667,20 +683,20 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=43"></script>
-<script src="js/data-run.js?v=43"></script>
-<script src="js/data-spots.js?v=43"></script>
-<script src="js/state.js?v=43"></script>
-<script src="js/saju.js?v=43"></script>
-<script src="js/map-borders.js?v=43"></script>
-  <script src="js/map-lines.js?v=43"></script>
-  <script src="js/map-roads.js?v=43"></script>
-<script src="js/gpx.js?v=43"></script>
-  <script src="js/map.js?v=43"></script>
-<script src="js/notify.js?v=43"></script>
-<script src="js/store.js?v=43"></script>
-<script src="js/views.js?v=43"></script>
-<script src="js/sheets.js?v=43"></script>
-<script src="js/app.js?v=43"></script>
+<script src="js/data.js?v=44"></script>
+<script src="js/data-run.js?v=44"></script>
+<script src="js/data-spots.js?v=44"></script>
+<script src="js/state.js?v=44"></script>
+<script src="js/saju.js?v=44"></script>
+<script src="js/map-borders.js?v=44"></script>
+  <script src="js/map-lines.js?v=44"></script>
+  <script src="js/map-roads.js?v=44"></script>
+<script src="js/gpx.js?v=44"></script>
+  <script src="js/map.js?v=44"></script>
+<script src="js/notify.js?v=44"></script>
+<script src="js/store.js?v=44"></script>
+<script src="js/views.js?v=44"></script>
+<script src="js/sheets.js?v=44"></script>
+<script src="js/app.js?v=44"></script>
 </body>
 </html>

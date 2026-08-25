@@ -677,7 +677,7 @@ $("#usWrap").addEventListener("keydown", e=>{
 
 /* ---------- 시트·로그인 ---------- */
 $("#scrim").addEventListener("click", closeSheetViaUI);
-bindSheet(); bindMSheet(); bindQSheet(); bindNSheet(); bindWSheet(); bindGpx();
+bindSheet(); bindMSheet(); bindQSheet(); bindNSheet(); bindWSheet(); bindGpx(); bindRunGpx();
 $("#loginForm").addEventListener("submit", e=>{ e.preventDefault(); loginSubmit(); });
 $("#setNoti").addEventListener("click", askNotify);
 
@@ -738,6 +738,39 @@ function gpxRead(file){
   };
   fr.onerror = () => gpxFail("파일을 읽지 못했어요. 다시 골라주세요.");
   fr.readAsText(file);
+}
+
+/* 계획 → 러닝 화면에서 바로 기록 올리기 (일정 시트로 이어짐) */
+function bindRunGpx(){
+  const btn = $("#runGpxBtn"), inp = $("#runGpx");
+  if(!btn) return;
+  btn.addEventListener("click", ()=>inp.click());
+  $("#runGpxHelp").addEventListener("click", ()=>goTab("runsync"));
+  inp.addEventListener("change", e=>{
+    const f = e.target.files[0]; e.target.value = "";
+    if(!f) return;
+    const fr = new FileReader();
+    fr.onload = ()=>{
+      const run = parseGPX(String(fr.result||""));
+      if(!run){ banner("이 파일에서는 위치 기록을 못 찾았어요. .gpx 나 .tcx 인지 확인해 주세요"); return; }
+      const near = nearestRunSpot(run.pts[0]);
+      const sv = latLngToSvg(run.pts[0][0], run.pts[0][1]);
+      const bits = [];
+      if(run.secs) bits.push(gpxDur(run.secs));
+      const pace = gpxPace(run.km, run.secs); if(pace) bits.push("페이스 "+pace);
+      if(run.up) bits.push("오르막 "+run.up+"m");
+      /* 바로 저장하지 않고 일정 시트를 열어 확인·수정하게 한다 */
+      openSheet("add", {
+        type:"run", sub:"러닝", date:run.date,
+        title:(run.time?run.time+" ":"") + run.km.toFixed(2)+"km 러닝" + (near?" · "+near:""),
+        memo:bits.join(" · "), kcal:Math.round(run.km*65), done:true,
+        spot:near||null, lat:run.pts[0][0], lng:run.pts[0][1], x:sv.x, y:sv.y,
+        route:run.pts, dist:run.km, secs:run.secs,
+      });
+    };
+    fr.onerror = ()=>banner("파일을 읽지 못했어요. 다시 골라주세요");
+    fr.readAsText(f);
+  });
 }
 
 function bindGpx(){

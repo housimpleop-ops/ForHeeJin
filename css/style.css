@@ -566,3 +566,11 @@ textarea.feel-in + textarea.feel-in{margin-top:6px}
 .sp-btns{display:flex; gap:6px; margin-top:4px}
 .sp-btns button{flex:1; padding:8px; border-radius:9px; border:1px solid var(--run);
   background:var(--card); color:var(--run); font-size:12px; font-weight:700}
+
+/* 일정 시트에 붙인 뛴 기록 */
+.sh-gpx{margin-top:8px; background:var(--soft); border-radius:12px; padding:8px 10px 10px}
+.sh-gpx-map{background:var(--card); border-radius:9px; padding:4px}
+.sh-gpx-map svg{display:block; width:100%; height:auto}
+.sh-gpx-tx{font-size:13px; font-weight:700; color:var(--ink); text-align:center; margin-top:7px}
+.sh-gpx-del{margin-top:7px; width:100%; padding:7px; border-radius:9px; border:1px solid var(--line);
+  background:var(--card); color:var(--muted-solid); font-size:12px; font-weight:700}

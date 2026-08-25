@@ -133,6 +133,8 @@ function syncSheetUI(){
   document.querySelectorAll("#shType button").forEach(b=>b.classList.toggle("on", b.dataset.v===sheet.ev.type));
   $("#shSub").innerHTML = (SUBS[sheet.ev.type]||[]).map(s=>`<button type="button" data-v="${s[0]}" class="${s[0]===sheet.ev.sub?"on":""}">${s[1]} ${s[0]}</button>`).join("");
   $("#shKcalRow").hidden = sheet.ev.type!=="run";
+  $("#shGpxRow").hidden = sheet.ev.type!=="run";
+  syncSheetGpx();
   document.querySelectorAll("#shBy button").forEach(b=>b.classList.toggle("on", b.dataset.v===sheet.ev.by));
   const has = sheet.ev.x!=null;
   /* 러닝 스팟 고르는 중이면 미니 지도에 후보 핀도 함께 */
@@ -145,9 +147,63 @@ function syncSheetUI(){
   $("#shLocTxt").textContent = has ? "위치 표시됨 — 다시 누르면 옮겨져요" : "지도를 눌러 위치를 표시하세요";
   $("#shLocClear").hidden = !has;
 }
+/* 일정에 붙은 뛴 기록 요약 (경로 그림 + 거리·시간·페이스) */
+function syncSheetGpx(){
+  const box = $("#shGpxOut"); if(!box || !sheet) return;
+  const ev = sheet.ev;
+  if(!ev.route || !ev.route.length){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const bits = [];
+  if(ev.secs) bits.push(gpxDur(ev.secs));
+  const pace = gpxPace(ev.dist, ev.secs); if(pace) bits.push(pace);
+  box.innerHTML = `<div class="sh-gpx">
+    <div class="sh-gpx-map">${gpxPreviewSVG(ev.route)}</div>
+    <div class="sh-gpx-tx"><b>${(ev.dist||0).toFixed(2)}km</b>${bits.length?" · "+bits.join(" · "):""}</div>
+    <button type="button" class="sh-gpx-del" data-act="gpx-del">기록 떼기 ✕</button>
+  </div>`;
+}
+
 function closeSheet(){ sheet=null; $("#scrim").classList.remove("open"); $("#sheet").classList.remove("open"); }
 
 function bindSheet(){
+  /* 뛴 기록 파일 붙이기 */
+  $("#shGpxBtn").addEventListener("click", ()=>$("#shGpx").click());
+  $("#shGpx").addEventListener("change", e=>{
+    const f = e.target.files[0]; e.target.value = "";
+    if(!f || !sheet) return;
+    const fr = new FileReader();
+    fr.onload = ()=>{
+      const run = parseGPX(String(fr.result||""));
+      if(!run){ banner("이 파일에서는 위치 기록을 못 찾았어요. .gpx 나 .tcx 인지 확인해 주세요"); return; }
+      const ev = sheet.ev, near = nearestRunSpot(run.pts[0]);
+      ev.route = run.pts; ev.dist = run.km; ev.secs = run.secs;
+      ev.date = run.date;
+      if(!ev.title) ev.title = (run.time?run.time+" ":"") + run.km.toFixed(2) + "km 러닝" + (near?" · "+near:"");
+      const bits = [];
+      if(run.secs) bits.push(gpxDur(run.secs));
+      const pace = gpxPace(run.km, run.secs); if(pace) bits.push("페이스 "+pace);
+      if(run.up) bits.push("오르막 "+run.up+"m");
+      if(!ev.memo) ev.memo = bits.join(" · ");
+      if(!ev.kcal) ev.kcal = Math.round(run.km*65);
+      if(ev.lat==null){ ev.lat = run.pts[0][0]; ev.lng = run.pts[0][1];
+        const sv = latLngToSvg(ev.lat, ev.lng); ev.x = sv.x; ev.y = sv.y; }
+      if(!ev.spot && near) ev.spot = near;
+      $("#shDate").value = ev.date;
+      $("#shTitleIn").value = ev.title;
+      $("#shMemo").value = ev.memo;
+      $("#shKcal").value = ev.kcal || "";
+      syncSheetUI();
+      banner("기록을 붙였어요 🏃 " + run.km.toFixed(2) + "km");
+    };
+    fr.onerror = ()=>banner("파일을 읽지 못했어요. 다시 골라주세요");
+    fr.readAsText(f);
+  });
+  $("#shGpxOut").addEventListener("click", e=>{
+    if(!e.target.closest('[data-act="gpx-del"]') || !sheet) return;
+    delete sheet.ev.route; delete sheet.ev.dist; delete sheet.ev.secs;
+    syncSheetGpx();
+  });
+
   $("#shType").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b&&sheet){
     sheet.ev.type=b.dataset.v;
     if(!(SUBS[sheet.ev.type]||[]).some(s=>s[0]===sheet.ev.sub)) sheet.ev.sub = SUBS[sheet.ev.type][0][0];
