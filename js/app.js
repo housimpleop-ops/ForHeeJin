@@ -218,8 +218,48 @@ $("#mapSearchOut").addEventListener("click", e=>{
   }
 });
 /* 지도 위 스팟 카드 */
+/* 후보 묶음 이름은 다시 그려도 유지 */
+$("#spotStrip").addEventListener("input", e=>{
+  if(e.target.id==="bagName") bagName = e.target.value;
+});
+
 /* 지도 아래 목록에서 고르기 */
-$("#spotStrip").addEventListener("click", e=>{
+$("#spotStrip").addEventListener("click", async e=>{
+  /* 후보로 담기 / 빼기 */
+  const bag = e.target.closest("[data-bag]");
+  if(bag){
+    const n = bag.dataset.bag, i = spotBag.indexOf(n);
+    if(i>=0) spotBag.splice(i,1); else spotBag.push(n);
+    const L = $("#spotStrip").querySelector(".sp-list");
+    const item = bag.closest(".sp-item");
+    stripAnchor = { n:(item.querySelector("[data-strip]").dataset.strip), top:item.offsetTop, scroll:L.scrollTop };
+    renderMap();
+    return;
+  }
+  /* 후보 묶음 다루기 */
+  const ba = e.target.closest("[data-bagact]");
+  if(ba){
+    if(ba.dataset.bagact==="clear"){ spotBag = []; bagName = ""; renderMap(); return; }
+    if(ba.dataset.bagact==="send"){
+      if(mode==="readonly") return;
+      const nm = ($("#bagName").value||"").trim();
+      if(!nm){ $("#bagName").focus(); banner("이름을 적어주세요 — 예) 8/10 저녁러닝 후보"); return; }
+      const pool = mapSpotPool();
+      const cands = spotBag.map(n=>pool.find(x=>x.n===n)).filter(Boolean)
+        .map(s=>({ cat:s.cat, n:s.n, r:s.r, sub:s.sub||null, lat:s.lat, lng:s.lng }));
+      if(!cands.length) return;
+      const item = { id:uid(), date:ymd(new Date()), by:me, ntype:"cand", text:nm, cands, luv:false };
+      DATA.notes.push(item);
+      spotBag = []; bagName = "";
+      noteFilter = "cand";              /* 저장이 화면을 다시 그리기 전에 필터부터 */
+      await save({ kind:"nt", item });
+      goTab("note"); renderNote();
+      banner("후보 " + cands.length + "곳을 쪽지로 보냈어요 📋");
+      return;
+    }
+    return;
+  }
+  /* 이름 입력은 다시 그릴 때 지워지지 않게 기억 */
   const act = e.target.closest("[data-act]");
   if(act){
     const s = mapSpotPool().find(x=>x.n===mapSpotSel); if(!s) return;
@@ -340,6 +380,16 @@ async function sendMediaNote(file, mtype){
 }
 $("#noteAudIn").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; sendMediaNote(f,"audio"); });
 $("#noteVidIn").addEventListener("change", e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; sendMediaNote(f,"video"); });
+$("#noteFeed").addEventListener("click", e=>{
+  const c = e.target.closest("[data-cand]"); if(!c) return;
+  const s = mapSpotPool().find(x=>x.n===c.dataset.cand);
+  if(!s) { banner("이 장소를 찾지 못했어요"); return; }
+  mapSpotCat = s.cat; mapSpotRegion = s.r; mapSpotSel = s.n; stripFollow = true;
+  mapMode = "art"; goTab("map"); renderMap();
+  const p = latLngToSvg(s.lat, s.lng);
+  zoomToBBox([p.x-5,p.y-5,p.x+5,p.y+5], 12);
+});
+
 $("#noteFilterRow").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   noteFilter = b.dataset.f; renderNote();

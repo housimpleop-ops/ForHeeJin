@@ -23,7 +23,8 @@ let mapSpotCat = "off";       // 그림지도에 겹쳐 볼 스팟 분야 (off�
 let mapSpotRegion = "경기북부"; // 그 분야에서 볼 지역
 let mapSpotSel = null;        // 지도에서 고른 스팟 이름
 let mapSearchQ = "";          // 지도 검색어
-let noteFilter = "chat"; // 쪽지 필터: chat(상황 쪽지 포함) | log
+let noteFilter = "chat"; // 쪽지 필터: chat(상황 쪽지 포함) | cand(후보목록) | log
+let spotBag = [];        // 지도 아래 목록에서 체크한 가볼 곳 이름들 (저장 안 됨)
 /* 러닝 스팟 필터 */
 let runF = { region:"all", dist:"all", surf:"all", want:{} };
 /* 스팟 찾기 필터 (카페·맛집·등산·숙박·해변·계곡·전시) */

@@ -137,6 +137,9 @@ function viewSidos(){
     .map(s=>s.c).slice(0, 4);
 }
 function updateDongLayer(){
+  /* 동 경계는 쓰지 않기로 했다 — 시군구와 다른 도형이라 선이 겹치고 어긋난다 */
+  return;
+  /* eslint-disable no-unreachable */
   const svg = $("#mainMap"); if(!svg) return;
   const g = svg.querySelector(".dong-g"), lg = svg.querySelector(".lbl4");
   if(!g) return;

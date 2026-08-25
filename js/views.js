@@ -170,6 +170,7 @@ function renderRunSpotBar(){
    목록에서 직접 누른 경우엔 그 자리에 그대로 머물고,
    지도에서 이모지를 누른 경우에만 해당 항목으로 따라 내려간다. */
 let stripAnchor = null;   /* {n, top, scroll} — 목록에서 누른 항목을 제자리에 붙잡아 둘 정보 */
+let bagName = "";         /* 후보 묶음에 붙일 이름 */
 let stripFollow = false;  /* 지도에서 고른 것이라 목록이 따라가야 하는가 */
 
 function renderSpotStrip(spots){
@@ -194,18 +195,29 @@ function renderSpotStrip(spots){
         <button data-act="spot-real">📍 진짜 지도로</button>
       </div></div>`;
     const brief = infos[0] ? `<span class="sp-info">${infos[0][1]} ${esc(String(s[infos[0][0]]).slice(0,60))}</span>` : "";
+    const bagged = spotBag.indexOf(s.n) >= 0;
     return `<div class="sp-item${on?" on":""}">
+      <div class="sp-line-row">
+      <button class="sp-chk${bagged?" on":""}" data-bag="${esc(s.n)}" aria-label="후보로 담기">${bagged?"✓":""}</button>
       <button class="sp-row" data-strip="${esc(s.n)}">
         <span class="sp-em">${cat.em||"📍"}</span>
         <span class="sp-tx">
           <span class="sp-nm">${esc(s.n)}</span>
           <span class="sp-sub">${esc(s.r)}${s.sub?" · "+esc(s.sub):""}${s.cat==="run"&&s.km!=null?" · "+s.km+"km":""}${pk?" · "+pk.em+" "+pk.l:""}</span>
           ${on?"":brief}
-        </span></button>${detail}</div>`;
+        </span></button></div>${detail}</div>`;
   }).join("");
+  const bag = spotBag.length ? `<div class="sp-bag">
+      <div class="sp-bag-top">📋 후보 ${spotBag.length}곳 담김
+        <button data-bagact="clear">비우기</button></div>
+      <div class="sp-bag-row">
+        <input type="text" id="bagName" maxlength="40" placeholder="예) 8/10 저녁러닝 후보" value="${esc(bagName)}">
+        <button data-bagact="send">쪽지로 보내기</button>
+      </div></div>` : "";
   box.innerHTML = `<div class="sp-head">${(SPOT_CATS[mapSpotCat]||{}).em||"✨"} `
     + `${mapSpotCat==="all"?"전부":(SPOT_CATS[mapSpotCat]||{}).l||""} ${spots.length}곳`
-    + ` <small>— 이모지를 누르면 여기로 따라와요</small></div>`
+    + ` <small>— 왼쪽 칸을 눌러 후보로 담아요</small></div>`
+    + bag
     + `<div class="sp-list" id="spList">${rows}</div>`;
   const L = box.querySelector(".sp-list");
   L.scrollTop = prevScroll;                    /* 보던 자리 먼저 복구 */
@@ -328,12 +340,15 @@ function renderNote(){
   const feed = [];
   DATA.events.forEach(e=>{ if(e.memo||e.photo) feed.push({src:"ev", id:e.id, date:e.date, by:e.by, text:e.memo, photo:e.photo?photoSrc(e):null, ctx:subEm(e.type,e.sub)+" "+e.title, luv:e.luv}); });
   DATA.meals.forEach(m=>{ if(m.text||m.photo) feed.push({src:"ml", id:m.id, date:m.date, by:m.by, text:m.text, photo:m.photo?photoSrc(m):null, ctx:(SLOTS[m.slot]?SLOTS[m.slot].em+" "+SLOTS[m.slot].label:"")+(MKIND[m.mkind]?" · "+MKIND[m.mkind]:""), luv:m.luv}); });
-  DATA.notes.forEach(n=>feed.push({src:"nt", ntype:n.ntype||"chat", cat:n.cat, evdate:n.evdate, place:n.place, lat:n.lat, lng:n.lng,
+  DATA.notes.forEach(n=>feed.push({src:"nt", ntype:n.ntype||"chat", cat:n.cat, cands:n.cands, evdate:n.evdate, place:n.place, lat:n.lat, lng:n.lng,
     id:n.id, date:n.date, by:n.by, text:n.text, photo:n.photo?photoSrc(n):null, media:n.media?(photoCache[n.id]||mediaUrl(n.media)):null, mtype:n.mtype, ctx:null, luv:n.luv}));
   /* 옛날 대화가 위, 최근 대화가 아래 — 보통 메신저처럼 */
   feed.sort((a,b)=> a.date===b.date ? String(a.id).localeCompare(String(b.id)) : a.date.localeCompare(b.date));
-  /* 필터는 둘뿐 — 대화(직접 쓴 쪽지, 상황 쪽지 포함) / 기록(일정·식단에서 온 것) */
-  const shown = feed.filter(f=> noteFilter==="log" ? (f.src!=="nt") : (f.src==="nt"));
+  /* 대화(직접 쓴 쪽지) / 후보목록(담아 보낸 가볼 곳) / 기록(일정·식단에서 온 것) */
+  const shown = feed.filter(f=>
+    noteFilter==="log"  ? (f.src!=="nt") :
+    noteFilter==="cand" ? (f.src==="nt" && f.ntype==="cand") :
+                          (f.src==="nt" && f.ntype!=="cand"));
   document.querySelectorAll("#noteFilterRow button").forEach(b=>b.classList.toggle("on", b.dataset.f===noteFilter));
   let html = "", lastDate = "";
   shown.forEach(f=>{
@@ -345,6 +360,23 @@ function renderNote(){
     const mine = f.by===me;
     const parts = noteParts(f.text);
     const catEm = f.cat ? ((NCATS.find(c=>c[0]===f.cat)||[])[1]||"💌") : "";
+    /* 후보목록 쪽지 — 담아 보낸 가볼 곳들 */
+    if(f.ntype==="cand"){
+      const list = (f.cands||[]).map(c=>{
+        const em = (SPOT_CATS[c.cat]||{}).em || "📍";
+        return `<button class="cdrow" data-cand="${esc(c.n)}">
+          <span class="cdem">${em}</span>
+          <span class="cdtx"><b>${esc(c.n)}</b><small>${esc(c.r||"")}${c.sub?" · "+esc(c.sub):""}</small></span></button>`;
+      }).join("");
+      html += `<div class="nb ${mine?"mine":""} nbcand" data-src="${f.src}" data-id="${f.id}">
+        <div class="ncat">📋 ${esc(f.text||"후보 목록")}</div>
+        <div class="cdlist">${list}</div>
+        <div class="ft"><span>${PEOPLE[f.by]||""}</span>
+          ${!mine && mode!=="readonly" ? `<button class="luv ${f.luv?"on":""}" data-act="luv" aria-label="하트">💛</button>` : (f.luv?`<span class="luv on">💛</span>`:"")}
+          ${mine && mode!=="readonly" ? `<button class="del" data-act="del" aria-label="지우기">✕</button>` : ""}
+        </div></div>`;
+      return;
+    }
     html += `<div class="nb ${mine?"mine":""} ${f.ntype==="card"?"nbc":""}" data-src="${f.src}" data-id="${f.id}">
       ${f.ntype==="card"&&f.cat?`<div class="ncat">${catEm} ${esc(f.cat)}</div>`:""}
       ${f.ctx?`<div class="ctx">${esc(f.ctx)}</div>`:""}
