@@ -166,11 +166,18 @@ function renderRunSpotBar(){
     .concat(RUN_REGIONS.filter(r=>inCat.some(s=>s.r===r)).map(r=>[r,r]))
     .map(([v,l])=>`<button data-sr="${v}" class="${mapSpotRegion===v?"on":""}">${l} ${inCat.filter(s=>v==="all"||s.r===v).length}</button>`).join("");
 }
-/* 지도 아래 목록 — 고른 분야의 가볼 곳이 쭉 나오고, 스크롤된다 */
+/* 지도 아래 목록 — 고른 분야의 가볼 곳이 쭉 나오고, 스크롤된다.
+   목록에서 직접 누른 경우엔 그 자리에 그대로 머물고,
+   지도에서 이모지를 누른 경우에만 해당 항목으로 따라 내려간다. */
+let stripAnchor = null;   /* {n, top, scroll} — 목록에서 누른 항목을 제자리에 붙잡아 둘 정보 */
+let stripFollow = false;  /* 지도에서 고른 것이라 목록이 따라가야 하는가 */
+
 function renderSpotStrip(spots){
   const box = $("#spotStrip"); if(!box) return;
   if(mapMode!=="art" || !spots || !spots.length){ box.hidden = true; box.innerHTML = ""; return; }
   box.hidden = false;
+  const prevList = box.querySelector(".sp-list");
+  const prevScroll = prevList ? prevList.scrollTop : 0;
   const rows = spots.map(s=>{
     const cat = SPOT_CATS[s.cat] || {};
     const on = mapSpotSel===s.n;
@@ -200,12 +207,22 @@ function renderSpotStrip(spots){
     + `${mapSpotCat==="all"?"전부":(SPOT_CATS[mapSpotCat]||{}).l||""} ${spots.length}곳`
     + ` <small>— 이모지를 누르면 여기로 따라와요</small></div>`
     + `<div class="sp-list" id="spList">${rows}</div>`;
-  if(mapSpotSel){
-    const el = box.querySelector('.sp-item.on');
-    /* 목록 안에서만 움직이게 (페이지 전체가 튀지 않도록) */
-    if(el){ const L = box.querySelector('.sp-list');
-      L.scrollTo({ top: el.offsetTop - L.offsetTop - 8, behavior:"smooth" }); }
+  const L = box.querySelector(".sp-list");
+  L.scrollTop = prevScroll;                    /* 보던 자리 먼저 복구 */
+
+  if(stripAnchor){
+    /* 목록에서 누른 경우 — 위쪽 항목이 접히거나 펴져 밀린 만큼만 보정해
+       누른 줄이 화면에서 움직이지 않게 한다 */
+    const el = [...box.querySelectorAll(".sp-item")]
+      .find(x=>x.querySelector("[data-strip]").dataset.strip === stripAnchor.n);
+    if(el) L.scrollTop = stripAnchor.scroll + (el.offsetTop - stripAnchor.top);
+    stripAnchor = null;
+  } else if(stripFollow && mapSpotSel){
+    /* 지도에서 고른 경우 — 지금 위치에서 해당 항목으로 부드럽게 */
+    const el = box.querySelector(".sp-item.on");
+    if(el) L.scrollTo({ top: Math.max(0, el.offsetTop - 8), behavior:"smooth" });
   }
+  stripFollow = false;
 }
 
 /* 지도 위 팝업은 목록으로 대체됨 — 지도를 가리지 않게 */

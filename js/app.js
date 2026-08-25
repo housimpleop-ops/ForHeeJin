@@ -212,6 +212,7 @@ $("#mapSearchOut").addEventListener("click", e=>{
   if(sp){
     const s = mapSpotPool().find(x=>x.n===sp.dataset.sspot); if(!s) return;
     mapSpotCat = s.cat; mapSpotRegion = s.r; mapSpotSel = s.n;
+    stripFollow = true;
     renderMap();
     zoomToBBox((p=>[p.x-4,p.y-4,p.x+4,p.y+4])(latLngToSvg(s.lat,s.lng)), 20);
   }
@@ -236,6 +237,9 @@ $("#spotStrip").addEventListener("click", e=>{
   }
   const b = e.target.closest("[data-strip]"); if(!b) return;
   const s = mapSpotPool().find(x=>x.n===b.dataset.strip); if(!s) return;
+  /* 누른 줄이 화면에서 안 움직이도록 지금 위치를 적어 둔다 */
+  const item = b.closest(".sp-item"), L = $("#spotStrip").querySelector(".sp-list");
+  stripAnchor = { n: s.n, top: item.offsetTop, scroll: L.scrollTop };
   mapSpotSel = (mapSpotSel===s.n) ? null : s.n;
   renderMap();
   if(mapSpotSel && s.lat!=null){
@@ -269,6 +273,7 @@ $("#mapWrap").addEventListener("click", e=>{
   const spot = e.target.closest("[data-spot]");
   if(spot){
     mapSpotSel = (mapSpotSel===spot.dataset.spot) ? null : spot.dataset.spot;
+    stripFollow = !!mapSpotSel;   /* 목록이 이 항목으로 따라 내려온다 */
     renderMap();
     return;
   }
