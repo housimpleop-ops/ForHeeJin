@@ -99,9 +99,13 @@ function applyMapView(){
       t.style.display = (inView && (showAll || mapView.w < 100)) ? "" : "none";
     });
   }
-  /* 핀은 확대·축소와 무관하게 화면상 같은 크기로 */
+  /* 핀은 확대·축소와 무관하게 화면상 같은 크기로.
+     가볼 곳 이모지는 확대할수록 조금 더 크게 (누르기 쉽게) */
+  const spotK = k * spotBoost();
   svg.querySelectorAll(".pin").forEach(p=>{
-    if(p.dataset.x) p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+k.toFixed(4)+")");
+    if(!p.dataset.x) return;
+    const f = p.classList.contains("spt") ? spotK : k;
+    p.setAttribute("transform", "translate("+p.dataset.x+","+p.dataset.y+") scale("+f.toFixed(4)+")");
   });
   declutterSpots(svg);
 }
@@ -109,20 +113,51 @@ function applyMapView(){
 /* ---------- 이모지가 서로 겹치지 않게 솎아내기 ----------
    화면을 격자로 나눠 한 칸에 하나만 남긴다.
    확대할수록 칸이 좁아지므로 가까이 갈수록 더 많이 나타난다.        */
+/* 확대 단계별 이모지 배율 — 전국 1.0 → 아주 가까이 1.75 */
+function spotBoost(){
+  const w = mapView.w;
+  if(w >= 95) return 1;
+  if(w <= 12) return 1.75;
+  return 1 + (95 - w) / (95 - 12) * 0.75;
+}
+
 function declutterSpots(svg){
   const spots = svg.querySelectorAll(".pin.spt");
   if(!spots.length) return;
-  const cell = mapView.w / 13;                  /* 화면 가로에 이모지 13개쯤 */
-  const x1 = mapView.x - cell, y1 = mapView.y - cell;
-  const x2 = mapView.x + mapView.w + cell, y2 = mapView.y + mapView.h + cell;
-  const taken = new Set();
-  spots.forEach(g=>{
+  /* 이모지 지름(지도 단위) — 무리 사이 최소 간격을 이걸로 잡는다.
+     격자 한 칸에 하나만 남기는 방식은 칸 경계에서 둘이 딱 붙어버려서,
+     실제 거리로 재야 겹치지 않는다. */
+  const boost = spotBoost();
+  const dia  = 2 * 6.6 * (mapView.w / 300) * boost;   /* 동그라미 지름 */
+  const gap  = dia * 1.35;                            /* 사이 여백까지 */
+  const cell = gap;                                   /* 격자는 빨리 찾기용 */
+  const pad  = gap;
+  const x1 = mapView.x - pad, y1 = mapView.y - pad;
+  const x2 = mapView.x + mapView.w + pad, y2 = mapView.y + mapView.h + pad;
+  const grid = new Map();
+  const put = (x,y)=>{ const k = Math.floor(x/cell)+","+Math.floor(y/cell);
+    let a = grid.get(k); if(!a){ a=[]; grid.set(k,a); } a.push([x,y]); };
+  const clear = (x,y)=>{                              /* 이웃 칸에 너무 가까운 게 있나 */
+    const cx = Math.floor(x/cell), cy = Math.floor(y/cell);
+    for(let dx=-1; dx<=1; dx++) for(let dy=-1; dy<=1; dy++){
+      const a = grid.get((cx+dx)+","+(cy+dy)); if(!a) continue;
+      for(let i=0;i<a.length;i++){
+        const ddx = a[i][0]-x, ddy = a[i][1]-y;
+        if(ddx*ddx + ddy*ddy < gap*gap) return false;
+      }
+    }
+    return true;
+  };
+  /* 고른 곳은 무조건 자리부터 잡는다 */
+  const list = [...spots];
+  const picked = list.filter(g=>g.classList.contains("picked"));
+  picked.forEach(g=>{ g.style.display=""; put(+g.dataset.x, +g.dataset.y); });
+  list.forEach(g=>{
+    if(g.classList.contains("picked")) return;
     const x = +g.dataset.x, y = +g.dataset.y;
-    if(x<x1 || x>x2 || y<y1 || y>y2){ g.style.display = "none"; return; }  /* 화면 밖 */
-    if(g.classList.contains("picked")){ g.style.display = ""; return; }    /* 고른 건 항상 */
-    const key = Math.round(x/cell) + "," + Math.round(y/cell);
-    if(taken.has(key)){ g.style.display = "none"; return; }
-    taken.add(key); g.style.display = "";
+    if(x<x1 || x>x2 || y<y1 || y>y2){ g.style.display = "none"; return; }
+    if(!clear(x,y)){ g.style.display = "none"; return; }
+    put(x,y); g.style.display = "";
   });
 }
 /* ---------- 동(洞) 레이어 — 많이 확대했을 때만 그 지역 파일을 불러옴 ---------- */

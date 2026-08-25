@@ -114,7 +114,8 @@ function renderMap(){
     /* 가볼 곳은 동그란 이모지로 — 지도가 아기자기하게 채워지도록 */
     return `<g class="pin spt ${co}${on?" picked":""}" data-spot="${esc(s.n)}" data-cat="${s.cat}"`
       + ` data-x="${p.x}" data-y="${p.y}" transform="translate(${p.x},${p.y})">`
-      + `<circle class="bg" r="4.4"/><text class="em" y="2.1">${cat.em||"📍"}</text></g>`;
+      + `<circle class="hit" r="10"/>`                    /* 손가락용 터치판 (안 보임) */
+      + `<circle class="bg" r="6.6"/><text class="em" y="3.1">${cat.em||"📍"}</text></g>`;
   }).join("");
   $("#mainMap .pins").innerHTML = spotPins + list.map(e=>pinHTML(e,false)).join("");
   renderSpotStrip(spots);
