@@ -32,6 +32,10 @@ function mapSVG(id){
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
   <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="bline-g">
+    <path class="bline sido" d="${typeof SIDO_LINE==="undefined"?"":SIDO_LINE}"/>
+    <path class="bline sgg" d="${typeof SGG_LINE==="undefined"?"":SGG_LINE}"/>
+  </g>
   <g class="road-g">${(typeof ROADS==="undefined"?[]:ROADS).filter(r=>r.k==="ex").map(r=>
       `<path class="rd ${r.k}" d="${r.d}"/>`).join("")}</g>
   <g class="dong-g"></g>
@@ -213,6 +217,9 @@ function bindMainMapNav(){
   let moved = false, sx = 0, sy = 0;
   let pinchDist = 0, pinchMid = null;
 
+  const grabbed = new Set();
+  const grab = e=>{ if(svg.setPointerCapture && !grabbed.has(e.pointerId)){
+      try{ svg.setPointerCapture(e.pointerId); grabbed.add(e.pointerId); }catch(_){ } } };
   const dist = ()=>{ const a=[...pts.values()]; return Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y); };
   const mid  = ()=>{ const a=[...pts.values()]; return { x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2 }; };
   /* 화면 좌표 → 지도 좌표 */
@@ -222,8 +229,9 @@ function bindMainMapNav(){
   svg.addEventListener("pointerdown", e=>{
     pts.set(e.pointerId, {x:e.clientX, y:e.clientY});
     if(pts.size === 1){ moved = false; sx = e.clientX; sy = e.clientY; }
-    if(pts.size === 2){ pinchDist = dist(); pinchMid = toMap(mid()); moved = true; }
-    if(svg.setPointerCapture) try{ svg.setPointerCapture(e.pointerId); }catch(_){ }
+    if(pts.size === 2){ pinchDist = dist(); pinchMid = toMap(mid()); moved = true; grab(e); }
+    /* 여기서 포인터를 붙잡으면 손을 뗄 때 click 이 지도 전체로 가버려서
+       이모지를 눌러도 무엇을 눌렀는지 알 수 없게 된다. 끌기 시작할 때만 붙잡는다. */
   });
   svg.addEventListener("pointermove", e=>{
     if(!pts.has(e.pointerId)) return;
@@ -243,7 +251,7 @@ function bindMainMapNav(){
     }
     /* 한 손가락 이동 */
     const dx = e.clientX - sx, dy = e.clientY - sy;
-    if(Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+    if(Math.abs(dx) + Math.abs(dy) > 6){ moved = true; grab(e); }
     if(!moved) return;
     mapView.x -= dx * mapView.w / r.width;
     mapView.y -= dy * mapView.h / r.height;
@@ -251,7 +259,7 @@ function bindMainMapNav(){
     clampMapView(); applyMapView();
   });
   const end = e=>{
-    pts.delete(e.pointerId);
+    pts.delete(e.pointerId); grabbed.delete(e.pointerId);
     if(pts.size < 2) pinchDist = 0;
     if(pts.size === 1){ const a=[...pts.values()][0]; sx=a.x; sy=a.y; }
     if(pts.size === 0){

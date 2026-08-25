@@ -117,6 +117,7 @@ function renderMap(){
       + `<circle class="bg" r="4.4"/><text class="em" y="2.1">${cat.em||"📍"}</text></g>`;
   }).join("");
   $("#mainMap .pins").innerHTML = spotPins + list.map(e=>pinHTML(e,false)).join("");
+  renderSpotStrip(spots);
   renderRunSpotBar();
   renderMapSpotInfo();
   renderMapSearch();
@@ -165,12 +166,56 @@ function renderRunSpotBar(){
     .concat(RUN_REGIONS.filter(r=>inCat.some(s=>s.r===r)).map(r=>[r,r]))
     .map(([v,l])=>`<button data-sr="${v}" class="${mapSpotRegion===v?"on":""}">${l} ${inCat.filter(s=>v==="all"||s.r===v).length}</button>`).join("");
 }
+/* 지도 아래 목록 — 고른 분야의 가볼 곳이 쭉 나오고, 스크롤된다 */
+function renderSpotStrip(spots){
+  const box = $("#spotStrip"); if(!box) return;
+  if(mapMode!=="art" || !spots || !spots.length){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const rows = spots.map(s=>{
+    const cat = SPOT_CATS[s.cat] || {};
+    const on = mapSpotSel===s.n;
+    const infos = (SPOT_ROWS[s.cat]||[]).filter(([k])=>s[k]);
+    const pk = RUN_PARK[s.pk];
+    /* 고른 것만 자세히 펼친다 */
+    const detail = !on ? "" : `<div class="sp-det">
+      <div class="sp-addr">📍 ${esc(s.a||"")}</div>
+      ${infos.map(([k,ic])=>`<div class="sp-line">${ic} ${esc(String(s[k]))}</div>`).join("")}
+      ${s.parkSpot?`<div class="sp-line">🅿️ <b>추천 주차</b> — ${esc(s.parkSpot)}</div>`:""}
+      ${s.tip?`<div class="sp-line">💡 ${esc(s.tip)}</div>`:""}
+      <div class="sp-btns">
+        <button data-act="spot-plan">🗓️ ${s.cat==="run"?"여기 뛰러 가기":"일정으로 담기"}</button>
+        <button data-act="spot-real">📍 진짜 지도로</button>
+      </div></div>`;
+    const brief = infos[0] ? `<span class="sp-info">${infos[0][1]} ${esc(String(s[infos[0][0]]).slice(0,60))}</span>` : "";
+    return `<div class="sp-item${on?" on":""}">
+      <button class="sp-row" data-strip="${esc(s.n)}">
+        <span class="sp-em">${cat.em||"📍"}</span>
+        <span class="sp-tx">
+          <span class="sp-nm">${esc(s.n)}</span>
+          <span class="sp-sub">${esc(s.r)}${s.sub?" · "+esc(s.sub):""}${s.cat==="run"&&s.km!=null?" · "+s.km+"km":""}${pk?" · "+pk.em+" "+pk.l:""}</span>
+          ${on?"":brief}
+        </span></button>${detail}</div>`;
+  }).join("");
+  box.innerHTML = `<div class="sp-head">${(SPOT_CATS[mapSpotCat]||{}).em||"✨"} `
+    + `${mapSpotCat==="all"?"전부":(SPOT_CATS[mapSpotCat]||{}).l||""} ${spots.length}곳`
+    + ` <small>— 이모지를 누르면 여기로 따라와요</small></div>`
+    + `<div class="sp-list" id="spList">${rows}</div>`;
+  if(mapSpotSel){
+    const el = box.querySelector('.sp-item.on');
+    /* 목록 안에서만 움직이게 (페이지 전체가 튀지 않도록) */
+    if(el){ const L = box.querySelector('.sp-list');
+      L.scrollTo({ top: el.offsetTop - L.offsetTop - 8, behavior:"smooth" }); }
+  }
+}
+
+/* 지도 위 팝업은 목록으로 대체됨 — 지도를 가리지 않게 */
 function renderMapSpotInfo(){
   const box = $("#mapSpotPop");
-  if(!box) return;
+  if(box){ box.hidden = true; box.innerHTML = ""; }
+  return;
+  /* eslint-disable no-unreachable */
   const s = mapSpotSel ? mapSpotPool().find(x=>x.n===mapSpotSel) : null;
-  if(!s || mapMode!=="art"){ box.innerHTML = ""; box.hidden = true; return; }
-  box.hidden = false;
+  if(!s || mapMode!=="art"){ return; }
   const pk = RUN_PARK[s.pk];
   let chips;
   if(s.cat==="run"){

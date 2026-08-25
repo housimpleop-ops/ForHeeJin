@@ -217,6 +217,33 @@ $("#mapSearchOut").addEventListener("click", e=>{
   }
 });
 /* 지도 위 스팟 카드 */
+/* 지도 아래 목록에서 고르기 */
+$("#spotStrip").addEventListener("click", e=>{
+  const act = e.target.closest("[data-act]");
+  if(act){
+    const s = mapSpotPool().find(x=>x.n===mapSpotSel); if(!s) return;
+    if(act.dataset.act==="spot-plan"){
+      if(mode==="readonly") return;
+      const p = latLngToSvg(s.lat, s.lng);
+      const run = s.cat==="run" || s.cat==="hike";
+      openSheet("add", { type: run?"run":"date",
+        sub: s.cat==="run"?"러닝":(s.cat==="hike"?"등산":(s.sub||"나들이")),
+        title:s.n, spot:{cat:s.cat, n:s.n}, lat:s.lat, lng:s.lng, x:p.x, y:p.y });
+      return;
+    }
+    if(act.dataset.act==="spot-real"){ mapFocus(s.lat, s.lng); return; }
+    return;
+  }
+  const b = e.target.closest("[data-strip]"); if(!b) return;
+  const s = mapSpotPool().find(x=>x.n===b.dataset.strip); if(!s) return;
+  mapSpotSel = (mapSpotSel===s.n) ? null : s.n;
+  renderMap();
+  if(mapSpotSel && s.lat!=null){
+    const p = latLngToSvg(s.lat, s.lng);
+    zoomToBBox([p.x-5,p.y-5,p.x+5,p.y+5], 12);
+  }
+});
+
 document.addEventListener("click", e=>{
   if(!e.target.closest("#mapSpotPop")) return;
   const act = e.target.closest("[data-act]"); if(!act) return;
