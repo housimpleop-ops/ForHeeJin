@@ -332,12 +332,8 @@ function renderNote(){
     id:n.id, date:n.date, by:n.by, text:n.text, photo:n.photo?photoSrc(n):null, media:n.media?(photoCache[n.id]||mediaUrl(n.media)):null, mtype:n.mtype, ctx:null, luv:n.luv}));
   /* 옛날 대화가 위, 최근 대화가 아래 — 보통 메신저처럼 */
   feed.sort((a,b)=> a.date===b.date ? String(a.id).localeCompare(String(b.id)) : a.date.localeCompare(b.date));
-  /* 필터: 전체 / 대화 / 상황 / 기록(일정·식단에서 온 것) */
-  const shown = feed.filter(f=>
-    noteFilter==="all" ? true :
-    noteFilter==="chat" ? (f.src==="nt" && f.ntype!=="card") :
-    noteFilter==="card" ? (f.src==="nt" && f.ntype==="card") :
-    (f.src!=="nt"));
+  /* 필터는 둘뿐 — 대화(직접 쓴 쪽지, 상황 쪽지 포함) / 기록(일정·식단에서 온 것) */
+  const shown = feed.filter(f=> noteFilter==="log" ? (f.src!=="nt") : (f.src==="nt"));
   document.querySelectorAll("#noteFilterRow button").forEach(b=>b.classList.toggle("on", b.dataset.f===noteFilter));
   let html = "", lastDate = "";
   shown.forEach(f=>{
