@@ -31,7 +31,10 @@ function mapSVG(id){
   }).join("");
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
   <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
-  <g class="sgg-g">${SGG_SHAPES.map((s,i)=>`<path class="sggp" data-gi="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="sgg-g">${SGG_SHAPES.map((s,i)=>{
+      const t = (typeof SGG_TONE!=="undefined" && SGG_TONE[i]!=null) ? SGG_TONE[i]%SIDO_TONE : 0;
+      return `<path class="sggp t${t}" data-gi="${i}" d="${s.d}"/>`;
+    }).join("")}</g>
   <g class="bline-g">
     <path class="bline sido" d="${typeof SIDO_LINE==="undefined"?"":SIDO_LINE}"/>
     <path class="bline sgg" d="${typeof SGG_LINE==="undefined"?"":SGG_LINE}"/>

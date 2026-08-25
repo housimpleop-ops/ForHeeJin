@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
-"""겹쳐 그려지는 행정경계를 '한 줄'로 합친다 (js/map-lines.js 생성).
+"""경계선을 '한 겹'으로 합치고 도 경계 / 시군구 경계로 나눈다 (js/map-lines.js).
 
-문제: 시군구 도형은 각자 자기 외곽선을 그린다. 이웃과 맞닿은 경계는 두 번 그려지는데,
-      두 도형의 좌표가 서로 조금씩 달라(정확히 겹치는 건 30%뿐) 나란한 두 줄로 보인다.
-해결: 이미 그린 선이 지나간 자리를 격자에 표시해 두고,
-      새 선분이 그 자리를 대부분 다시 지나가면 건너뛴다. 결과는 선 하나짜리 경계망.
+선과 색을 **모두 시군구 도형 하나에서** 뽑는다.
+시도 도형과 시군구 도형은 따로 단순화돼 10%가 0.7단위 넘게 어긋나므로,
+둘을 섞어 쓰면 색이 바뀌는 자리와 선이 어긋나 보인다.
+
+중복 제거는 '다른 도형이 이미 그린 자리인가'로만 판단한다.
+자기 도형의 앞뒤 선분끼리는 당연히 붙어 있으므로 세면 안 된다(전에 이걸로 선이 사라졌다).
 """
-import io, json, math, sys
+import io, json, math
 
-CELL  = 0.2    # 격자 한 칸 (지도 전체가 300x420)
-STEP  = 0.1    # 선분을 따라 점을 찍는 간격
-DUP   = 0.75   # 점의 이 비율 이상이 이미 그려진 자리면 중복으로 본다
+CELL, STEP, DUP = 0.2, 0.1, 0.7
 
 def parse(d):
-    """path 문자열 → [((x,y),(x,y)), ...] 선분 목록. M/L/Z 를 다룬다."""
     toks, num = [], ""
     for ch in d:
         if ch in "MLZmlz":
@@ -21,10 +20,8 @@ def parse(d):
             toks.append(ch.upper())
         elif ch in " ,":
             if num: toks.append(num); num = ""
-        else:
-            num += ch
+        else: num += ch
     if num: toks.append(num)
-
     out, cur, start, i = [], None, None, 0
     while i < len(toks):
         t = toks[i]
@@ -37,48 +34,74 @@ def parse(d):
         elif t == "Z":
             if cur and start and cur != start: out.append((cur, start))
             cur = start; i += 1
-        else:
-            i += 1
+        else: i += 1
     return out
 
-def build(shapes, label):
-    covered = set()
-    kept = []
-    seg_total = 0
-    for s in shapes:
-        for a, b in parse(s["d"]):
-            seg_total += 1
-            L = math.hypot(b[0]-a[0], b[1]-a[1])
-            k = max(2, int(L/STEP)+1)
-            pts = [(a[0]+(b[0]-a[0])*i/(k-1), a[1]+(b[1]-a[1])*i/(k-1)) for i in range(k)]
-            cells = [(int(math.floor(p[0]/CELL)), int(math.floor(p[1]/CELL))) for p in pts]
-            hit = sum(1 for c in cells if c in covered)
-            if hit / len(cells) >= DUP:
-                continue                      # 이웃이 이미 그린 경계
-            kept.append((a, b))
-            for cx, cy in cells:              # 3x3 붓으로 자리 표시
-                for dx in (-1, 0, 1):
-                    for dy in (-1, 0, 1):
-                        covered.add((cx+dx, cy+dy))
-    # 이어지는 선분끼리 묶어 path 를 짧게
+def cells_of(a, b):
+    L = math.hypot(b[0]-a[0], b[1]-a[1])
+    k = max(2, int(L/STEP)+1)
+    out = []
+    for i in range(k):
+        t = i/(k-1)
+        p = (a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t)
+        out.append((int(math.floor(p[0]/CELL)), int(math.floor(p[1]/CELL))))
+    return out
+
+D = json.load(io.open("borders.json", encoding="utf-8"))
+
+kept   = []     # (a, b)
+same   = []     # 같은 도의 이웃과 맞닿았나
+diff   = []     # 다른 도의 이웃과 맞닿았나
+owner  = {}     # 격자칸 → (kept 번호, 도형 번호)
+
+for pi, s in enumerate(D["sgg"]):
+    sido = s["c"][:2]
+    for a, b in parse(s["d"]):
+        cs = cells_of(a, b)
+        hit = [owner[c] for c in cs if c in owner and owner[c][1] != pi]   # 남이 그린 것만
+        if len(hit) / len(cs) >= DUP:
+            for idx, opi in set(hit):
+                if D["sgg"][opi]["c"][:2] == sido: same[idx] = True
+                else:                              diff[idx] = True
+            continue
+        kept.append((a, b)); same.append(False); diff.append(False)
+        me = len(kept) - 1
+        for cx, cy in cs:
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    owner.setdefault((cx+dx, cy+dy), (me, pi))
+
+def to_path(items):
     d, last = [], None
-    for a, b in kept:
+    for a, b in items:
         if last and abs(last[0]-a[0]) < 1e-9 and abs(last[1]-a[1]) < 1e-9:
             d.append("L%g %g" % b)
         else:
             d.append("M%g %gL%g %g" % (a[0], a[1], b[0], b[1]))
         last = b
-    path = "".join(d)
-    print("%s: 선분 %d -> %d (%.0f%% 제거), path %.1fKB"
-          % (label, seg_total, len(kept), (1-len(kept)/seg_total)*100, len(path)/1024))
-    return path
+    return "".join(d)
 
-D = json.load(io.open("borders.json", encoding="utf-8"))
-sido = build(D["sido"], "시도")
-sgg  = build(D["sgg"],  "시군구")
+prov_items, dist_items = [], []
+for i, (a, b) in enumerate(kept):
+    if diff[i] or not same[i]:   # 다른 도와 맞닿음, 또는 이웃 없음(바닷가)
+        prov_items.append((a, b))
+    else:
+        dist_items.append((a, b))
+
+sido_path, sgg_path = to_path(prov_items), to_path(dist_items)
+print("남긴 선분 %d개 → 도 경계·바닷가 %d · 시군구 경계 %d"
+      % (len(kept), len(prov_items), len(dist_items)))
+
+codes = [s["c"] for s in D["sido"]]
+idx = {c: i for i, c in enumerate(codes)}
+sgg_tone = [idx.get(s["c"][:2], 0) for s in D["sgg"]]
+
 js = ("/* map-lines.js — tools/make-lines.py 로 생성. 손대지 마세요.\n"
-      "   이웃끼리 두 번 그려지던 경계를 한 줄로 합친 것. */\n"
-      "const SIDO_LINE = " + json.dumps(sido, ensure_ascii=False) + ";\n"
-      "const SGG_LINE = "  + json.dumps(sgg,  ensure_ascii=False) + ";\n")
+      "   선과 색을 모두 시군구 도형에서 뽑아 서로 어긋나지 않게 한 것.\n"
+      "   SIDO_LINE: 도 경계·바닷가 / SGG_LINE: 도 안쪽 시군구 경계\n"
+      "   SGG_TONE[i]: i번째 시군구가 몇 번째 시도에 속하는가 (색 맞추기용) */\n"
+      "const SIDO_LINE = " + json.dumps(sido_path) + ";\n"
+      "const SGG_LINE = "  + json.dumps(sgg_path) + ";\n"
+      "const SGG_TONE = "  + json.dumps(sgg_tone, separators=(",", ":")) + ";\n")
 io.open("js/map-lines.js", "w", encoding="utf-8").write(js)
 print("→ js/map-lines.js (%.1fKB)" % (len(js)/1024.0))
