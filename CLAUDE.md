@@ -107,7 +107,12 @@ DATA = { v, events[], wishes[], meals[], notes[], wedding[], trips[],
   전국에서 111개, 확대할수록 더 나타남. 고른 스팟은 항상 보임.
 - **지도 아래 목록**(`#spotStrip`): 고른 분야의 스팟이 쭉 나오고 자체 스크롤(max-height 44vh).
   이모지를 누르면 목록이 그 항목으로 스크롤되며 펼쳐진다(주소·정보·추천주차·팁·버튼).
-  ⚠️ 페이지 전체가 튀지 않게 `scrollIntoView` 대신 목록 컨테이너의 `scrollTo` 를 쓴다.
+  ⚠️ 목록을 다시 그리면 scrollTop 이 0이 된다. 반드시 이전 값을 기억했다 복구할 것.
+  - **목록에서 누른 경우**: `stripAnchor` 에 {이름, offsetTop, scrollTop} 을 적어 두고,
+    다시 그린 뒤 offsetTop 변화만큼 scrollTop 을 보정 → 누른 줄이 화면에서 안 움직인다.
+  - **지도에서 누른 경우**: `stripFollow=true` 일 때만 그 항목으로 부드럽게 이동.
+  - `.sp-list` 에 `position:relative` 필수 — 없으면 자식의 offsetTop 이 목록이 아니라
+    페이지 기준이 돼서 위치 계산이 전부 틀어진다.
 - ⚠️ **`setPointerCapture` 를 pointerdown 에서 하면 안 된다.** 손을 뗄 때 `click` 이
   실제 요소가 아니라 캡처 대상(지도 전체)으로 가서, 이모지를 눌러도 무엇을 눌렀는지 알 수 없다.
   **끌기가 시작된 뒤에만** 붙잡을 것(`grab()`).
