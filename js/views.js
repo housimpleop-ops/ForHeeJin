@@ -167,6 +167,30 @@ function renderRunSpotBar(){
     .concat(RUN_REGIONS.filter(r=>inCat.some(s=>s.r===r)).map(r=>[r,r]))
     .map(([v,l])=>`<button data-sr="${v}" class="${mapSpotRegion===v?"on":""}">${l} ${inCat.filter(s=>v==="all"||s.r===v).length}</button>`).join("");
 }
+/* 예약·검색 바로가기 — 분야에 맞는 검색어로 네이버·카카오맵을 연다.
+   조사로 얻은 공식 예약 주소가 있으면 그 버튼이 맨 앞에 붙는다. */
+const BOOK_HINT = {
+  stay:["예약","숙소 예약은 공식 홈페이지가 플랫폼보다 쌀 때가 많아요"],
+  camp:["예약","캠핑장은 캠핏·고캠핑·숲나들e 에서 많이 받아요"],
+  perf:["예매","공연은 인터파크·예스24에서 예매해요"],
+  snow:["리프트권 예약",""], spa:["이용요금 예약",""],
+  culture:["관람 예약",""], fest:["축제 일정",""],
+  food:["예약",""], cafe:["영업시간",""], shop:["영업시간",""],
+  valley:["주차 이용요금",""], hike:["등산코스",""],
+  beach:["개장 기간",""], drive:["",""], run:["",""],
+};
+function bookLinks(s){
+  const hint = BOOK_HINT[s.cat] || ["",""];
+  const q = encodeURIComponent(s.n + (hint[0] ? " " + hint[0] : ""));
+  const btns = [];
+  if(s.book && /^https?:\/\//.test(s.book))
+    btns.push(`<a class="sp-lk go" href="${esc(s.book)}" target="_blank" rel="noopener">🎟️ 공식 예약</a>`);
+  btns.push(`<a class="sp-lk" href="https://search.naver.com/search.naver?query=${q}" target="_blank" rel="noopener">🔍 검색</a>`);
+  btns.push(`<a class="sp-lk" href="https://map.kakao.com/?q=${encodeURIComponent(s.n)}" target="_blank" rel="noopener">🗺️ 지도·전화</a>`);
+  return `<div class="sp-lks">${btns.join("")}</div>`
+    + (hint[1] ? `<div class="sp-hint">${hint[1]}</div>` : "");
+}
+
 /* 지도 아래 목록 — 고른 분야의 가볼 곳이 쭉 나오고, 스크롤된다.
    목록에서 직접 누른 경우엔 그 자리에 그대로 머물고,
    지도에서 이모지를 누른 경우에만 해당 항목으로 따라 내려간다. */
@@ -187,8 +211,15 @@ function renderSpotStrip(spots){
     const pk = RUN_PARK[s.pk];
     /* 고른 것만 자세히 펼친다 */
     const detail = !on ? "" : `<div class="sp-det">
+      ${bookLinks(s)}
       <div class="sp-addr">📍 ${esc(s.a||"")}</div>
-      ${infos.map(([k,ic])=>`<div class="sp-line">${ic} ${esc(String(s[k]))}</div>`).join("")}
+      ${infos.map(([k,ic])=>{
+        const v = String(s[k]);
+        /* 예약처가 주소면 눌러서 바로 가게 */
+        if(k==="book" && /^https?:\/\//.test(v))
+          return `<div class="sp-line">${ic} <a href="${esc(v)}" target="_blank" rel="noopener">공식 예약 페이지 ↗</a></div>`;
+        return `<div class="sp-line">${ic} ${esc(v)}</div>`;
+      }).join("")}
       ${s.parkSpot?`<div class="sp-line">🅿️ <b>추천 주차</b> — ${esc(s.parkSpot)}</div>`:""}
       ${s.tip?`<div class="sp-line">💡 ${esc(s.tip)}</div>`:""}
       <div class="sp-btns">

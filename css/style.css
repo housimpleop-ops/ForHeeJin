@@ -623,3 +623,12 @@ textarea.feel-in + textarea.feel-in{margin-top:6px}
 :root[data-theme="dark"] .kmap .sggp.t5{fill:#636E6D; stroke:#636E6D}
 :root[data-theme="dark"] .kmap .sggp.t6{fill:#73686B; stroke:#73686B}
 :root[data-theme="dark"] .kmap .sggp.t7{fill:#6D7060; stroke:#6D7060}
+
+/* ---------- [33] 예약·검색 바로가기 ---------- */
+.sp-lks{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px}
+.sp-lk{flex:1; min-width:88px; text-align:center; padding:8px 6px; border-radius:9px;
+  border:1px solid var(--line); background:var(--card); color:var(--ink);
+  font-size:12px; font-weight:700; text-decoration:none}
+.sp-lk.go{background:var(--run); border-color:var(--run); color:#fff}
+.sp-hint{font-size:11px; color:var(--muted-solid); margin:-2px 2px 4px}
+.sp-line a{color:var(--run); font-weight:700}
