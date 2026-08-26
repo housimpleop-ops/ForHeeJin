@@ -33,7 +33,9 @@ function mapSVG(id){
   <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>{
       const t = (typeof SGG_TONE!=="undefined" && SGG_TONE[i]!=null) ? SGG_TONE[i]%SIDO_TONE : 0;
-      return `<path class="sggp t${t}" data-gi="${i}" d="${s.d}"/>`;
+      /* 칠은 경계선에 맞춰 붙인 도형(SGG_FIT)을 쓴다 — 이웃 색이 넘어오지 않게 */
+      const d = (typeof SGG_FIT!=="undefined" && SGG_FIT[i]) ? SGG_FIT[i] : s.d;
+      return `<path class="sggp t${t}" data-gi="${i}" d="${d}"/>`;
     }).join("")}</g>
   <g class="bline-g">
     <path class="bline sido" d="${typeof SIDO_LINE==="undefined"?"":SIDO_LINE}"/>
@@ -128,8 +130,8 @@ function declutterSpots(svg){
      격자 한 칸에 하나만 남기는 방식은 칸 경계에서 둘이 딱 붙어버려서,
      실제 거리로 재야 겹치지 않는다. */
   const boost = spotBoost();
-  const dia  = 2 * 6.6 * (mapView.w / 300) * boost;   /* 동그라미 지름 */
-  const gap  = dia * 1.35;                            /* 사이 여백까지 */
+  const dia  = 2 * 9.9 * (mapView.w / 300) * boost;   /* 동그라미 지름 */
+  const gap  = dia * 1.08;                            /* 사이 여백까지 (살짝만) */
   const cell = gap;                                   /* 격자는 빨리 찾기용 */
   const pad  = gap;
   const x1 = mapView.x - pad, y1 = mapView.y - pad;
