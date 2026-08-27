@@ -1,5 +1,25 @@
-총 1485 / 좌표없음 0 / 범위밖 0
-이름중복 0
-
-같은분류 좌표충돌 1
-fest|서울세계불꽃축제 == fest|한강페스티벌 여름 == camp|한강 밤핑 – 여의도한강공원 == drive|올림픽대로 한강 야경 종주 코스
+러닝 188곳, 필드 사용:
+  n 188
+  r 188
+  a 188
+  kmTxt 188
+  el 188
+  sh 188
+  parkSpot 188
+  season 188
+  tip 188
+  lat 188
+  lng 188
+  conf 188
+  s 187
+  pkTxt 184
+  bug 182
+  km 173
+  pk 166
+  wc 155
+  lit 151
+  water 33
+좌표없음 0
+km null 15
+bug null 6
+이름중복 
