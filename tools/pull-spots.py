@@ -5,7 +5,7 @@
   ```json [ ... ] ``` 블록 중 각 원소에 cat·n 이 있는 것만 모은다.
   이미 js/data-spots.js 에 있는 것과 REJECT 목록은 뺀다.
 """
-import io, json, os, re, subprocess, sys
+import html, io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JS = os.path.join(ROOT, "js", "data-spots.js")

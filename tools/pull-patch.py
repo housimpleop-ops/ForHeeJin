@@ -5,7 +5,7 @@
   좌표(lat)가 없고 cat·n 만 있는 조각을 보강 데이터로 본다.
   현재 SPOTS 에 같은 cat+n 이 없으면 이름이 틀린 것이므로 버리고 따로 알려준다.
 """
-import io, json, os, re, subprocess, sys
+import html, io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JS = os.path.join(ROOT, "js", "data-spots.js")
@@ -60,7 +60,7 @@ def main(jl, out_path):
                     fields = {k: v for k, v in s.items()
                               if k not in SKIP and (v not in (None, "", []) or k == "acts4")}
                     if not fields: continue
-                    key = (s["cat"], s["n"].strip())
+                    key = (s["cat"], html.unescape(s["n"]).strip())
                     if key not in have:
                         unknown.append("%s | %s" % key); continue
                     row = found.setdefault(key, {"cat": key[0], "n": key[1]})

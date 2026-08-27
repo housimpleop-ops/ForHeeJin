@@ -4,7 +4,7 @@
 사용법:  python tools/pull-run.py <세션.jsonl>
   이미 있는 이름은 건너뛴다. 좌표는 null 로 두고 나중에 카카오로 채운다.
 """
-import io, json, os, re, subprocess, sys
+import html, io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JS = os.path.join(ROOT, "js", "data-run.js")
@@ -36,7 +36,7 @@ def current():
 
 def main(jl):
     rows = current()
-    have = {s["n"].strip() for s in rows}
+    have = {html.unescape(s["n"]).strip() for s in rows}
     added = []
     for line in io.open(jl, encoding="utf-8"):
         if "```json" not in line: continue
@@ -50,7 +50,7 @@ def main(jl):
                 for s in arr:
                     if not isinstance(s, dict) or s.get("cat") != "run": continue
                     if "n" not in s or "conf" not in s: continue
-                    name = s["n"].strip()
+                    name = html.unescape(s["n"]).strip()
                     if name in have: continue
                     have.add(name)
                     added.append({k: s.get(k) for k in KEYS})
