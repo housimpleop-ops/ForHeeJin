@@ -6,7 +6,12 @@
 /* 지역 이름을 놓을 자리 (경계 상자 가운데) — 라벨을 데이터에서 자동 생성 */
 function shapeCenter(s){ return { x:(s.b[0]+s.b[2])/2, y:(s.b[1]+s.b[3])/2 }; }
 /* 시도별 파스텔 색 (아기자기하게) */
-const SIDO_TONE = 8;
+/* 시도 17개에 색 8개를 배정한다. 그냥 순서대로 %8 하면 서울과 경기가 같은 색이 돼
+   서울이 경기에 묻혀 버린다(울산↔경북도 마찬가지). 그래서 맞닿은 시도끼리는
+   반드시 다른 색이 되도록 손으로 짰다.
+   순서: 서울 부산 대구 인천 광주 대전 울산 세종 경기 강원 충북 충남 전북 전남 경북 경남 제주 */
+const SIDO_TONE_MAP = [1,6,5,2,4,6,7,7,0,3,4,5,0,2,1,3,0];
+const sidoTone = i => SIDO_TONE_MAP[i] != null ? SIDO_TONE_MAP[i] : 0;
 
 function mapSVG(id){
   /* 시도 이름 — 서울·대전처럼 큰 도에 둘러싸인 곳은 겹치지 않게 자리를 살짝 옮김 */
@@ -30,9 +35,9 @@ function mapSVG(id){
     return `<text x="${c.x.toFixed(1)}" y="${c.y.toFixed(1)}" text-anchor="middle">${esc(s.n)}</text>`;
   }).join("");
   return `<svg class="kmap" id="${id}" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="대한민국 지도">
-  <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${i%SIDO_TONE}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
+  <g class="sido-g">${SIDO_SHAPES.map((s,i)=>`<path class="land t${sidoTone(i)}" data-si="${i}" d="${s.d}"/>`).join("")}</g>
   <g class="sgg-g">${SGG_SHAPES.map((s,i)=>{
-      const t = (typeof SGG_TONE!=="undefined" && SGG_TONE[i]!=null) ? SGG_TONE[i]%SIDO_TONE : 0;
+      const t = (typeof SGG_TONE!=="undefined" && SGG_TONE[i]!=null) ? sidoTone(SGG_TONE[i]) : 0;
       /* 칠은 경계선에 맞춰 붙인 도형(SGG_FIT)을 쓴다 — 이웃 색이 넘어오지 않게 */
       const d = (typeof SGG_FIT!=="undefined" && SGG_FIT[i]) ? SGG_FIT[i] : s.d;
       return `<path class="sggp t${t}" data-gi="${i}" d="${d}"/>`;
