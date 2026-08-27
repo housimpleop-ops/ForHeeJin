@@ -1,7 +1,8 @@
-입력 파일 1개
+입력 파일 2개
   spot-000-current.json        1363
+  spot-900-incheon.json         31
 
-중복 제거 후 총 1363곳 (좌표 있는 곳 1363)
+중복 제거 후 총 1394곳 (좌표 있는 곳 1363)
 
 분류별:
   cafe     131
@@ -9,20 +10,20 @@
   hike     135
   stay     148
   beach     81
-  valley    81
-  culture   98
+  valley    87
+  culture  106
   fest      89
   camp      96
-  drive     79
+  drive     85
   snow      52
-  spa       81
-  shop      92
-  perf      77
+  spa       86
+  shop      95
+  perf      80
 
 지역별:
   경기북부   149
   서울     167
-  인천     117
+  인천     148
   경기남부   150
   강원     178
   충청     152
