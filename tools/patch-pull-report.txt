@@ -1,4 +1,4 @@
-보강 826곳
+보강 878곳
   beach     81
   cafe      66
   camp      60
@@ -7,6 +7,7 @@
   fest      82
   hike     121
   shop      87
+  snow      52
   spa       77
   stay      77
   valley    49
