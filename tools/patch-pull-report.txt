@@ -1,4 +1,4 @@
-보강 879곳
+보강 934곳
   beach     81
   cafe      66
   camp      61
@@ -9,7 +9,7 @@
   shop      87
   snow      52
   spa       77
-  stay      77
+  stay     132
   valley    49
 
 !! 이름이 안 맞아 버린 것 29개
