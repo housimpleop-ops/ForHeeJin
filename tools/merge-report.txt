@@ -1,22 +1,23 @@
-입력 파일 1개
+입력 파일 2개
   spot-000-current.json        1382
+  spot-900-gap.json             39
 
-중복 제거 후 총 1382곳 (좌표 있는 곳 1382)
+중복 제거 후 총 1421곳 (좌표 있는 곳 1382)
 
 분류별:
   cafe     128
-  food     122
-  hike     133
+  food     123
+  hike     137
   stay     144
-  beach     81
-  valley    86
-  culture  106
-  fest      88
-  camp      96
-  drive     85
+  beach     83
+  valley    88
+  culture  124
+  fest      95
+  camp      97
+  drive     87
   snow      52
   spa       86
-  shop      95
+  shop      97
   perf      80
 
 지역별:
@@ -25,7 +26,7 @@
   인천     147
   경기남부   147
   강원     177
-  충청     150
-  전라     147
+  충청     167
+  전라     169
   경상     170
   제주     130
