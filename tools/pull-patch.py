@@ -50,12 +50,15 @@ def main(jl, out_path):
                     if not isinstance(s, dict): continue
                     if "cat" not in s or "n" not in s: continue
                     if s.get("lat"): continue          # 새 스팟 결과는 여기서 다루지 않는다
-                    # 새 스팟 조사 결과에는 conf·tip·sub 가 함께 온다 — 보강 데이터가 아니다
-                    if any(k in s for k in ("conf", "tip", "sub", "tags")): continue
+                    # 새 스팟 조사 결과에는 conf 가 늘 붙는다 — 그건 보강 데이터가 아니다
+                    if "conf" in s: continue
+                    # 예전 '폐업 확인' 차수 결과(status 필드)는 tip 을 덮어써서 오히려 깎인다
+                    if "status" in s: continue
                     # 지시문에 넣은 예시("...")가 그대로 잡히는 것을 막는다
                     if any(isinstance(v, str) and v.strip(". ") == "" for v in s.values()): continue
+                    # acts4 는 "아무것도 못 한다"는 뜻의 빈 배열도 의미가 있어 살린다
                     fields = {k: v for k, v in s.items()
-                              if k not in SKIP and v not in (None, "", [])}
+                              if k not in SKIP and (v not in (None, "", []) or k == "acts4")}
                     if not fields: continue
                     key = (s["cat"], s["n"].strip())
                     if key not in have:
