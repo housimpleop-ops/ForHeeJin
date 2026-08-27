@@ -179,12 +179,18 @@ const BOOK_HINT = {
   valley:["주차 이용요금",""], hike:["등산코스",""],
   beach:["개장 기간",""], drive:["",""], run:["",""],
 };
+/* 예약 안내 글 어디에 있든 첫 번째 주소를 뽑아낸다
+   (조사 결과가 "여기어때·야놀자 (https://...)" 처럼 섞여 오는 일이 많다) */
+function bookUrl(s){
+  const m = String(s && s.book || "").match(/https?:\/\/[^\s)]+/);
+  return m ? m[0].replace(/[.,]$/, "") : null;
+}
 function bookLinks(s){
   const hint = BOOK_HINT[s.cat] || ["",""];
   const q = encodeURIComponent(s.n + (hint[0] ? " " + hint[0] : ""));
   const btns = [];
-  if(s.book && /^https?:\/\//.test(s.book))
-    btns.push(`<a class="sp-lk go" href="${esc(s.book)}" target="_blank" rel="noopener">🎟️ 공식 예약</a>`);
+  const u = bookUrl(s);
+  if(u) btns.push(`<a class="sp-lk go" href="${esc(u)}" target="_blank" rel="noopener">🎟️ 공식 예약</a>`);
   btns.push(`<a class="sp-lk" href="https://search.naver.com/search.naver?query=${q}" target="_blank" rel="noopener">🔍 검색</a>`);
   btns.push(`<a class="sp-lk" href="https://map.kakao.com/?q=${encodeURIComponent(s.n)}" target="_blank" rel="noopener">🗺️ 지도·전화</a>`);
   return `<div class="sp-lks">${btns.join("")}</div>`
@@ -216,8 +222,15 @@ function renderSpotStrip(spots){
       ${infos.map(([k,ic])=>{
         const v = String(s[k]);
         /* 예약처가 주소면 눌러서 바로 가게 */
-        if(k==="book" && /^https?:\/\//.test(v))
-          return `<div class="sp-line">${ic} <a href="${esc(v)}" target="_blank" rel="noopener">공식 예약 페이지 ↗</a></div>`;
+        if(k==="book"){
+          const u = bookUrl(s);
+          /* 주소는 링크로 바꾸고, 설명은 그대로 남긴다 */
+          if(u){
+            const txt = v.replace(u, "").replace(/[(\s·]+$/,"").replace(/^[\s·(]+/,"").replace(/\(\s*\)/,"").trim();
+            return `<div class="sp-line">${ic} ${txt?esc(txt)+" — ":""}`
+              + `<a href="${esc(u)}" target="_blank" rel="noopener">예약 페이지 ↗</a></div>`;
+          }
+        }
         return `<div class="sp-line">${ic} ${esc(v)}</div>`;
       }).join("")}
       ${s.parkSpot?`<div class="sp-line">🅿️ <b>추천 주차</b> — ${esc(s.parkSpot)}</div>`:""}
