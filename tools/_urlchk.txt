@@ -191,3 +191,61 @@
 200	https://cafe.naver.com/tyautocamping	통영오토캠핑장
 200	https://ohdosan.foresttrip.go.kr	합천 오도산자연휴양림 야영장
 404	http://01028209996.tshome.co.kr	거제 궁농오토캠핑장
+200	https://www.usc.go.kr/icevalley/index.do	의성 빙계얼음골야영장
+200	https://stay.yd.go.kr	영덕 고래불 국민야영장
+200	http://gjrest.foresttrip.go.kr	토함산자연휴양림 야영장
+200	https://www.ictr.or.kr/	월미도 · 인천항 야경 드라이브
+200	http://www.singsingfestival.com	가평 자라섬 씽씽겨울축제
+200	http://www.fes-artvalley.com/snowFest1.php	양주 눈꽃축제 눈썰매장
+200	https://hangang.seoul.go.kr	여의도한강공원 수영장
+200	https://www.dongjangkun.com	포천 백운계곡 동장군축제
+200	http://www.onemount.co.kr	원마운트 스노우파크
+200	https://www.incheonbridge.com/tour/viewpoint	인천대교 조망 코스 (송도 ↔ 영종)
+200	https://www.seocho.go.kr	양재천 겨울 눈놀이터
+200	https://www.ganghwafesta.co.kr	강화 양오낚시터 빙어축제
+200	https://res.isdc.co.kr	성남종합운동장 눈썰매장
+200	https://seoulland.co.kr	서울랜드 스노우펀랜드
+200	https://www.o2resort.com	오투리조트 스키장
+200	https://www.sonohotelsresorts.com	소노벨 천안 스노우어드벤처
+200	https://festival700.or.kr	평창송어축제 눈썰매장
+200	https://www.narafestival.com	화천 산천어축제 얼음썰매·눈썰매
+200	https://www.snowfestival.net	대관령 눈꽃축제 눈썰매장
+200	https://oktokki.com	옥토끼우주센터 눈썰매장
+200	https://www.elysian.co.kr	엘리시안 강촌 스키장
+200	https://oakvalley.co.kr	오크밸리 리조트 스노우파크
+200	https://daejeon.wlsland.com	대전 동구 어린이 눈썰매장 (상소문화공원)
+200	http://www.alpsvill.com	청양 칠갑산 얼음분수축제 (알프스마을)
+200	https://www.gjfamilyland.com	광주 패밀리랜드 눈썰매장
+200	https://www.gjw.co.kr	경주월드 스노우파크
+200	https://onemount.co.kr/	원마운트 워터파크 (고양 일산)
+200	https://www.walkerhill.com/grandwalkerhillseoul/activity/Riverpark	그랜드 워커힐 서울 리버파크 야외수영장
+200	https://spadium24.co.kr/	스파디움24 남양주(다산점)
+403	https://www.banyantree.com/south-korea/club-and-spa-seoul	반얀트리 클럽 앤 스파 서울 – 더 오아시스 야외풀
+200	https://www.nesthotel.co.kr/	네스트호텔 스트란트 인피니티 풀
+200	https://www.blueoceanhotel.co.kr/facilities/4	블루오션 웰니스 스파
+200	https://www.resom.co.kr	제천 포레스트 리솜 해브나인 스파
+200	https://www.eldoradoresort.co.kr	신안 증도 엘도라도리조트 오션스파랜드
+200	https://www.resom.co.kr/island	태안 아일랜드 리솜 오아식스 선셋스파
+200	https://kolonhotel.co.kr	경주 코오롱호텔 온천사우나
+200	http://www.herbdongsan.com	제주허브동산 황금족욕
+200	http://www.hiddencliff.kr	히든클리프 호텔 앤 네이처 인피니티풀 & 릴스파
+200	https://wehotel.co.kr	WE호텔 제주 웰니스 수영장 & 스파
+200	https://www.goyang.go.kr/visitgoyang/www/contents.do?key=72	일산 라페스타 & 웨스턴돔
+200	https://namdaemunmarket.co.kr	남대문시장
+200	http://seawaterpark.com	도두해수파크
+200	https://www.sisul.or.kr/open_content/undershop/	고투몰 (고속터미널 지하상가)
+200	https://www.gcf.or.kr/main/exh/list.do	김포아트홀
+200	https://gn.go.kr/www/selectBbsNttView.do?key=258&bbsNo=12&nttNo=182538	강릉 월화거리 (월화거리 야시장)
+200	https://www.nyjcf.or.kr/	다산아트홀 (남양주문화재단)
+200	https://www.pajucf.or.kr/	파주 운정행복센터 공연장
+200	https://www.guri.go.kr/culture/contents.do?key=3821	구리아트홀
+200	http://www.gysiseol.or.kr/culturebuilding/	계양문화회관
+200	https://www.iscf.kr/	청라블루노바홀
+200	https://www.haksanculture.or.kr/	학산소극장
+200	https://www.samcheok.go.kr/specialty/00468/00856.web	삼척문화예술회관
+200	https://www.dh.go.kr/www/selectBbsNttList.do?bbsNo=94&key=488	동해문화예술회관
+200	https://www.taebaek.go.kr/www/selectBbsNttList.do?bbsNo=111&key=1210	태백문화예술회관
+200	https://www.cccf.or.kr/	축제극장 몸짓 (춘천)
+200	https://www.nanta.co.kr	난타 제주전용극장
+DONE
+200	https://chilmeoridang.or.kr	제주칠머리당영등굿 전수관 상설공연

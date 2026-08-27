@@ -1,8 +1,14 @@
 [
-{"cat":"spa","n":"인스파이어 스플래시 베이","book":"https://www.inspireresorts.com/ko"},
-{"cat":"camp","n":"서천 해양글램핑","book":"전화 예약 010-6360-5745 (공식 홈페이지 주소가 사라져 전화로만 확인됩니다)"},
-{"cat":"camp","n":"완도 명사십리오토캠핑장","book":"네이버 예약 또는 전화 1600-5027"},
-{"cat":"camp","n":"부안 변산오토캠핑장","book":"전화 예약 010-8440-6655"},
-{"cat":"camp","n":"부안 줄포만갯벌생태공원 캠핑장","book":"https://www.buan.go.kr (인터넷 예약만 가능. 신청 다음날 정오까지 전액 결제해야 확정, 매주 월요일 휴관)"},
-{"cat":"snow","n":"경주월드 스노우파크","book":"https://www.gjw.co.kr (경주월드 공식. 온라인 사전예매가 현장가보다 저렴)"}
+{"cat": "spa", "n": "인스파이어 스플래시 베이", "book": "https://www.inspireresorts.com/ko"},
+{"cat": "camp", "n": "서천 해양글램핑", "book": "전화 예약 010-6360-5745 (공식 홈페이지 주소가 사라져 전화로만 확인됩니다)"},
+{"cat": "camp", "n": "완도 명사십리오토캠핑장", "book": "네이버 예약 또는 전화 1600-5027"},
+{"cat": "camp", "n": "부안 변산오토캠핑장", "book": "전화 예약 010-8440-6655"},
+{"cat": "camp", "n": "부안 줄포만갯벌생태공원 캠핑장", "book": "https://www.buan.go.kr (인터넷 예약만 가능. 신청 다음날 정오까지 전액 결제해야 확정, 매주 월요일 휴관)"},
+{"cat": "snow", "n": "경주월드 스노우파크", "book": "https://www.gjw.co.kr (경주월드 공식. 온라인 사전예매가 현장가보다 저렴)"},
+{"cat": "fest", "n": "증평 인삼골축제", "book": "https://www.jp.go.kr/tour/index.do"},
+{"cat": "fest", "n": "음성품바축제", "book": "https://www.eumseong.go.kr/tour/index.do"},
+{"cat": "fest", "n": "영광 불갑산 상사화축제", "book": "https://www.yeonggwang.go.kr (한글 도메인 공식 사이트가 닫혀 군청 페이지로 확인)"},
+{"cat": "fest", "n": "진도 신비의 바닷길 축제", "book": "https://www.jindo.go.kr"},
+{"cat": "camp", "n": "거제 궁농오토캠핑장", "book": "전화 예약 010-8217-4977 (자체 홈페이지가 닫혔습니다) / 거제 관광 https://www.geoje.go.kr/tour/index.geoje"},
+{"cat": "snow", "n": "가평 자라섬 씽씽겨울축제", "book": "https://www.jarasum.net (입장·체험권 현장 발권 중심, 단체는 사전 문의 031-581-2311)"}
 ]
