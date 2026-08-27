@@ -1078,8 +1078,13 @@ function renderRun(){
 function spotMatches(){
   let list = spotsOfCat(spotF.cat);
   if(spotF.region!=="all") list = list.filter(s=>s.r===spotF.region);
-  if(spotF.sub!=="all") list = list.filter(s=>s.sub===spotF.sub || (s.tags||[]).indexOf(spotF.sub)>=0
-    || (s.acts4||[]).indexOf(spotF.sub)>=0);
+  if(spotF.sub!=="all"){
+    /* 해변은 조사해서 정한 4분류(acts4)만 따른다. 옛 태그에 "서핑"이 남아 있는 곳이
+       있는데, 상설 서핑존이 없어 일부러 뺀 곳이라 태그로 다시 잡히면 안 된다 */
+    list = spotF.cat === "beach"
+      ? list.filter(s=>(s.acts4||[]).indexOf(spotF.sub)>=0)
+      : list.filter(s=>s.sub===spotF.sub || (s.tags||[]).indexOf(spotF.sub)>=0);
+  }
   const q = spotF.q.trim();
   if(q) list = list.filter(s=>s.n.indexOf(q)>=0 || (s.a||"").indexOf(q)>=0 || (s.tags||[]).some(t=>t.indexOf(q)>=0));
   return list;
