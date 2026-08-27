@@ -961,7 +961,8 @@ function renderRun(){
 function spotMatches(){
   let list = spotsOfCat(spotF.cat);
   if(spotF.region!=="all") list = list.filter(s=>s.r===spotF.region);
-  if(spotF.sub!=="all") list = list.filter(s=>s.sub===spotF.sub || (s.tags||[]).indexOf(spotF.sub)>=0);
+  if(spotF.sub!=="all") list = list.filter(s=>s.sub===spotF.sub || (s.tags||[]).indexOf(spotF.sub)>=0
+    || (s.acts4||[]).indexOf(spotF.sub)>=0);
   const q = spotF.q.trim();
   if(q) list = list.filter(s=>s.n.indexOf(q)>=0 || (s.a||"").indexOf(q)>=0 || (s.tags||[]).some(t=>t.indexOf(q)>=0));
   return list;
@@ -1001,15 +1002,23 @@ function renderSpot(){
   const regions = RUN_REGIONS.filter(r=>inCat.some(s=>s.r===r));
   $("#spotRegion").innerHTML = `<button data-g="all" class="${spotF.region==="all"?"on":""}">전체</button>`
     + regions.map(r=>`<button data-g="${r}" class="${spotF.region===r?"on":""}">${r} ${inCat.filter(s=>s.r===r).length}</button>`).join("");
-  /* 세부 종류 칩 — 그 분야의 sub + 자주 나오는 태그 */
-  const subs = [];
-  inCat.forEach(s=>{ if(s.sub && subs.indexOf(s.sub)<0) subs.push(s.sub); });
-  const tagCount = {};
-  inCat.forEach(s=>(s.tags||[]).forEach(t=>{ tagCount[t]=(tagCount[t]||0)+1; }));
-  const topTags = Object.keys(tagCount).filter(t=>subs.indexOf(t)<0).sort((a,b)=>tagCount[b]-tagCount[a]).slice(0,6);
-  $("#spotSub").innerHTML = `<button data-s="all" class="${spotF.sub==="all"?"on":""}">전체</button>`
-    + subs.map(v=>`<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">${esc(v)}</button>`).join("")
-    + topTags.map(v=>`<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">#${esc(v)}</button>`).join("");
+  /* 세부 종류 칩 — 해변은 활동 4가지로, 나머지는 sub + 자주 나오는 태그 */
+  if(spotF.cat === "beach"){
+    $("#spotSub").innerHTML = `<button data-s="all" class="${spotF.sub==="all"?"on":""}">전체</button>`
+      + BEACH_ACTS.map(([v,em])=>{
+          const n = inCat.filter(s=>(s.acts4||[]).indexOf(v)>=0).length;
+          return `<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">${em} ${esc(v)} ${n}</button>`;
+        }).join("");
+  } else {
+    const subs = [];
+    inCat.forEach(s=>{ if(s.sub && subs.indexOf(s.sub)<0) subs.push(s.sub); });
+    const tagCount = {};
+    inCat.forEach(s=>(s.tags||[]).forEach(t=>{ tagCount[t]=(tagCount[t]||0)+1; }));
+    const topTags = Object.keys(tagCount).filter(t=>subs.indexOf(t)<0).sort((a,b)=>tagCount[b]-tagCount[a]).slice(0,6);
+    $("#spotSub").innerHTML = `<button data-s="all" class="${spotF.sub==="all"?"on":""}">전체</button>`
+      + subs.map(v=>`<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">${esc(v)}</button>`).join("")
+      + topTags.map(v=>`<button data-s="${esc(v)}" class="${spotF.sub===v?"on":""}">#${esc(v)}</button>`).join("");
+  }
   /* 목록 */
   const list = spotMatches();
   const all = allSpots();
