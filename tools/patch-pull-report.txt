@@ -1,4 +1,5 @@
-보강 125곳
+보강 201곳
+  culture   76
   drive     50
   hike      75
 
