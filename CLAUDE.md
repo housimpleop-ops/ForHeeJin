@@ -309,3 +309,10 @@ python tools/apply-patch.py tools/url-fix.json   # ← 이걸 빼먹으면 죽�
 campwando.com, byeon-san.co.kr, julpoman.buan.go.kr, gyeongjuworld.com).
 ⚠️ 이천 미란다호텔의 옛 도메인 mirandahotel.com 은 만료돼 무관한 사이트로 넘어간다 —
 검색엔진이 아직 공식으로 안내하니 절대 넣지 말 것.
+
+⚠️ **조사팀 결과에 `&amp;` 가 섞여 들어온다.** 주소 안에 들어가면 쿼리가 깨져
+400/404가 난다(동해·태백 문예회관, 강릉 월화거리가 그랬다). 병합 뒤
+`&amp;` → `&` 로 바꾸고, **경로가 있는 링크는 실제로 GET 해서 열리는지 확인**할 것.
+403(하얏트·메리어트·반얀트리 등)은 자동 접속만 막는 것이라 정상이다.
+숲나들e 개별 휴양림 페이지(`/indvz/main.do?hmpgId=…`)는 에러로 넘어가므로
+통합 대문 `https://www.foresttrip.go.kr` 을 쓴다.
