@@ -1,10 +1,11 @@
-보강 934곳
+보강 1057곳
   beach     81
   cafe      66
   camp      61
-  culture   76
+  culture   90
   drive     50
   fest      82
+  food     109
   hike     121
   shop      87
   snow      52
