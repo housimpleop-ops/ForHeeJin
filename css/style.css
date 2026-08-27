@@ -632,3 +632,54 @@ textarea.feel-in + textarea.feel-in{margin-top:6px}
 .sp-lk.go{background:var(--run); border-color:var(--run); color:#fff}
 .sp-hint{font-size:11px; color:var(--muted-solid); margin:-2px 2px 4px}
 .sp-line a{color:var(--run); font-weight:700}
+
+/* ---------- 홀투어 비교 ---------- */
+.add-hall{width:100%; margin:10px 0 12px}
+.hall-card{border:1px solid var(--line); border-radius:14px; background:var(--card); box-shadow:var(--shadow); margin-bottom:10px; overflow:hidden}
+.hall-card.on{border-color:var(--run)}
+.hall-top{width:100%; text-align:left; padding:12px 14px; display:flex; flex-direction:column; gap:3px; background:none; border:0}
+.hall-name{font-size:15px; font-weight:800}
+.hall-meta{font-size:11px; color:var(--muted-solid)}
+.hall-sum{font-size:12px; font-weight:800; color:var(--run)}
+.hall-body{padding:0 14px 14px}
+.hall-head{display:flex; gap:8px; margin-bottom:10px}
+.hall-nm{flex:1; min-width:0}
+.hall-dt{flex:none; width:140px}
+.hall-calc{background:var(--soft); border-radius:12px; padding:10px 12px; margin-bottom:12px; font-size:12px; line-height:1.6}
+.hall-calc b{display:block; font-size:11px; color:var(--muted-solid); margin-bottom:2px}
+.hall-tot{font-size:16px; font-weight:800; color:var(--run); margin-top:4px}
+.hall-note{font-size:11px; color:var(--muted-solid); margin-top:2px}
+.hall-sec{border-top:1px solid var(--line); padding-top:8px; margin-top:8px}
+.hall-sec>summary{font-size:13px; font-weight:800; cursor:pointer; padding:4px 0; list-style:none}
+.hall-sec>summary::-webkit-details-marker{display:none}
+.hall-qs{padding:4px 0 8px}
+.hall-q{margin-bottom:12px}
+.hall-l{font-size:13px; font-weight:700; margin-bottom:2px}
+.hall-h{font-size:11px; color:var(--muted-solid); line-height:1.5; margin-bottom:5px}
+.hall-q textarea, .hall-num input{width:100%}
+.hall-num{display:flex; align-items:center; gap:6px}
+.hall-num input{flex:1; min-width:0; text-align:right}
+.hall-num span{font-size:12px; color:var(--muted-solid); flex:none}
+.hall-yn{margin:0}
+.hall-yn button{font-size:12px; padding:5px 12px}
+.hall-acts{display:flex; gap:8px; margin-top:10px}
+.hall-acts .btn-sm{flex:1}
+/* 나란히 비교 */
+.hall-cmp-money{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin:12px 0 16px}
+.hcm{border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--card)}
+.hcm.best{border-color:var(--run); background:var(--soft)}
+.hcm-n{font-size:12px; font-weight:700; color:var(--muted-solid)}
+.hcm-t{font-size:19px; font-weight:800; margin:2px 0}
+.hcm-s{font-size:11px; color:var(--muted-solid); line-height:1.5}
+.hcm-b{font-size:11px; font-weight:800; color:var(--run); margin-top:4px}
+.hall-cmp-sec{margin-bottom:16px}
+.hall-cmp-h{font-size:13px; font-weight:800; margin-bottom:6px}
+.hall-cmp-q{border-top:1px solid var(--line); padding:8px 0}
+.hall-cmp-l{font-size:12px; font-weight:700; margin-bottom:4px}
+.hall-cmp-vs{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:6px}
+.hcv{background:var(--soft); border-radius:10px; padding:6px 9px; min-width:0}
+.hcv-n{display:block; font-size:10px; color:var(--muted-solid)}
+.hcv-v{display:block; font-size:12px; line-height:1.5; word-break:break-word}
+/* 가기 전에 */
+.hall-tips{margin-top:12px}
+.hall-tip{background:var(--soft); border-radius:12px; padding:10px 12px; margin-bottom:8px; font-size:13px; line-height:1.6}

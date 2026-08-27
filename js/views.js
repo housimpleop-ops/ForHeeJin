@@ -818,7 +818,7 @@ function renderUs(){
 /* ---------- 트리 허브 (계획·서랍) ---------- */
 const PLAN_TREE = [
   { h:"🌱 목표 · 준비", kids:[
-    ["wed","💍","결혼 준비"],["trip","✈️","여행"],["home","🏠","신혼집"],["baby","👶","아이"],
+    ["wed","💍","결혼 준비"],["hall","🏛️","홀투어 비교"],["trip","✈️","여행"],["home","🏠","신혼집"],["baby","👶","아이"],
     ["pet","🐾","반려동물"],["smoke","🚭","금연"],["body","📊","몸 만들기"],["invest","🪙","재테크"]]},
   { h:"📔 매일 기록", kids:[
     ["meal","🍚","식단"],["show","📺","같이 보기"],["fridge","🧊","냉장고·장보기"]]},
@@ -843,6 +843,12 @@ function planStatus(key){
   }
   switch(key){
     case "wed": case "home": case "baby": case "pet": return pctOf(key);
+    case "hall": {
+      const n = DATA.halls.length;
+      if(!n) return "다녀온 홀 적어두기";
+      const c = DATA.halls.map(hallCost).filter(x=>x.total);
+      return n+"곳 비교 중"+(c.length?" · 최소 "+won(Math.min(...c.map(x=>x.total)))+"원":"");
+    }
     case "trip": {
       const t0 = ymd(new Date());
       const up = DATA.trips.filter(t=>t.start && t.start>=t0).sort((a,b)=>a.start.localeCompare(b.start))[0];
@@ -885,6 +891,113 @@ function treeHubHTML(tree){
 }
 function renderPlanHub(){ $("#planTree").innerHTML = treeHubHTML(PLAN_TREE); }
 function renderBoxHub(){ $("#boxTree").innerHTML = treeHubHTML(BOX_TREE); }
+
+/* ---------- 홀투어 비교 ---------- */
+const won = n => (+n||0).toLocaleString("ko-KR");
+/* 대관료 + 식대×보증인원 = 사실상 바닥 금액. 부가세·봉사료가 별도면 10%를 더 본다 */
+function hallCost(h){
+  const a = h.answers || {};
+  const rent = +a.rent||0, flower = +a.flower||0, meal = +a.meal||0, g = +a.minGuest||0;
+  const base = rent + flower + meal*g;
+  const tax  = a.taxInc === "no" ? Math.round(base*0.1) : 0;
+  return { base, tax, total: base+tax, rent, flower, meal, g, hasTax: a.taxInc === "no" };
+}
+function hallAnswered(h){
+  const a = h.answers||{}, all = HALL_SECS.reduce((n,s)=>n+s.items.length,0);
+  return { d:HALL_SECS.reduce((n,s)=>n+s.items.filter(i=>a[i[0]]!==undefined&&a[i[0]]!=="").length,0), t:all };
+}
+function hallInput(h, it){
+  const [k,l,hint,t] = it, v = (h.answers||{})[k];
+  const id = `ha-${h.id}-${k}`;
+  let field;
+  if(t==="yn"){
+    field = `<div class="chips hall-yn" data-hid="${h.id}" data-k="${k}">
+      <button data-v="yes" class="${v==="yes"?"on":""}">네</button>
+      <button data-v="no" class="${v==="no"?"on":""}">아니오</button>
+      <button data-v="" class="${!v?"on":""}">아직</button></div>`;
+  } else if(t==="num" || t==="n2"){
+    field = `<div class="hall-num"><input id="${id}" type="number" inputmode="numeric" data-hid="${h.id}" data-k="${k}"
+      value="${v!==undefined&&v!==""?esc(String(v)):""}" placeholder="0"><span>${t==="num"?"원":"명"}</span></div>`;
+  } else {
+    field = `<textarea id="${id}" rows="2" data-hid="${h.id}" data-k="${k}" placeholder="들은 대로 적어두기">${v?esc(String(v)):""}</textarea>`;
+  }
+  return `<div class="hall-q"><div class="hall-l">${esc(l)}</div>
+    ${hint?`<div class="hall-h">${esc(hint)}</div>`:""}${field}</div>`;
+}
+function hallCardHTML(h){
+  const open = hallSel===h.id, p = hallAnswered(h), c = hallCost(h);
+  const money = c.total ? `<span class="hall-sum">최소 ${won(c.total)}원</span>` : "";
+  return `<div class="hall-card${open?" on":""}">
+    <button class="hall-top" data-hopen="${h.id}">
+      <span class="hall-name">${esc(h.n||"이름 없는 홀")}</span>
+      <span class="hall-meta">${h.date?esc(h.date)+" · ":""}${p.d}/${p.t}칸 채움${money?" · ":""}</span>${money}
+    </button>
+    ${!open?"":`<div class="hall-body">
+      <div class="hall-head">
+        <input class="hall-nm" data-hid="${h.id}" data-k="_n" value="${esc(h.n||"")}" placeholder="홀 이름">
+        <input class="hall-dt" type="date" data-hid="${h.id}" data-k="_date" value="${h.date||""}">
+      </div>
+      ${c.total?`<div class="hall-calc">
+        <b>지금까지 적은 걸로 계산하면</b>
+        <div>대관료 ${won(c.rent)}${c.flower?" + 꽃장식 "+won(c.flower):""} + 식대 ${won(c.meal)} × 보증 ${c.g}명
+        ${c.hasTax?" + 부가세·봉사료 10% "+won(c.tax):""}</div>
+        <div class="hall-tot">= 최소 ${won(c.total)}원</div>
+        <div class="hall-note">하객이 보증인원보다 많이 오면 그만큼 더 늘어요.</div>
+      </div>`:""}
+      ${HALL_SECS.map(sec=>`<details class="hall-sec" open>
+        <summary>${sec.t}</summary>
+        <div class="hall-qs">${sec.items.map(it=>hallInput(h,it)).join("")}</div>
+      </details>`).join("")}
+      <div class="hall-acts">
+        <button class="btn-sm" data-hmemo="${h.id}">📝 느낌 적기</button>
+        <button class="btn-sm danger" data-hdel="${h.id}">삭제</button>
+      </div>
+      ${h.memo?`<div class="memo" style="margin-top:8px">💬 ${esc(h.memo)}</div>`:""}
+    </div>`}
+  </div>`;
+}
+/* 나란히 비교 — 돈부터 보고, 나머지는 항목별로 홀을 가로로 늘어놓는다 */
+function hallCompareHTML(){
+  const hs = DATA.halls;
+  if(hs.length < 2) return `<div class="us-note" style="margin:12px 2px">홀을 두 곳 이상 적으면 나란히 비교할 수 있어요.</div>`;
+  const costs = hs.map(hallCost);
+  const min = Math.min(...costs.filter(c=>c.total).map(c=>c.total));
+  const money = `<div class="hall-cmp-money">${hs.map((h,i)=>{
+    const c = costs[i], best = c.total && c.total===min;
+    return `<div class="hcm${best?" best":""}">
+      <div class="hcm-n">${esc(h.n||"이름 없음")}</div>
+      <div class="hcm-t">${c.total?won(c.total)+"원":"—"}</div>
+      <div class="hcm-s">${c.total?`대관 ${won(c.rent)} · 식대 ${won(c.meal)}×${c.g}명`:"견적을 아직 안 적었어요"}</div>
+      ${best?`<div class="hcm-b">지금은 여기가 제일 쌉니다</div>`:""}
+    </div>`;}).join("")}</div>`;
+  const rows = HALL_SECS.map(sec=>{
+    const qs = sec.items.filter(it=>hs.some(h=>(h.answers||{})[it[0]]));
+    if(!qs.length) return "";
+    return `<div class="hall-cmp-sec"><div class="hall-cmp-h">${sec.t}</div>`
+      + qs.map(it=>`<div class="hall-cmp-q"><div class="hall-cmp-l">${esc(it[1])}</div>
+        <div class="hall-cmp-vs">${hs.map(h=>{
+          let v = (h.answers||{})[it[0]];
+          if(v===undefined||v==="") v = "—";
+          else if(it[3]==="yn") v = v==="yes"?"네":"아니오";
+          else if(it[3]==="num") v = won(v)+"원";
+          else if(it[3]==="n2") v = v+"명";
+          return `<div class="hcv"><span class="hcv-n">${esc(h.n||"?")}</span><span class="hcv-v">${esc(String(v))}</span></div>`;
+        }).join("")}</div></div>`).join("") + `</div>`;
+  }).join("");
+  return money + (rows || `<div class="us-note" style="margin:12px 2px">아직 채운 항목이 없어요.</div>`);
+}
+function renderHall(){
+  const box = $("#hallBody"); if(!box) return;
+  $$("#hallChips button").forEach(b=>b.classList.toggle("on", b.dataset.h===(hallCmp||"list")));
+  if(hallCmp==="tip"){
+    box.innerHTML = `<div class="hall-tips">${HALL_TIPS.map(t=>`<div class="hall-tip">💡 ${esc(t)}</div>`).join("")}</div>`;
+    return;
+  }
+  if(hallCmp==="cmp"){ box.innerHTML = hallCompareHTML(); return; }
+  box.innerHTML = `<button class="btn add-hall" data-hadd="1">＋ 다녀온 홀 추가</button>`
+    + (DATA.halls.length ? DATA.halls.map(hallCardHTML).join("")
+       : `<div class="us-note" style="margin:12px 2px">아직 적은 홀이 없어요. 투어 다녀와서 기억이 생생할 때 바로 적어두면 좋아요.</div>`);
+}
 
 /* ---------- 러닝 스팟 찾기 ---------- */
 function runMatches(){
@@ -1056,6 +1169,6 @@ function renderMe(){
 }
 function renderAll(){
   renderMe(); renderCal(); renderMap(); renderFest(); renderMeal(); renderNote();
-  renderTrip(); renderWed(); renderHome(); renderFate(); renderBody(); renderShow();
+  renderTrip(); renderWed(); renderHall(); renderHome(); renderFate(); renderBody(); renderShow();
   renderSmoke(); renderInvest(); renderUs(); renderRun(); renderSpot(); renderPlanHub(); renderBoxHub(); renderSet();
 }

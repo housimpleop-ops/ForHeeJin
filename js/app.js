@@ -8,7 +8,7 @@
 /* ---------- 탭 이동 ----------
    하단 6탭: 달력·지도·쪽지·계획(허브)·서랍(허브)·설정
    세부 화면은 허브에서 트리로 들어가고, 탭바에는 부모 허브가 켜진다. */
-const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit","run","spot","runsync"];
+const ALL_VIEWS = ["cal","map","note","plan","box","set","fest","meal","trip","wed","home","fate","body","show","smoke","invest","us","benefit","run","spot","runsync","hall"];
 const VIEW_PARENT = {
   cal:"cal", map:"map", note:"note", plan:"plan", box:"box", set:"set",
   trip:"plan", wed:"plan", home:"plan", smoke:"plan", body:"plan", invest:"plan", meal:"plan", show:"plan", run:"plan", spot:"plan",
@@ -52,6 +52,64 @@ function goFromHub(key){
 }
 $("#planTree").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(b) goFromHub(b.dataset.go); });
 $("#boxTree").addEventListener("click", e=>{ const b=e.target.closest("[data-go]"); if(b) goFromHub(b.dataset.go); });
+
+/* ---------- 홀투어 ---------- */
+$("#hallChips").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  hallCmp = b.dataset.h==="list" ? false : b.dataset.h;
+  renderHall();
+});
+$("#hallBody").addEventListener("click", e=>{
+  const add=e.target.closest("[data-hadd]");
+  if(add){
+    const h={ id:"h"+Date.now(), n:"", date:ymd(new Date()), answers:{}, memo:"" };
+    DATA.halls.push(h); hallSel=h.id; applyChange(); renderHall();
+    setTimeout(()=>{ const el=document.querySelector(".hall-nm"); if(el) el.focus(); },60);
+    return;
+  }
+  const op=e.target.closest("[data-hopen]");
+  if(op){ hallSel = hallSel===op.dataset.hopen ? null : op.dataset.hopen; renderHall(); return; }
+  const yn=e.target.closest(".hall-yn button");
+  if(yn){
+    const wrap=yn.closest(".hall-yn"), h=DATA.halls.find(x=>x.id===wrap.dataset.hid);
+    if(h){ h.answers=h.answers||{}; h.answers[wrap.dataset.k]=yn.dataset.v; applyChange(); renderHall(); }
+    return;
+  }
+  const del=e.target.closest("[data-hdel]");
+  if(del){
+    const h=DATA.halls.find(x=>x.id===del.dataset.hdel); if(!h) return;
+    if(!confirm((h.n||"이 홀")+" 기록을 지울까요?")) return;
+    DATA.halls=DATA.halls.filter(x=>x.id!==del.dataset.hdel); hallSel=null; applyChange(); renderHall();
+    return;
+  }
+  const mm=e.target.closest("[data-hmemo]");
+  if(mm){
+    const h=DATA.halls.find(x=>x.id===mm.dataset.hmemo); if(!h) return;
+    const v=prompt("이 홀 어땠어요? 느낌 그대로 적어두면 나중에 도움돼요", h.memo||"");
+    if(v!==null){ h.memo=v.trim(); applyChange(); renderHall(); }
+  }
+});
+/* 입력은 타이핑이 끊긴 뒤에 저장한다 — 글자마다 다시 그리면 커서가 튄다 */
+let hallSaveT=null;
+function hallSet(el){
+  const h=DATA.halls.find(x=>x.id===el.dataset.hid); if(!h) return;
+  const k=el.dataset.k, v=el.value;
+  if(k==="_n") h.n=v; else if(k==="_date") h.date=v;
+  else { h.answers=h.answers||{}; h.answers[k]=v; }
+  clearTimeout(hallSaveT);
+  hallSaveT=setTimeout(()=>{ applyChange(); }, 500);
+}
+$("#hallBody").addEventListener("input", e=>{
+  const el=e.target.closest("[data-hid]"); if(el && el.dataset.k) hallSet(el);
+});
+/* 견적 숫자를 다 적고 칸을 벗어나면 계산 결과를 새로 보여준다 */
+$("#hallBody").addEventListener("change", e=>{
+  const el=e.target.closest("[data-hid]"); if(!el||!el.dataset.k) return;
+  hallSet(el);
+  if(["rent","flower","meal","minGuest","_n","_date"].indexOf(el.dataset.k)>=0){
+    clearTimeout(hallSaveT); applyChange(); renderHall();
+  }
+});
 
 /* ---------- 러닝 스팟 ---------- */
 $("#runRegion").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b){ runF.region=b.dataset.g; renderRun(); } });

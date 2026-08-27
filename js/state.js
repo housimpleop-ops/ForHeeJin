@@ -7,7 +7,7 @@ let DATA = {
   v:2, events:[], wishes:[], meals:[], notes:[], wedding:[], trips:[],
   boards:{ home:[], baby:[], pet:[] }, fridge:[], shop:[], profile:null,
   bodyP:{ cs:{}, hj:{} }, bodyLogs:[], shows:[],
-  smoke:{ cs:null, hj:null }, invest:{ goal:null, notes:[] },
+  smoke:{ cs:null, hj:null }, invest:{ goal:null, notes:[] }, halls:[],
 };
 
 /* ---------- 화면 상태 (저장 안 됨) ---------- */
@@ -24,6 +24,8 @@ let mapSpotRegion = "경기북부"; // 그 분야에서 볼 지역
 let mapSpotSel = null;        // 지도에서 고른 스팟 이름
 let mapSearchQ = "";          // 지도 검색어
 let noteFilter = "chat"; // 쪽지 필터: chat(상황 쪽지 포함) | cand(후보목록) | log
+let hallSel = null;      // 홀투어에서 펼쳐 본 홀 id
+let hallCmp = false;     // 홀투어 비교표를 보고 있는지
 let spotBag = [];        // 지도 아래 목록에서 체크한 가볼 곳 이름들 (저장 안 됨)
 /* 러닝 스팟 필터 */
 let runF = { region:"all", dist:"all", surf:"all", want:{} };
@@ -86,7 +88,7 @@ function applyChange(c){
 /* ---------- 데이터 보정 (불러온 데이터에 빠진 칸 채우기 + 옛 형식 변환) ---------- */
 function guards(){
   const arr = k => { if(!Array.isArray(DATA[k])) DATA[k] = []; };
-  ["events","wishes","meals","notes","wedding","trips","fridge","shop","bodyLogs","shows"].forEach(arr);
+  ["events","wishes","meals","notes","wedding","trips","fridge","shop","bodyLogs","shows","halls"].forEach(arr);
   if(!DATA.boards) DATA.boards = {home:[],baby:[],pet:[]};
   ["home","baby","pet"].forEach(k=>{ if(!Array.isArray(DATA.boards[k])) DATA.boards[k]=[]; });
   if(!DATA.bodyP) DATA.bodyP = {cs:{},hj:{}};

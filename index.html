@@ -8,9 +8,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=75">
+<link rel="stylesheet" href="css/style.css?v=76">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=75"></script>
+<script src="js/config.js?v=76"></script>
 </head>
 <body>
 
@@ -400,6 +400,20 @@
       </div>
     </section>
 
+    <!-- ===== 홀투어 ===== -->
+    <section id="view-hall" hidden>
+      <div class="card">
+        <div class="sec-title">홀투어 비교 🏛️</div>
+        <div class="us-note" style="margin:0 2px 10px">홀을 여러 곳 돌면 뭐가 뭔지 헷갈려요. 다녀온 자리에서 바로 적어두면 나중에 나란히 놓고 고를 수 있어요.</div>
+        <div class="chips" id="hallChips" style="margin-top:4px">
+          <button data-h="list" class="on">🏛️ 홀별로 적기</button>
+          <button data-h="cmp">📊 나란히 비교</button>
+          <button data-h="tip">💡 가기 전에</button>
+        </div>
+        <div id="hallBody"></div>
+      </div>
+    </section>
+
     <!-- ===== 살림 노트 ===== -->
     <section id="view-home" hidden>
       <div class="card">
@@ -684,20 +698,20 @@
 </div></div>
 
 <!-- ===== 스크립트 (순서 중요: CLAUDE.md 참고) ===== -->
-<script src="js/data.js?v=75"></script>
-<script src="js/data-run.js?v=75"></script>
-<script src="js/data-spots.js?v=75"></script>
-<script src="js/state.js?v=75"></script>
-<script src="js/saju.js?v=75"></script>
-<script src="js/map-borders.js?v=75"></script>
-  <script src="js/map-lines.js?v=75"></script>
-  <script src="js/map-roads.js?v=75"></script>
-<script src="js/gpx.js?v=75"></script>
-  <script src="js/map.js?v=75"></script>
-<script src="js/notify.js?v=75"></script>
-<script src="js/store.js?v=75"></script>
-<script src="js/views.js?v=75"></script>
-<script src="js/sheets.js?v=75"></script>
-<script src="js/app.js?v=75"></script>
+<script src="js/data.js?v=76"></script>
+<script src="js/data-run.js?v=76"></script>
+<script src="js/data-spots.js?v=76"></script>
+<script src="js/state.js?v=76"></script>
+<script src="js/saju.js?v=76"></script>
+<script src="js/map-borders.js?v=76"></script>
+  <script src="js/map-lines.js?v=76"></script>
+  <script src="js/map-roads.js?v=76"></script>
+<script src="js/gpx.js?v=76"></script>
+  <script src="js/map.js?v=76"></script>
+<script src="js/notify.js?v=76"></script>
+<script src="js/store.js?v=76"></script>
+<script src="js/views.js?v=76"></script>
+<script src="js/sheets.js?v=76"></script>
+<script src="js/app.js?v=76"></script>
 </body>
 </html>
