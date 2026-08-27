@@ -1,11 +1,10 @@
-입력 파일 2개
-  spot-000-current.json        1238
-  spot-900-new.json            128
+입력 파일 1개
+  spot-000-current.json        1364
 
-중복 제거 후 총 1366곳 (좌표 있는 곳 1238)
+중복 제거 후 총 1364곳 (좌표 있는 곳 1364)
 
 분류별:
-  cafe     132
+  cafe     131
   food     123
   hike     135
   stay     148
@@ -16,13 +15,13 @@
   camp      97
   drive     79
   snow      52
-  spa       82
+  spa       81
   shop      92
   perf      77
 
 지역별:
   경기북부   149
-  서울     169
+  서울     167
   인천     117
   경기남부   150
   강원     178
