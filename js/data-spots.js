@@ -29,26 +29,26 @@ const SPOT_CATS = {
 
 /* 카드에 보여줄 줄 — [항목키, 앞에 붙일 아이콘·라벨] */
 const SPOT_ROWS = {
-  cafe:   [["signature","🥐"],["price","💳"],["wait","⏳"],["open","🕘"]],
-  food:   [["signature","🍚"],["price","💳"],["wait","⏳"],["open","🕘"]],
-  hike:   [["lvTxt","🥾"],["kmTxt","📏"],["hours","⏱️"],["elev","⛰️"]],
-  stay:   [["facility","🎢"],["priceLow","💳 비성수기"],["priceHigh","💳 성수기"],["peak","📅"],["daytrip","🎟️ 당일이용"],["shuttle","🚌 셔틀"],["runNear","🏃 근처 러닝"],["review","💬"],["book","🎟️ 예약"]],
-  beach:  [["water","🌊"],["surfLv","🏄"],["diveInfo","🤿"],["crowd","👥"]],
-  valley: [["water","💧"],["walk","🚶"],["fee","🎫"],["crowd","👥"],["book","🎟️ 예약"]],
-  culture:[["fee","🎫"],["hours","🕘"],["stay","⏱️"],["book","🎟️ 예약"]],
-  fest:   [["when","📅"],["fee","🎫"],["hours","🕘"],["crowd","👥"],["book","🎟️ 예약"]],
-  camp:   [["price","💳"],["site","⛺"],["fac","🚿"],["water","🚰"],["mart","🛒"],["book","🎟️ 예약"]],
-  drive:  [["kmTxt","📏"],["course","🛣️"],["view","👀"],["road","🚗"],["stop","📍"],["stopBy","📍"]],
+  cafe:   [["view","👀"],["signature","🥐"],["price","💳"],["wait","⏳"],["open","🕘"],["book","🎫"]],
+  food:   [["signature","🍚"],["price","💳"],["wait","⏳"],["open","🕘"],["book","🎫"]],
+  hike:   [["lvTxt","🥾"],["kmTxt","📏"],["hours","⏱️"],["elev","⛰️"],["course","🛣️"],["view","👀"],["bugTxt","🦟"],["fee","🎫"],["book","🎫"]],
+  stay:   [["facility","🎢"],["view","👀"],["room","🛏️"],["priceLow","💳 비성수기"],["priceHigh","💳 성수기"],["peak","📅"],["daytrip","🎟️ 당일이용"],["shuttle","🚌 셔틀"],["runNear","🏃 근처 러닝"],["review","💬"],["book","🎟️ 예약"]],
+  beach:  [["water","🌊"],["surfLv","🏄"],["diveInfo","🤿"],["crowd","👥"],["fee","🎫"],["book","🎫"]],
+  valley: [["water","💧"],["walk","🚶"],["fee","🎫"],["when","📅"],["bugTxt","🦟"],["crowd","👥"],["book","🎟️ 예약"]],
+  culture:[["what","🖼️"],["fee","🎫"],["hours","🕘"],["stay","⏱️"],["spend","⏱️"],["book","🎟️ 예약"]],
+  fest:   [["what","🎊"],["when","📅"],["fee","🎫"],["hours","🕘"],["crowd","👥"],["book","🎟️ 예약"]],
+  camp:   [["when","📅"],["price","💳"],["site","⛺"],["fac","🚿"],["water","🚰"],["mart","🛒"],["book","🎟️ 예약"]],
+  drive:  [["kmTxt","📏"],["course","🛣️"],["view","👀"],["when","📅"],["road","🚗"],["stop","📍"],["stopBy","📍"],["book","🎫"]],
   snow:   [["when","📅"],["slope","🎿"],["price","💳"],["rental","🎽"],["night","🌙"],["book","🎟️ 예약"]],
-  spa:    [["water","♨️"],["price","💳"],["hours","🕘"],["stayNear","🏨"],["book","🎟️ 예약"]],
-  shop:   [["buy","🛍️"],["eat","🍜"],["hours","🕘"],["day","📅"],["book","🎟️ 예약"]],
+  spa:    [["what","♨️"],["water","♨️"],["price","💳"],["hours","🕘"],["stayNear","🏨"],["book","🎟️ 예약"]],
+  shop:   [["what","🛍️"],["buy","🛍️"],["eat","🍜"],["hours","🕘"],["day","📅"],["book","🎟️ 예약"]],
   perf:   [["what","🎭"],["price","💳"],["when","📅"],["book","🎟️ 예매"]],
 };
 
 /* 태그(작은 알약)로 보여줄 항목 — [항목키, 참일 때 문구] */
 const SPOT_FLAGS = {
   stay:   [["gym","🏋️ 헬스장"],["pool","🏊 수영장"],["bbq","🍖 바비큐"],["pet","🐾 애견동반"],["breakfast","🍳 조식"]],
-  cafe:   [["pet","🐾 애견동반"]],
+  cafe:   [["pet","🐾 애견동반"],["kid","🧸 아이 동반 OK"]],
   food:   [["resv","📞 예약 가능"],["pet","🐾 애견동반"]],
   hike:   [["wc","🚻 화장실"],["water","🚰 약수터"]],
   beach:  [["shower","🚿 샤워장"],["wc","🚻 화장실"],["pet","🐾 애견동반"]],
@@ -1431,9 +1431,23 @@ const SPOTS = [
 
 /* 분류마다 항목 이름이 조금씩 달라서 화면에서 쓰는 이름으로 한 번 맞춰준다 */
 const HIKE_LEVEL = { easy:"쉬움 — 초보도 OK", mid:"보통 — 등산화 권장", hard:"힘듦 — 체력 필요" };
+const BUG_TXT = { 1:"벌레 거의 없음", 2:"벌레 보통 — 여름엔 기피제", 3:"벌레 많음 — 긴옷·기피제 필수" };
+const FEE_CATS = { fest:1, valley:1, culture:1, beach:1, hike:1 };
 SPOTS.forEach(s=>{
   if(!s.tags && s.acts) s.tags = s.acts;          // 해변·계곡은 활동이 acts에 들어있다
   if(s.level) s.lvTxt = HIKE_LEVEL[s.level] || s.level;
+  /* 조사 차수마다 항목 이름이 달라서, 뜻이 같은데 화면에 안 나오던 것들을 맞춰준다 */
+  if(!s.signature && s.sig)  s.signature = s.sig;      // 카페 대표메뉴
+  if(!s.signature && s.menu) s.signature = s.menu;     // 맛집 대표메뉴
+  if((s.cat==="cafe" || s.cat==="food") && !s.open && s.hours) s.open = s.hours;
+  if(s.cat==="camp" && !s.fac && s.facility) s.fac = s.facility;
+  if(!s.fee && s.price && FEE_CATS[s.cat]) s.fee = s.price;
+  if(s.bug) s.bugTxt = BUG_TXT[s.bug] || null;
+  /* 등산은 예전에 코스 설명을 거리(kmTxt) 칸에 적어둔 게 많다 — 코스 칸으로 옮기고 거리는 짧게 */
+  if(s.cat==="hike" && s.kmTxt && (s.kmTxt.indexOf("→")>=0 || s.kmTxt.length>45)){
+    if(!s.course) s.course = s.kmTxt;
+    s.kmTxt = s.km ? ("약 " + s.km + "km") : "";
+  }
 });
 
 /* 러닝 + 나머지를 한 배열로 (러닝은 cat이 없으니 붙여준다) */
