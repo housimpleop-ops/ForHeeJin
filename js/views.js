@@ -1005,15 +1005,19 @@ function runMatches(){
     if(runF.region!=="all" && p.r!==runF.region) return false;
     if(runF.dist!=="all"){
       const km = p.km;
-      if(km==null) return false;
-      if(runF.dist==="s" && !(km<=3)) return false;
-      if(runF.dist==="m" && !(km>3 && km<=6)) return false;
-      if(runF.dist==="l" && !(km>6)) return false;
+      /* 안양천·태화강처럼 원하는 만큼 늘려 뛰는 곳은 거리가 정해져 있지 않다.
+         이런 곳을 걸러내 버리면 어느 거리를 골라도 안 나오므로 항상 남긴다 */
+      if(km!=null){
+        if(runF.dist==="s" && !(km<=3)) return false;
+        if(runF.dist==="m" && !(km>3 && km<=6)) return false;
+        if(runF.dist==="l" && !(km>6)) return false;
+      }
     }
     if(runF.surf!=="all" && p.s!==runF.surf) return false;
     if(runF.want.flat && p.el!=="flat") return false;
     if(runF.want.shade && !(p.sh>=2)) return false;
-    if(runF.want.nobug && !(p.bug<=0)) return false;
+    /* 벌레 정보가 없는 곳(null)을 "없음"으로 세면 안 된다 */
+    if(runF.want.nobug && !(p.bug!=null && p.bug<=0)) return false;
     if(runF.want.park && p.pk!=="free") return false;
     if(runF.want.lit && p.lit!==true) return false;
     if(runF.want.wc && p.wc!==true) return false;
@@ -1026,7 +1030,7 @@ function runCard(p, i){
   const pk = RUN_PARK[p.pk]||{l:"",em:""};
   return `<div class="card runc" data-i="${i}">
     <div class="trip-h"><span class="nm">🏃 ${esc(p.n)}</span>
-      ${p.km!=null?`<span class="dday">${p.km}km</span>`:""}</div>
+      ${p.km!=null?`<span class="dday">${p.km}km</span>`:`<span class="dday">거리 자유</span>`}</div>
     <div class="trip-dt">${esc(p.r)} · ${esc(p.a||"")}${p.kmTxt?" · "+esc(p.kmTxt):""}</div>
     <div class="chips" style="margin:8px 0 0">
       <span class="rtag">${su.em} ${su.l}</span>
