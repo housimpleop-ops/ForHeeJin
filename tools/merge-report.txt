@@ -1,31 +1,32 @@
-입력 파일 1개
-  spot-000-current.json        1420
+입력 파일 2개
+  spot-000-current.json        1461
+  spot-901-gangwon-city.json    24
 
-중복 제거 후 총 1420곳 (좌표 있는 곳 1420)
+중복 제거 후 총 1485곳 (좌표 있는 곳 1461)
 
 분류별:
   cafe     128
-  food     123
-  hike     137
+  food     125
+  hike     143
   stay     144
   beach     83
-  valley    88
-  culture  124
-  fest      95
-  camp      97
-  drive     87
+  valley    91
+  culture  165
+  fest      98
+  camp      98
+  drive     91
   snow      52
-  spa       86
-  shop      96
+  spa       87
+  shop     100
   perf      80
 
 지역별:
   경기북부   148
-  서울     166
+  서울     171
   인천     147
   경기남부   147
-  강원     177
+  강원     187
   충청     166
-  전라     169
-  경상     170
+  전라     168
+  경상     221
   제주     130
