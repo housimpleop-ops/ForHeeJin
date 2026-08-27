@@ -1,10 +1,11 @@
-보강 474곳
+보강 596곳
   beach     81
   camp      60
   culture   76
   drive     50
+  fest      82
   hike     121
-  stay      37
+  stay      77
   valley    49
 
 !! 이름이 안 맞아 버린 것 25개

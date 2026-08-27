@@ -54,6 +54,17 @@ def main(jl, out_path):
                     if "conf" in s: continue
                     # 예전 '폐업 확인' 차수 결과(status 필드)는 tip 을 덮어써서 오히려 깎인다
                     if "status" in s: continue
+                    # 조사 메모가 화면에 나가지 않게 다듬는다.
+                    # 괄호 안에만 있으면 괄호를 떼고, 문장 전체가 메모면 그 칸을 버린다.
+                    MEMO = ("확인하지 못했다", "확인되지 않았다", "확인 불가", "미확인",
+                            "확인하지 못함", "확인되지 않음", "확인 실패")
+                    def clean(v):
+                        if not isinstance(v, str): return v
+                        v = re.sub(r"[(（][^()（）]*(?:%s)[^()（）]*[)）]" % "|".join(MEMO), "", v)
+                        v = re.sub(r"\s{2,}", " ", v).strip(" .·,")
+                        return "" if any(m in v for m in MEMO) else v
+                    s = {k: clean(v) for k, v in s.items()}
+                    if "cat" not in s or "n" not in s: continue
                     # 지시문에 넣은 예시("...")가 그대로 잡히는 것을 막는다
                     if any(isinstance(v, str) and v.strip(". ") == "" for v in s.values()): continue
                     # acts4 는 "아무것도 못 한다"는 뜻의 빈 배열도 의미가 있어 살린다
