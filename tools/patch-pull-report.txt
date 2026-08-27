@@ -1,7 +1,7 @@
-보강 878곳
+보강 879곳
   beach     81
   cafe      66
-  camp      60
+  camp      61
   culture   76
   drive     50
   fest      82
